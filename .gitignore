@@ -1,3 +1,6 @@
+# Joveler-specific Resoures
+res/
+*.db
 
 # Created by https://www.gitignore.io/api/csharp,visualstudio
 # Edit at https://www.gitignore.io/?templates=csharp,visualstudio
@@ -34,6 +37,12 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
+
+# Do not ignore Precompiled directory
+!/Joveler.FileMagician/Precompiled/x86/
+!/Joveler.FileMagician/Precompiled/x64/
+!/Joveler.FileMagician/Precompiled/armhf/
+!/Joveler.FileMagician/Precompiled/arm64/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
