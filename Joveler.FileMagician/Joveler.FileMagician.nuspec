@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Joveler.FileMagician</id>
+    <title>Joveler.FileMagician</title>
+    <version>1.0.0</version>
+    <owners>ied206</owners>
+    <authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</authors>
+    <licenseUrl>https://github.com/ied206/Joveler.FileMagician/blob/master/LICENSE</licenseUrl> 
+    <projectUrl>https://github.com/ied206/Joveler.FileMagician</projectUrl>
+    <iconUrl>https://github.com/ied206/Joveler.FileMagician/master/Image/Logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>C# pinvoke library for libmagic (file).
+Supports Windows and Linux.</description>
+    <summary>C# pinvoke library for libmagic (file).</summary>
+    <releaseNotes>- Initial release.
+- Includes libmagic 5.36 binaries for Windows/Linux.</releaseNotes>
+    <copyright>Copyright (c) 2019 Hajin Jang</copyright>
+    <tags>libmagic file pinvoke interop</tags>
+    <dependencies>
+      <group targetFramework="net451"></group>
+      <group targetFramework="netstandard2.0"></group>
+    </dependencies>
+  </metadata>
+  <files>
+    <!-- .Net Framework 4.5.1 -->
+    <file src="bin\Release\net451\Joveler.FileMagician.dll" target="lib\net451" />
+    <file src="bin\Release\net451\Joveler.FileMagician.pdb" target="lib\net451" />
+    <file src="Precompiled\magic.mgc" target="build\net451\Precompiled\magic.mgc" />
+    <file src="Precompiled\x86\*.dll" target="build\net451\Precompiled\x86" />
+    <file src="Precompiled\x64\*.dll" target="build\net451\Precompiled\x64" />
+    <file src="Joveler.FileMagician.targets" target="build\net451\Joveler.FileMagician.targets" />
+    <!-- .Net Standard 2.0 -->
+    <file src="bin\Release\netstandard2.0\Joveler.FileMagician.dll" target="lib\netstandard2.0" />
+    <file src="bin\Release\netstandard2.0\Joveler.FileMagician.pdb" target="lib\netstandard2.0" />
+    <file src="Precompiled\magic.mgc" target="build\netstandard2.0\Precompiled\magic.mgc" />
+    <file src="Precompiled\x86\*" target="build\netstandard2.0\Precompiled\x86" />
+    <file src="Precompiled\x64\*" target="build\netstandard2.0\Precompiled\x64" />
+    <file src="Precompiled\armhf\*" target="build\netstandard2.0\Precompiled\armhf" />
+    <file src="Precompiled\arm64\*" target="build\netstandard2.0\Precompiled\arm64" />
+    <file src="Joveler.FileMagician.targets" target="build\netstandard2.0\Joveler.FileMagician.targets" />
+  </files>
+</package>

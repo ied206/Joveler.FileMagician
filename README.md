@@ -1,4 +1,4 @@
-# Joveler.FileMagic
+# Joveler.FileMagician
 
 <div style="text-align: left">
     <img src="./Image/Logo.svg" height="128">
@@ -15,7 +15,9 @@ libmagic is a file type guesser library which POSIX's file command is powered by
 
 ## Install
 
-TODO
+Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages/Joveler.FileMagician/).
+
+[![NuGet](https://buildstats.info/nuget/Joveler.FileMagician)](https://www.nuget.org/packages/Joveler.FileMagician)
 
 ## Support
 
