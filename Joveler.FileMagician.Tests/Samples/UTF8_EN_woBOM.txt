@@ -1,0 +1,1 @@
+A simple UTF-8 text without BOM.

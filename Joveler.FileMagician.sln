@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joveler.FileMagician", "Joveler.FileMagician\Joveler.FileMagician.csproj", "{FC187BF7-815F-4B09-AD46-A50ECC010D48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joveler.FileMagician.Tests", "Joveler.FileMagician.Tests\Joveler.FileMagician.Tests.csproj", "{D533A929-A0DB-4F73-B700-3969FDB7C9F3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FC187BF7-815F-4B09-AD46-A50ECC010D48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC187BF7-815F-4B09-AD46-A50ECC010D48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC187BF7-815F-4B09-AD46-A50ECC010D48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC187BF7-815F-4B09-AD46-A50ECC010D48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D533A929-A0DB-4F73-B700-3969FDB7C9F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D533A929-A0DB-4F73-B700-3969FDB7C9F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D533A929-A0DB-4F73-B700-3969FDB7C9F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D533A929-A0DB-4F73-B700-3969FDB7C9F3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {747F6758-8CB9-4131-B08D-ECD96C86439D}
+	EndGlobalSection
+EndGlobal
