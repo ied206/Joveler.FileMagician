@@ -7,7 +7,7 @@
     <owners>ied206</owners>
     <authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</authors>
     <projectUrl>https://github.com/ied206/Joveler.FileMagician</projectUrl>
-    <iconUrl>https://github.com/ied206/Joveler.FileMagician/blob/master/Image/Logo.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/ied206/Joveler.FileMagician/master/Image/Logo.png</iconUrl>
     <license type="expression">BSD-2-Clause</license>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>C# pinvoke library for libmagic (file).
