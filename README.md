@@ -6,7 +6,7 @@
 
 C# pinvoke library for native [libmagic](http://www.darwinsys.com/file/).
 
-libmagic is a file type guesser library, and POSIX's file command is powered by this library. libmagic is writeen by 
+libmagic is a file type guesser library which POSIX's file command is powered by.
 
 | Branch    | Build Status   |
 |-----------|----------------|
@@ -30,7 +30,7 @@ TODO
 |----------|--------------|--------|
 | Windows  | x86, x64     | Yes    |
 | Linux    | x64, armhf   | Yes    |
-|          | arm64        | No     |
+|          | arm64        | Yes    |
 
 #### Tested linux distributions
 
@@ -38,6 +38,7 @@ TODO
 |--------------|--------------|------|
 | x64          | Ubuntu 18.04 |      |
 | armhf        | Debian 9     | Emulated on QEMU's virt board |
+| arm64        | Debian 9     | Emulated on QEMU's virt board |
 
 ### Supported libmagic version
 
