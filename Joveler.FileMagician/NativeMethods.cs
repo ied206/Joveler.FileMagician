@@ -173,9 +173,8 @@ namespace Joveler.FileMagician
         internal static magic_file MagicFile;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate IntPtr magic_buffer(IntPtr ms, byte[] buf, UIntPtr nb);
+        internal unsafe delegate IntPtr magic_buffer(IntPtr ms, byte* buf, UIntPtr nb);
         internal static magic_buffer MagicBuffer;
-        
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate IntPtr magic_error(IntPtr ms);

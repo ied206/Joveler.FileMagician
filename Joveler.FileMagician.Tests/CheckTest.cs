@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Joveler.FileMagician.Tests
 {
     [TestClass]
-    public class MagicTest
+    public class CheckTest
     {
         private struct TypeInfo
         {
@@ -76,15 +76,25 @@ namespace Joveler.FileMagician.Tests
                 string result = magic.CheckFile(sampleFile);
                 Assert.IsTrue(result.Equals(expected, StringComparison.Ordinal));
 
-                // CheckBuffer
+                // CheckBuffer (Array)
                 byte[] buffer;
                 using (FileStream fs = new FileStream(sampleFile, FileMode.Open, FileAccess.Read))
                 {
                     buffer = new byte[fs.Length];
                     fs.Read(buffer, 0, buffer.Length);
                 }
-
                 result = magic.CheckBuffer(buffer);
+                Assert.IsTrue(result.Equals(expected, StringComparison.Ordinal));
+
+                // CheckBuffer (Span)
+                Span<byte> span;
+                using (FileStream fs = new FileStream(sampleFile, FileMode.Open, FileAccess.Read))
+                {
+                    buffer = new byte[fs.Length];
+                    span = buffer.AsSpan();
+                    fs.Read(span);
+                }
+                result = magic.CheckBuffer(span);
                 Assert.IsTrue(result.Equals(expected, StringComparison.Ordinal));
             }
         }
