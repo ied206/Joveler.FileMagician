@@ -13,7 +13,7 @@ namespace Joveler.FileMagician
         #endregion
 
         #region Field
-        private IntPtr _ptr;
+        private IntPtr _magicPtr;
         #endregion
 
         #region Constructor (private)
@@ -22,7 +22,7 @@ namespace Joveler.FileMagician
             if (!NativeMethods.Loaded)
                 throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
 
-            _ptr = ptr;
+            _magicPtr = ptr;
         }
         #endregion
 
@@ -42,11 +42,11 @@ namespace Joveler.FileMagician
         {
             if (!disposing)
                 return;
-            if (_ptr == IntPtr.Zero)
+            if (_magicPtr == IntPtr.Zero)
                 return;
 
-            NativeMethods.MagicClose(_ptr);
-            _ptr = IntPtr.Zero;
+            NativeMethods.MagicClose(_magicPtr);
+            _magicPtr = IntPtr.Zero;
         }
         #endregion
 
@@ -60,10 +60,12 @@ namespace Joveler.FileMagician
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 #endif
             {
-                if (libPath == null || !File.Exists(libPath))
+                if (libPath == null)
                     throw new ArgumentException("Specified .dll file does not exist");
 
                 libPath = Path.GetFullPath(libPath);
+                if (!File.Exists(libPath))
+                    throw new ArgumentException("Specified .dll file does not exist");
 
                 // libmagic itself depends on bunch of libraries.
                 // LoadLibrary fails if libmagic-1.dll is not in the standard Windows' dll lookup path.
@@ -81,7 +83,7 @@ namespace Joveler.FileMagician
                     throw new ArgumentException($"Unable to load [{libPath}]", new Win32Exception());
 
                 // Check if dll is valid (libmagic-1.dll)
-                if (NativeMethods.Win32.GetProcAddress(NativeMethods.hModule, "magic_open") == IntPtr.Zero)
+                if (NativeMethods.Win32.GetProcAddress(NativeMethods.hModule, nameof(NativeMethods.magic_open)) == IntPtr.Zero)
                 {
                     GlobalCleanup();
                     throw new ArgumentException($"[{libPath}] is not a valid libmagic-1.dll");
@@ -92,6 +94,8 @@ namespace Joveler.FileMagician
             {
                 if (libPath == null)
                     libPath = "/usr/lib/x86_64-linux-gnu/libmagic.so.1"; // Try to call system-installed libmagic
+
+                libPath = Path.GetFullPath(libPath);
                 if (!File.Exists(libPath))
                     throw new ArgumentException("Specified .so file does not exist");
 
@@ -100,7 +104,7 @@ namespace Joveler.FileMagician
                     throw new ArgumentException($"Unable to load [{libPath}], {NativeMethods.Linux.dlerror()}");
 
                 // Check if dll is valid libmagic.so
-                if (NativeMethods.Linux.dlsym(NativeMethods.hModule, "magic_open") == IntPtr.Zero)
+                if (NativeMethods.Linux.dlsym(NativeMethods.hModule, nameof(NativeMethods.magic_open)) == IntPtr.Zero)
                 {
                     GlobalCleanup();
                     throw new ArgumentException($"[{libPath}] is not a valid libmagic-1.so");
@@ -176,7 +180,6 @@ namespace Joveler.FileMagician
         #endregion
 
         #region (Static) Magic File Path
-
         /// <summary>
         /// Get default (or given) path of magicFile.
         /// </summary>
@@ -201,14 +204,23 @@ namespace Joveler.FileMagician
         #region Check Type
         public string CheckFile(string inName)
         {
-            IntPtr strPtr = NativeMethods.MagicFile(_ptr, inName);
+            IntPtr strPtr = NativeMethods.MagicFile(_magicPtr, inName);
             return Marshal.PtrToStringAnsi(strPtr);
         }
 
-        public string CheckBuffer(byte[] buffer)
+        public string CheckBuffer(byte[] buffer, int offset, int count)
         {
-            UIntPtr nb = new UIntPtr((uint)buffer.Length);
-            IntPtr strPtr = NativeMethods.MagicBuffer(_ptr, buffer, nb);
+            Span<byte> span = buffer.AsSpan().Slice(offset, count);
+            return CheckBuffer(span);
+        }
+
+        public unsafe string CheckBuffer(ReadOnlySpan<byte> span)
+        {
+            IntPtr strPtr;
+            fixed (byte* bufPtr = span)
+            {
+                strPtr = NativeMethods.MagicBuffer(_magicPtr, bufPtr, (UIntPtr)span.Length);
+            }
             return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion
@@ -217,7 +229,7 @@ namespace Joveler.FileMagician
 
         public string GetLastErrorMessage()
         {
-            IntPtr strPtr = NativeMethods.MagicError(_ptr);
+            IntPtr strPtr = NativeMethods.MagicError(_magicPtr);
             return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion
@@ -225,12 +237,12 @@ namespace Joveler.FileMagician
         #region Manage Flags
         public MagicFlags GetFlags()
         {
-            return NativeMethods.MagicGetFlags(_ptr);
+            return NativeMethods.MagicGetFlags(_magicPtr);
         }
 
         public void SetFlags(MagicFlags flags)
         {
-            int ret = NativeMethods.MagicSetFlags(_ptr, flags);
+            int ret = NativeMethods.MagicSetFlags(_magicPtr, flags);
             CheckError(ret);
         }
         #endregion
@@ -260,7 +272,7 @@ namespace Joveler.FileMagician
         /// <param name="magicFile"></param>
         public void Load(string magicFile)
         {
-            int ret = NativeMethods.MagicLoad(_ptr, magicFile);
+            int ret = NativeMethods.MagicLoad(_magicPtr, magicFile);
             CheckError(ret);
         }
         #endregion

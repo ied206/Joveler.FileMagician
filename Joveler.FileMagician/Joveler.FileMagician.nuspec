@@ -3,7 +3,7 @@
   <metadata>
     <id>Joveler.FileMagician</id>
     <title>Joveler.FileMagician</title>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <owners>ied206</owners>
     <authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</authors>
     <projectUrl>https://github.com/ied206/Joveler.FileMagician</projectUrl>
@@ -13,13 +13,16 @@
     <description>C# pinvoke library for libmagic (file).
 Supports Windows and Linux.</description>
     <summary>C# pinvoke library for libmagic (file).</summary>
-    <releaseNotes>- Initial release.
-- Includes libmagic 5.36 binaries for Windows/Linux.</releaseNotes>
+    <releaseNotes>- New APIs with Span.</releaseNotes>
     <copyright>Copyright (c) 2019 Hajin Jang</copyright>
     <tags>libmagic file pinvoke interop</tags>
     <dependencies>
-      <group targetFramework="net451"></group>
-      <group targetFramework="netstandard2.0"></group>
+      <group targetFramework="net451">
+        <dependency id="System.Memory" version="4.5.2" />
+      </group>
+      <group targetFramework="netstandard2.0">
+        <dependency id="System.Memory" version="4.5.2" />
+      </group>
     </dependencies>
   </metadata>
   <files>

@@ -1,8 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net451;netstandard2.0</TargetFrameworks>
-  <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFrameworks>
-  <LangVersion>7.3</LangVersion>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFrameworks>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>1.1.0</Version>
+    <Authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</Authors>
+    <Company />
+    <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
+    <Copyright>Copyright (c) 2019 Hajin Jang</Copyright>
+    <PackageIconUrl>https://raw.githubusercontent.com/ied206/Joveler.FileMagician/master/Image/Logo.png</PackageIconUrl>
+    <PackageProjectUrl>https://github.com/ied206/Joveler.FileMagician</PackageProjectUrl>
+    <Description>C# pinvoke library for libmagic (file).
+Supports Windows and Linux.</Description>
+    <PackageReleaseNotes>- New APIs with Span.</PackageReleaseNotes>
+    <PackageTags>libmagic file pinvoke interop</PackageTags>
   </PropertyGroup>
   <Import Project="$(MSBuildProjectDirectory)\Joveler.FileMagician.targets" />
+  <ItemGroup>
+    <PackageReference Include="System.Memory" Version="4.5.2" />
+  </ItemGroup>
 </Project>

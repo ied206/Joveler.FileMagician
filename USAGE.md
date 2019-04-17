@@ -64,8 +64,8 @@ They will be copied into the build directory at build time.
 
 | Platform         | Binary                         | License                 |
 |------------------|--------------------------------|-------------------------|
-| Windows x86      | `$(OutDir)\x86\libmagic-1.dll` | 2-Clause BSD (w LGPLv2 libiconv) |
-| Windows x64      | `$(OutDir)\x64\libmagic-1.dll` | 2-Clause BSD (w LGPLv2 libiconv) |
+| Windows x86      | `$(OutDir)\x86\libmagic-1.dll` | 2-Clause BSD (w LGPLv2 `libiconv-2.dll`) |
+| Windows x64      | `$(OutDir)\x64\libmagic-1.dll` | 2-Clause BSD (w LGPLv2 `libiconv-2.dll`) |
 | Ubuntu 18.04 x64 | `$(OutDir)\x64\libmagic.so`    | 2-Clause BSD |
 | Debian 9 armhf   | `$(OutDir)\armhf\libmagic.so`  | 2-Clause BSD |
 | Debian 9 arm64   | `$(OutDir)\arm64\libmagic.so`  | 2-Clause BSD |
@@ -93,7 +93,7 @@ To unload libmagic library explicitly, call `Magic.GlobalCleanup()`.
 
 Most of the use cases follow this flow.
 
-1. Create Magic instance with `Magic.Open("magic.mgc")`.
+1. Create Magic instance with `Magic.Open()` call.
 2. Do your job by calling API of your interest.
 3. Cleanup Magic instance with the Disposable pattern.
 
