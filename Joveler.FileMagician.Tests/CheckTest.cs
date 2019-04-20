@@ -24,11 +24,9 @@ namespace Joveler.FileMagician.Tests
 
         private readonly Dictionary<string, TypeInfo> _fileTypeDict = new Dictionary<string, TypeInfo>(StringComparer.OrdinalIgnoreCase)
         {
+            // Text File
             ["ANSI.txt"] = new TypeInfo("ASCII text, with no line terminators", "text/plain", "us-ascii"),
             ["EUC-KR.txt"] = new TypeInfo("ISO-8859 text, with no line terminators", "text/plain", "iso-8859-1"),
-            ["RTF.rtf"] = new TypeInfo("Rich Text Format data, version 1, ANSI", "text/rtf", "binary"),
-            ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary"),
-            ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),
             ["UTF16BE_EN_wBOM.txt"] = new TypeInfo("Big-endian UTF-16 Unicode text, with no line terminators", "text/plain", "utf-16be"),
             ["UTF16BE_KR_wBOM.txt"] = new TypeInfo("Big-endian UTF-16 Unicode text, with no line terminators", "text/plain", "utf-16be"),
             ["UTF16LE_EN_wBOM.txt"] = new TypeInfo("Little-endian UTF-16 Unicode text, with no line terminators", "text/plain", "utf-16le"),
@@ -37,6 +35,24 @@ namespace Joveler.FileMagician.Tests
             ["UTF8_EN_woBOM.txt"] = new TypeInfo("ASCII text, with no line terminators", "text/plain", "us-ascii"),
             ["UTF8_KR_wBOM.txt"] = new TypeInfo("UTF-8 Unicode (with BOM) text, with no line terminators", "text/plain", "utf-8"),
             ["UTF8_KR_woBOM.txt"] = new TypeInfo("UTF-8 Unicode text, with no line terminators", "text/plain", "utf-8"),
+            // Hancom Office NEO (2016) - .cell & .show is not exact : Hancom Office suite use compound file format similar to Microsoft Office 2003.
+            ["Hancell2016.cell"] = new TypeInfo("Microsoft OOXML", "application/octet-stream", "binary"),
+            ["Hanshow2016.show"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary"),
+            ["HWP2016.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 5.x", "application/x-hwp", "binary"),
+            // LibreOffice 6.0.7.3
+            ["LibreCalc6.ods"] = new TypeInfo("OpenDocument Spreadsheet", "application/vnd.oasis.opendocument.spreadsheet", "binary"),
+            ["LibreImpress6.odp"] = new TypeInfo("OpenDocument Presentation", "application/vnd.oasis.opendocument.presentation", "binary"),
+            ["LibreWriter6.odt"] = new TypeInfo("OpenDocument Text", "application/vnd.oasis.opendocument.text", "binary"),
+            // Microsoft Office 2019
+            ["Office2019.docx"] = new TypeInfo("Microsoft Word 2007+", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "binary"),
+            ["Office2019.pptx"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary"),
+            ["Office2019.xlsx"] = new TypeInfo("Microsoft Excel 2007+", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "binary"),
+            // Archive Format
+            ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary"),
+            ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary"),
+            ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
+            ["Samples.tar.xz"] = new TypeInfo("XZ compressed data", "application/x-xz", "binary"),
+            ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),  
         };
 
         [TestMethod]

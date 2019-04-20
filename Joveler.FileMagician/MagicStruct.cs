@@ -61,15 +61,13 @@ namespace Joveler.FileMagician
 #endif
             {
                 if (libPath == null)
-                    throw new ArgumentException("Specified .dll file does not exist");
+                    throw new ArgumentNullException(nameof(libPath));
 
                 libPath = Path.GetFullPath(libPath);
                 if (!File.Exists(libPath))
                     throw new ArgumentException("Specified .dll file does not exist");
 
-                // libmagic itself depends on bunch of libraries.
-                // LoadLibrary fails if libmagic-1.dll is not in the standard Windows' dll lookup path.
-                // To fix this, setup dll search directory when necessary.
+                // Set proper directory to search, unless LoadLibrary can fail when loading chained dll files.
                 string libDir = Path.GetDirectoryName(libPath);
                 if (libDir != null && !libDir.Equals(AppDomain.CurrentDomain.BaseDirectory))
                     NativeMethods.Win32.SetDllDirectory(libDir);
@@ -210,7 +208,7 @@ namespace Joveler.FileMagician
 
         public string CheckBuffer(byte[] buffer, int offset, int count)
         {
-            Span<byte> span = buffer.AsSpan().Slice(offset, count);
+            ReadOnlySpan<byte> span = buffer.AsSpan(offset, count);
             return CheckBuffer(span);
         }
 
