@@ -52,7 +52,14 @@ namespace Joveler.FileMagician.Tests
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data", "application/x-xz", "binary"),
-            ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),  
+            ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),
+            // Image Format
+            ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4", "image/x-ms-bmp", "binary"),
+            ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
+            ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary"),
+            ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary"),
+            ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image", "image/svg+xml", "us-ascii"),
+            ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image", "image/webp", "binary"),
         };
 
         [TestMethod]
