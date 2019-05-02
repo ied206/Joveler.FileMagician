@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Joveler.FileMagician.Tests
@@ -65,9 +66,10 @@ namespace Joveler.FileMagician.Tests
         [TestMethod]
         public void FileType()
         {
+            // MagicBuffer
             foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
             {
-                Template(sampleFileName, MagicFlags.NONE, ti.FileType);
+                Template(sampleFileName, 0, MagicFlags.NONE, ti.FileType);
             }
         }
 
@@ -76,7 +78,7 @@ namespace Joveler.FileMagician.Tests
         {
             foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
             {
-                Template(sampleFileName, MagicFlags.MIME_TYPE, ti.MimeType);
+                Template(sampleFileName, 1, MagicFlags.MIME_TYPE, ti.MimeType);
             }
         }
 
@@ -85,14 +87,38 @@ namespace Joveler.FileMagician.Tests
         {
             foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
             {
-                Template(sampleFileName, MagicFlags.MIME_ENCODING, ti.MimeEncoding);
+                Template(sampleFileName, 2, MagicFlags.MIME_ENCODING, ti.MimeEncoding);
             }
         }
 
-        public void Template(string sampleFileName, MagicFlags flags, string expected)
+        public void Template(string sampleFileName, int loadMode, MagicFlags flags, string expected)
         {
-            using (Magic magic = Magic.Open(TestSetup.MagicFile, flags))
+            using (Magic magic = Magic.Open(flags))
             {
+                byte[] magicBuffer;
+                switch (loadMode)
+                {
+                    case 0:
+                        using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
+                        {
+                            magicBuffer = new byte[fs.Length];
+                            fs.Read(magicBuffer, 0, magicBuffer.Length);
+                        }
+                        magic.LoadBuffer(magicBuffer);
+                        break;
+                    case 1:
+                        using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
+                        {
+                            magicBuffer = new byte[fs.Length];
+                            fs.Read(magicBuffer, 0, magicBuffer.Length);
+                        }
+                        magic.LoadBuffer(magicBuffer, 0, magicBuffer.Length);
+                        break;
+                    case 2:
+                        magic.Load(TestSetup.MagicFile);
+                        break;
+                }
+
                 string sampleFile = Path.Combine(TestSetup.SampleDir, sampleFileName);
 
                 // CheckFile
