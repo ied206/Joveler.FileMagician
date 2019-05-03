@@ -30,15 +30,19 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 
 | Platform | Architecture | Tested |
 |----------|--------------|--------|
-| Windows  | x86, x64     | Yes    |
-| Linux    | x64, armhf   | Yes    |
+| Windows  | x86          | Yes    |
+|          | x64          | Yes    |
+| Linux    | x64          | Yes    |
+|          | armhf        | Yes    |
 |          | arm64        | Yes    |
+
+I want to support macOS devices but I cannot, because I do not have any macOS devices.
 
 #### Tested linux distributions
 
 | Architecture | Distribution | Note |
 |--------------|--------------|------|
-| x64          | Ubuntu 18.04 |      |
+| x64          | Ubuntu 18.04 | Tested on AppVeyor CI         |
 | armhf        | Debian 9     | Emulated on QEMU's virt board |
 | arm64        | Debian 9     | Emulated on QEMU's virt board |
 
