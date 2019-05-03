@@ -203,11 +203,14 @@ namespace Joveler.FileMagician
         /// <summary>
         /// Install a set of compiled magic buffers.
         /// </summary>
+        /// <remarks>
+        /// int magic_load_buffers(magic_t, void **, size_t *, size_t);
+        /// </remarks>
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_load_buffers(
             IntPtr ms,
-            [MarshalAs(UnmanagedType.LPArray)] IntPtr[] buf,
-            ref UIntPtr sizes, // size_t
+            [MarshalAs(UnmanagedType.LPArray)] IntPtr[] buf, // void**
+            [MarshalAs(UnmanagedType.LPArray)] UIntPtr[] sizes, // size_t*
             UIntPtr nbufs); // size_t
         internal static magic_load_buffers MagicLoadBuffers;
 

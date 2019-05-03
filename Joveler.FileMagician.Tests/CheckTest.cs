@@ -52,15 +52,23 @@ namespace Joveler.FileMagician.Tests
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data", "application/x-xz", "binary"),
-            ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),  
+            ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),
+            // Image Format
+            ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4", "image/x-ms-bmp", "binary"),
+            ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
+            ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary"),
+            ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary"),
+            ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image", "image/svg+xml", "us-ascii"),
+            ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image", "image/webp", "binary"),
         };
 
         [TestMethod]
         public void FileType()
         {
+            // MagicBuffer
             foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
             {
-                Template(sampleFileName, MagicFlags.NONE, ti.FileType);
+                Template(sampleFileName, 0, MagicFlags.NONE, ti.FileType);
             }
         }
 
@@ -69,7 +77,7 @@ namespace Joveler.FileMagician.Tests
         {
             foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
             {
-                Template(sampleFileName, MagicFlags.MIME_TYPE, ti.MimeType);
+                Template(sampleFileName, 1, MagicFlags.MIME_TYPE, ti.MimeType);
             }
         }
 
@@ -78,14 +86,38 @@ namespace Joveler.FileMagician.Tests
         {
             foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
             {
-                Template(sampleFileName, MagicFlags.MIME_ENCODING, ti.MimeEncoding);
+                Template(sampleFileName, 2, MagicFlags.MIME_ENCODING, ti.MimeEncoding);
             }
         }
 
-        public void Template(string sampleFileName, MagicFlags flags, string expected)
+        public void Template(string sampleFileName, int loadMode, MagicFlags flags, string expected)
         {
-            using (Magic magic = Magic.Open(TestSetup.MagicFile, flags))
+            using (Magic magic = Magic.Open(flags))
             {
+                byte[] magicBuffer;
+                switch (loadMode)
+                {
+                    case 0:
+                        using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
+                        {
+                            magicBuffer = new byte[fs.Length];
+                            fs.Read(magicBuffer, 0, magicBuffer.Length);
+                        }
+                        magic.LoadBuffer(magicBuffer);
+                        break;
+                    case 1:
+                        using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
+                        {
+                            magicBuffer = new byte[fs.Length];
+                            fs.Read(magicBuffer, 0, magicBuffer.Length);
+                        }
+                        magic.LoadBuffer(magicBuffer, 0, magicBuffer.Length);
+                        break;
+                    case 2:
+                        magic.Load(TestSetup.MagicFile);
+                        break;
+                }
+
                 string sampleFile = Path.Combine(TestSetup.SampleDir, sampleFileName);
 
                 // CheckFile

@@ -4,7 +4,7 @@
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0</TargetFrameworks>
     <LangVersion>7.3</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <Authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</Authors>
     <Company />
     <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
@@ -13,7 +13,7 @@
     <PackageProjectUrl>https://github.com/ied206/Joveler.FileMagician</PackageProjectUrl>
     <Description>C# pinvoke library for libmagic (file).
 Supports Windows and Linux.</Description>
-    <PackageReleaseNotes>- New APIs with Span.</PackageReleaseNotes>
+    <PackageReleaseNotes>- Fix unicode problem on Windows with buffer-based APIs.</PackageReleaseNotes>
     <PackageTags>libmagic file pinvoke interop</PackageTags>
   </PropertyGroup>
   <Import Project="$(MSBuildProjectDirectory)\Joveler.FileMagician.targets" />
