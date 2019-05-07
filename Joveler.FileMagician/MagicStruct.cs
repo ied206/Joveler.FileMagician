@@ -15,7 +15,7 @@ namespace Joveler.FileMagician
         #region Const
         #endregion
 
-        #region Field
+        #region Fields
         /// <summary>
         /// For magic_t
         /// </summary>
@@ -299,7 +299,7 @@ namespace Joveler.FileMagician
             else
             {
                 int bytesRead;
-                byte[] magicBuffer = new byte[256 * 1024]; // 256KB
+                byte[] magicBuffer = new byte[256 * 1024]; // `file` command use 256KB buffer by default
                 using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
                 {
                     bytesRead = fs.Read(magicBuffer, 0, magicBuffer.Length);

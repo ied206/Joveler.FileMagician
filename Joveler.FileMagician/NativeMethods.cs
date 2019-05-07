@@ -22,7 +22,7 @@ namespace Joveler.FileMagician
         #region Windows kernel32 API
         internal static class Win32
         {
-            #region For dynamic loading of dll
+            #region DLL Dynamic Loading
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             internal static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPWStr)] string lpFileName);
 
@@ -36,19 +36,7 @@ namespace Joveler.FileMagician
             internal static extern int SetDllDirectory([MarshalAs(UnmanagedType.LPWStr)] string lpPathName);
             #endregion
 
-            #region For encoding handling
-            [DllImport("kernel32.dll")]
-            internal static extern uint GetACP();
-
-            [DllImport("kernel32.dll")]
-            internal static extern int MultiByteToWideChar(
-                uint codePage,
-                uint dwFlags,
-                [MarshalAs(UnmanagedType.LPStr)] string lpMultiByteStr,
-                int cbMultiByte,
-                [MarshalAs(UnmanagedType.LPWStr)] IntPtr lpWideCharStr,
-                int cchWideChar);
-
+            #region Encoding Handling
             [DllImport("kernel32.dll")]
             internal static extern unsafe int WideCharToMultiByte(
                 uint codePage,
