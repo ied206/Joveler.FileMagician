@@ -6,14 +6,14 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("Joveler.FileMagician.Tests")]
 namespace Joveler.FileMagician
 {
-    public static class Win32Encoding
+    internal static class Win32Encoding
     {
         #region Const
         private const int CP_ACP = 0;
         #endregion
 
         #region IsActiveCodePageCompatible
-        internal static unsafe bool IsActiveCodePageCompatible(string str)
+        public static unsafe bool IsActiveCodePageCompatible(string str)
         {
 #if !NET451
             // Assume non-Windows platforms such as linux always use UTF-8
