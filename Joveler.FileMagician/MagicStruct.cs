@@ -15,7 +15,7 @@ namespace Joveler.FileMagician
         #region Const
         #endregion
 
-        #region Field
+        #region Fields
         /// <summary>
         /// For magic_t
         /// </summary>
@@ -232,12 +232,12 @@ namespace Joveler.FileMagician
             // Windows version of libmagic cannot handle unicode filepath.
             // If path includes an unicode char which cannot be converted to system ANSI locale, MagicLoad would fail.
             // In that case, fall back to buffer-based function.
-            try
-            {
+            if (Win32Encoding.IsActiveCodePageCompatible(magicFile))
+            { // In non-Windows platform, this path is always active.
                 int ret = NativeMethods.MagicLoad(_magicPtr, magicFile);
                 CheckError(ret);
             }
-            catch (InvalidOperationException)
+            else
             {
                 byte[] magicBuffer;
                 using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read))
@@ -291,15 +291,15 @@ namespace Joveler.FileMagician
             // Windows version of libmagic cannot handle unicode filepath.
             // If path includes an unicode char which cannot be converted to system ANSI locale, MagicLoad would fail.
             // In that case, fall back to buffer-based function.
-            try
-            {
+            if (Win32Encoding.IsActiveCodePageCompatible(inName))
+            { // In non-Windows platform, this path is always active.
                 IntPtr strPtr = NativeMethods.MagicFile(_magicPtr, inName);
                 return Marshal.PtrToStringAnsi(strPtr);
             }
-            catch (InvalidOperationException)
+            else
             {
                 int bytesRead;
-                byte[] magicBuffer = new byte[256 * 1024]; // 256KB
+                byte[] magicBuffer = new byte[256 * 1024]; // `file` command use 256KB buffer by default
                 using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
                 {
                     bytesRead = fs.Read(magicBuffer, 0, magicBuffer.Length);

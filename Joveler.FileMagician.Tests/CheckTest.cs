@@ -13,12 +13,14 @@ namespace Joveler.FileMagician.Tests
             public readonly string FileType;
             public readonly string MimeType;
             public readonly string MimeEncoding;
+            public readonly string Extension;
 
-            public TypeInfo(string fileType, string mimeType, string mimeEncoding)
+            public TypeInfo(string fileType, string mimeType, string mimeEncoding, string extension = "???")
             {
                 FileType = fileType;
                 MimeType = mimeType;
                 MimeEncoding = mimeEncoding;
+                Extension = extension;
             }
         }
 
@@ -48,18 +50,20 @@ namespace Joveler.FileMagician.Tests
             ["Office2019.pptx"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary"),
             ["Office2019.xlsx"] = new TypeInfo("Microsoft Excel 2007+", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "binary"),
             // Archive Format
-            ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary"),
-            ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary"),
+            ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary", "7z/cb7"),
+            ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary", "tar/gtar"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data", "application/x-xz", "binary"),
             ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),
             // Image Format
             ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4", "image/x-ms-bmp", "binary"),
             ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
-            ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary"),
-            ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary"),
+            ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary", "jpeg/jpg/jpe/jfif"),
+            ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary", "png"),
             ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image", "image/svg+xml", "us-ascii"),
             ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image", "image/webp", "binary"),
+            // Database + Unicode-only path test 
+            ["ᄒᆞᆫ글ḀḘ韓國.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002", "application/x-sqlite3", "binary", "sqlite/sqlite3/db/dbe"),
         };
 
         [TestMethod]
@@ -90,6 +94,15 @@ namespace Joveler.FileMagician.Tests
             }
         }
 
+        [TestMethod]
+        public void Extension()
+        {
+            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            {
+                Template(sampleFileName, 3, MagicFlags.EXTENSION, ti.Extension);
+            }
+        }
+
         public void Template(string sampleFileName, int loadMode, MagicFlags flags, string expected)
         {
             using (Magic magic = Magic.Open(flags))
@@ -98,6 +111,13 @@ namespace Joveler.FileMagician.Tests
                 switch (loadMode)
                 {
                     case 0:
+                        magic.Load(TestSetup.MagicFile);
+                        break;
+                    case 1:
+                        // Force .Net's unicode -> ansi encoding convert failure by using exotic/obscure characters
+                        magic.Load(TestSetup.MagicUnicodeOnlyPath);
+                        break;
+                    case 2:
                         using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
                         {
                             magicBuffer = new byte[fs.Length];
@@ -105,16 +125,13 @@ namespace Joveler.FileMagician.Tests
                         }
                         magic.LoadBuffer(magicBuffer);
                         break;
-                    case 1:
+                    case 3:
                         using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
                         {
                             magicBuffer = new byte[fs.Length];
                             fs.Read(magicBuffer, 0, magicBuffer.Length);
                         }
                         magic.LoadBuffer(magicBuffer, 0, magicBuffer.Length);
-                        break;
-                    case 2:
-                        magic.Load(TestSetup.MagicFile);
                         break;
                 }
 

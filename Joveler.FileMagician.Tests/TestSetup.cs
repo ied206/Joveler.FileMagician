@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,10 +10,13 @@ namespace Joveler.FileMagician.Tests
     [TestClass]
     public class TestSetup
     {
-        public static string MagicFile = "magic.mgc";
         public static string ExeDir;
         public static string BaseDir;
         public static string SampleDir;
+
+        public static string MagicFile = "magic.mgc";
+        // Force .Net's unicode to ansi encoding convert failure by using exotic/obscure characters in path
+        public static string MagicUnicodeOnlyPath = "ᄒᆞᆫ글ḀḘ韓國.mgc";
 
         [AssemblyInitialize]
         public static void Init(TestContext context)
@@ -21,6 +24,10 @@ namespace Joveler.FileMagician.Tests
             ExeDir = TestHelper.GetProgramAbsolutePath();
             BaseDir = Path.GetFullPath(Path.Combine(ExeDir, "..", "..", ".."));
             SampleDir = Path.Combine(BaseDir, "Samples");
+
+            MagicFile = Path.Combine(ExeDir, MagicFile);
+            MagicUnicodeOnlyPath = Path.Combine(ExeDir, MagicUnicodeOnlyPath);
+            File.Copy(MagicFile, MagicUnicodeOnlyPath, true);
 
             const string x64 = "x64";
             const string x86 = "x86";
@@ -69,6 +76,7 @@ namespace Joveler.FileMagician.Tests
         public static void Cleanup()
         {
             Magic.GlobalCleanup();
+            File.Delete(MagicUnicodeOnlyPath);
         }
     }
 
