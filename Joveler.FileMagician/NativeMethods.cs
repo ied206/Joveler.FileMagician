@@ -11,7 +11,7 @@ namespace Joveler.FileMagician
     {
         #region Const
         public const string MsgInitFirstError = "Please call Magic.GlobalInit() first!";
-        public const string MsgAlreadyInited = "Joveler.LibMagic is already initialized.";
+        public const string MsgAlreadyInited = "Joveler.FileMagician is already initialized.";
         #endregion
 
         #region Fields
@@ -22,6 +22,7 @@ namespace Joveler.FileMagician
         #region Windows kernel32 API
         internal static class Win32
         {
+            #region For dynamic loading of dll
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             internal static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPWStr)] string lpFileName);
 
@@ -33,6 +34,32 @@ namespace Joveler.FileMagician
 
             [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
             internal static extern int SetDllDirectory([MarshalAs(UnmanagedType.LPWStr)] string lpPathName);
+            #endregion
+
+            #region For encoding handling
+            [DllImport("kernel32.dll")]
+            internal static extern uint GetACP();
+
+            [DllImport("kernel32.dll")]
+            internal static extern int MultiByteToWideChar(
+                uint codePage,
+                uint dwFlags,
+                [MarshalAs(UnmanagedType.LPStr)] string lpMultiByteStr,
+                int cbMultiByte,
+                [MarshalAs(UnmanagedType.LPWStr)] IntPtr lpWideCharStr,
+                int cchWideChar);
+
+            [DllImport("kernel32.dll")]
+            internal static extern unsafe int WideCharToMultiByte(
+                uint codePage,
+                uint dwFlags,
+                [MarshalAs(UnmanagedType.LPWStr)] string lpWideCharStr,
+                int cchWideChar,
+                [MarshalAs(UnmanagedType.LPArray)] byte[] lpMultiByteStr,
+                int cbMultiByte,
+                byte* lpDefaultChar,
+                bool* lpUsedDefaultChar);
+            #endregion
         }
         #endregion
 
