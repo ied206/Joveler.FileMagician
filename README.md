@@ -6,7 +6,7 @@
 
 C# pinvoke library for native [libmagic](http://www.darwinsys.com/file/).
 
-libmagic is a file type guesser library which POSIX's file command is powered by.
+libmagic is a file type guesser library which powers POSIX's file command.
 
 | Branch    | Build Status   |
 |-----------|----------------|
@@ -36,7 +36,7 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 |          | armhf        | Yes    |
 |          | arm64        | Yes    |
 
-I want to support macOS devices but I cannot, because I do not have any macOS devices.
+**Note:** I want to support macOS, but I do not have any macOS device. Please contribute to macOS support!
 
 #### Tested linux distributions
 
@@ -56,9 +56,10 @@ See [USAGE.md](./USAGE.md).
 
 ## License
 
-Licensed under the 2-Clause BSD license.  
+`Joveler.FileMagician` and `libmagic` is licensed under the 2-Clause BSD license.  
+Bundled Windows binary also contains LGPLv2 libiconv.  
 See [LICENSE](./LICENSE) for details.
 
-Logo is licensed under Apache 2.0 License.  
+The logo is licensed under Apache 2.0 License.  
 [Search icon](https://material.io/tools/icons/?icon=search&style=baseline) from the Material Icons.
 

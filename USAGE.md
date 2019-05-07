@@ -2,7 +2,7 @@
 
 ## Initialization
 
-`Joveler.FileMagician` requires explicit loading of an libmagic library.
+`Joveler.FileMagician` requires explicit loading of a libmagic library.
 
 You must call `Magic.GlobalInit()` before using `Joveler.FileMagician`.
 
@@ -78,10 +78,10 @@ To use custom libmagic binary instead, call `Magic.GlobalInit()` with a path to 
 
 #### NOTES
 
-- Create an empty file named `Joveler.FileMagician.Lib.Exclude` in project directory to prevent copy of package-embedded binary.
-- Create an empty file named `Joveler.FileMagician.Mgc.Exclude` in project directory to prevent copy of package-embedded file signature database.
-- libmagic depends on libiconv (included) in Windows and zlib (not included) in linux.
-- You may have to compile custom libmagic to use ManagedWimLib in untested linux distribution.
+- Create an empty file named `Joveler.FileMagician.Lib.Exclude` in the project directory to prevent copy of the package-embedded binary.
+- Create an empty file named `Joveler.FileMagician.Mgc.Exclude` in the project directory to prevent copy of package-embedded file signature database.
+- libmagic depends on libiconv (included) in Windows and zlib (not included) in Linux.
+- You may have to compile custom libmagic to use ManagedWimLib in untested Linux distribution.
 
 ### Cleanup
 
@@ -89,12 +89,69 @@ To unload libmagic library explicitly, call `Magic.GlobalCleanup()`.
 
 ## API
 
-`Joveler.FileMagician` provides sets of APIs match to its original.
+`Joveler.FileMagician` provides `Magic` class, a wrapper of `libmagic`.
 
-Most of the use cases follow this flow.
+`Magic` class implements the disposable pattern, so do not forget to clean up resources with `using` keyword.
 
-1. Create Magic instance with `Magic.Open()` call.
-2. Do your job by calling API of your interest.
-3. Cleanup Magic instance with the Disposable pattern.
+```csharp
+string result;
+using (Magic magic = Magic.Open("magic.mgc"))
+{
+    result = magic.CheckFile("target.7z");
+}
+// Prints "7-zip archive data, version 0.3"
+Console.WriteLine(result);
+```
 
-[Joveler.FileMagician.Tests](./Joveler.FileMagician.Tests) provides a lot of examples of how to use `Joveler.FileMagician`.
+[Joveler.FileMagician.Tests](./Joveler.FileMagician.Tests) also provides a lot of examples of how to use `Joveler.FileMagician`.
+
+### Create an instance
+
+`Magic.Open()` methods create an instance of `Magic` class.
+
+```csharp
+static Magic Open();
+
+```
+
+This overload loads magic database automatically.
+
+```csharp
+static Magic Open(string magicFile);
+```
+
+You can also set `MagicFlags` automatically with these overloads.
+
+```csharp
+static Magic Open(MagicFlags flags);
+static Magic Open(string magicFile, MagicFlags flags);
+```
+
+### Load magic database
+
+Magic database must be loaded first after creating a `Magic` instance unless you loaded it with `Magic.Open()`.
+
+```csharp
+void Load(string magicFile);
+void LoadBuffer(byte[] magicBuffer, int offset, int count);
+void LoadBuffer(ReadOnlySpan<byte> magicSpan);
+```
+
+### Check type of data
+
+You can check the type of a file or buffer through these methods.
+
+```csharp
+string CheckFile(string inName);
+string CheckBuffer(byte[] buffer, int offset, int count);
+string CheckBuffer(ReadOnlySpan<byte> span);
+```
+
+### Getting and setting MagicFlags
+
+You can get current MagicFlags or set new MagicFlags through these methods.
+
+```csharp
+MagicFlags GetFlags();
+void SetFlags(MagicFlags flags);
+```
