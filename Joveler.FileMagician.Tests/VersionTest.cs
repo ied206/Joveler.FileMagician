@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace Joveler.FileMagician.Tests
 {
@@ -12,11 +10,11 @@ namespace Joveler.FileMagician.Tests
         public void Version()
         {
             int val = Magic.VersionInt();
-            Assert.AreEqual(536, val);
+            Assert.AreEqual(537, val);
 
             Version ver = Magic.VersionInstance();
             Assert.AreEqual(5, ver.Major);
-            Assert.AreEqual(36, ver.Minor);
+            Assert.AreEqual(37, ver.Minor);
         }
     }
 }

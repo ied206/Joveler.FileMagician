@@ -81,7 +81,7 @@ To use custom libmagic binary instead, call `Magic.GlobalInit()` with a path to 
 - Create an empty file named `Joveler.FileMagician.Lib.Exclude` in the project directory to prevent copy of the package-embedded binary.
 - Create an empty file named `Joveler.FileMagician.Mgc.Exclude` in the project directory to prevent copy of package-embedded file signature database.
 - libmagic depends on libiconv (included) in Windows and zlib (not included) in Linux.
-- You may have to compile custom libmagic to use ManagedWimLib in untested Linux distribution.
+- You may have to compile custom libmagic to use `Joveler.FileMagician` in untested Linux distribution.
 
 ### Cleanup
 
