@@ -18,6 +18,7 @@ Supports Windows and Linux.</Description>
   </PropertyGroup>
   <Import Project="$(MSBuildProjectDirectory)\Joveler.FileMagician.targets" />
   <ItemGroup>
-    <PackageReference Include="System.Memory" Version="4.5.2" />
+    <PackageReference Include="Joveler.DynLoader" Version="1.1.0" />
+    <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
 </Project>

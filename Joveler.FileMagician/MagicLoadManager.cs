@@ -26,41 +26,16 @@
     THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-// ReSharper disable InconsistentNaming
+using Joveler.DynLoader;
 
-[assembly: InternalsVisibleTo("Joveler.FileMagician.Tests")]
 namespace Joveler.FileMagician
 {
-    internal static class Win32Encoding
+    internal class MagicLoadManager : LoadManagerBase<MagicLoader>
     {
-        #region Const
-        private const int CP_ACP = 0;
-        #endregion
+        protected override string ErrorMsgInitFirst => "Please call Magic.GlobalInit() first!";
+        protected override string ErrorMsgAlreadyLoaded => "Joveler.FileMagician is already initialized.";
 
-        #region IsActiveCodePageCompatible
-        public static unsafe bool IsActiveCodePageCompatible(string str)
-        {
-#if !NET451
-            // Assume non-Windows platforms such as linux always use UTF-8
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                return true;
-#endif
-
-            // Get required buffer size
-            int bufferSize = NativeMethods.Win32.WideCharToMultiByte(CP_ACP, 0, str, -1, null, 0, null, null);
-
-            // Try to convert unicode string to multi-byte, and see whether conversion fails or not.
-            bool lpUsedDefaultChar = false;
-            byte[] buffer = new byte[bufferSize + 2];
-            int ret = NativeMethods.Win32.WideCharToMultiByte(CP_ACP, 0, str, -1, buffer, bufferSize, null, &lpUsedDefaultChar);
-
-            // Return test result
-            if (ret == 0)
-                return false; // Conversion failed, assume that str is not compatible
-            return !lpUsedDefaultChar;
-        }
-        #endregion
+        protected override MagicLoader CreateLoader() => new MagicLoader();
+        protected override MagicLoader CreateLoader(string libPath) => new MagicLoader(libPath);
     }
 }
