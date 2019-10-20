@@ -1,4 +1,32 @@
-﻿using System;
+﻿/*
+    C# pinvoke wrapper written by Hajin Jang
+    Copyright (C) 2019 Hajin Jang
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    1. Redistributions of source code must retain the above copyright 
+       notice, this list of conditions and the following disclaimer.
+   
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+    THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,7 +40,15 @@ namespace Joveler.FileMagician
 {
     public class Magic : IDisposable
     {
-        #region Const
+        #region LoadManager
+        internal static MagicLoadManager Manager = new MagicLoadManager();
+        internal static MagicLoader Lib => Manager.Lib;
+        #endregion
+
+        #region (static) GlobalInit, GlobalCleanup
+        public static void GlobalInit() => Manager.GlobalInit();
+        public static void GlobalInit(string libPath) => Manager.GlobalInit(libPath);
+        public static void GlobalCleanup() => Manager.GlobalCleanup();
         #endregion
 
         #region Fields
@@ -29,8 +65,7 @@ namespace Joveler.FileMagician
         #region Constructor (private)
         private Magic(IntPtr ptr)
         {
-            if (!NativeMethods.Loaded)
-                throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
+            Manager.EnsureLoaded();
 
             _magicPtr = ptr;
             _magicBuffers = new List<IntPtr>();
@@ -57,7 +92,7 @@ namespace Joveler.FileMagician
                 return;
 
             // Close magic_t
-            NativeMethods.MagicClose(_magicPtr);
+            Lib.MagicClose(_magicPtr);
             _magicPtr = IntPtr.Zero;
 
             // Free database buffer if has been allocated
@@ -70,114 +105,14 @@ namespace Joveler.FileMagician
         }
         #endregion
 
-        #region (Static) GlobalInit, GlobalCleanup
-        public static void GlobalInit(string libPath)
-        {
-            if (NativeMethods.Loaded)
-                throw new InvalidOperationException(NativeMethods.MsgAlreadyInited);
-
-#if !NET451
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-#endif
-            {
-                if (libPath == null)
-                    throw new ArgumentNullException(nameof(libPath));
-
-                libPath = Path.GetFullPath(libPath);
-                if (!File.Exists(libPath))
-                    throw new ArgumentException("Specified .dll file does not exist");
-
-                // Set proper directory to search, unless LoadLibrary can fail when loading chained dll files.
-                string libDir = Path.GetDirectoryName(libPath);
-                if (libDir != null && !libDir.Equals(AppDomain.CurrentDomain.BaseDirectory))
-                    NativeMethods.Win32.SetDllDirectory(libDir);
-
-                NativeMethods.hModule = NativeMethods.Win32.LoadLibrary(libPath);
-
-                // Reset dll search directory to prevent dll hijacking
-                NativeMethods.Win32.SetDllDirectory(null);
-
-                if (NativeMethods.hModule == IntPtr.Zero)
-                    throw new ArgumentException($"Unable to load [{libPath}]", new Win32Exception());
-
-                // Check if dll is valid (libmagic-1.dll)
-                if (NativeMethods.Win32.GetProcAddress(NativeMethods.hModule, nameof(NativeMethods.magic_open)) == IntPtr.Zero)
-                {
-                    GlobalCleanup();
-                    throw new ArgumentException($"[{libPath}] is not a valid libmagic-1.dll");
-                }
-            }
-#if !NET451
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                if (libPath == null)
-                    libPath = "/usr/lib/x86_64-linux-gnu/libmagic.so.1"; // Try to call system-installed libmagic
-
-                libPath = Path.GetFullPath(libPath);
-                if (!File.Exists(libPath))
-                    throw new ArgumentException("Specified .so file does not exist");
-
-                NativeMethods.hModule = NativeMethods.Linux.dlopen(libPath, NativeMethods.Linux.RTLD_NOW | NativeMethods.Linux.RTLD_GLOBAL);
-                if (NativeMethods.hModule == IntPtr.Zero)
-                    throw new ArgumentException($"Unable to load [{libPath}], {NativeMethods.Linux.dlerror()}");
-
-                // Check if dll is valid libmagic.so
-                if (NativeMethods.Linux.dlsym(NativeMethods.hModule, nameof(NativeMethods.magic_open)) == IntPtr.Zero)
-                {
-                    GlobalCleanup();
-                    throw new ArgumentException($"[{libPath}] is not a valid libmagic-1.so");
-                }
-            }
-#endif
-
-            try
-            {
-                NativeMethods.LoadFunctions();
-            }
-            catch (Exception)
-            {
-                GlobalCleanup();
-                throw;
-            }
-        }
-
-        public static void GlobalCleanup()
-        {
-            if (NativeMethods.Loaded)
-            {
-                NativeMethods.ResetFunctions();
-#if !NET451
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-#endif
-                {
-                    int ret = NativeMethods.Win32.FreeLibrary(NativeMethods.hModule);
-                    Debug.Assert(ret != 0);
-                }
-#if !NET451
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    int ret = NativeMethods.Linux.dlclose(NativeMethods.hModule);
-                    Debug.Assert(ret == 0);
-                }
-#endif
-                NativeMethods.hModule = IntPtr.Zero;
-            }
-            else
-            {
-                throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
-            }
-        }
-        #endregion
-
         #region (Static) Open
         public static Magic Open() => Open(MagicFlags.NONE);
 
         public static Magic Open(MagicFlags flags)
         {
-            if (!NativeMethods.Loaded)
-                throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
+            Manager.EnsureLoaded();
 
-            IntPtr ptr = NativeMethods.MagicOpen(flags);
+            IntPtr ptr = Lib.MagicOpen(flags);
             if (ptr == null)
                 throw new InvalidOperationException("Can't create magic");
 
@@ -188,10 +123,9 @@ namespace Joveler.FileMagician
 
         public static Magic Open(string magicFile, MagicFlags flags)
         {
-            if (!NativeMethods.Loaded)
-                throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
+            Manager.EnsureLoaded();
 
-            IntPtr ptr = NativeMethods.MagicOpen(flags);
+            IntPtr ptr = Lib.MagicOpen(flags);
             if (ptr == null)
                 throw new InvalidOperationException("Can't create magic");
 
@@ -203,17 +137,21 @@ namespace Joveler.FileMagician
 
         #region (Static) Magic File Path
         /// <summary>
+        /// Get default (or given) path of magicFile, and autoload that file.
+        /// </summary>
+        public static string GetPath(string magicFile) => GetPath(magicFile, false);
+
+        /// <summary>
         /// Get default (or given) path of magicFile.
         /// </summary>
-        public static string GetPath(string magicFile, bool autoLoad = true)
+        public static string GetPath(string magicFile, bool autoLoad)
         {
-            if (!NativeMethods.Loaded)
-                throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
+            Manager.EnsureLoaded();
 
             IntPtr magicFilePtr = Marshal.StringToHGlobalAnsi(magicFile);
             try
             {
-                IntPtr strPtr = NativeMethods.MagicGetPath(magicFilePtr, autoLoad ? 0 : -1);
+                IntPtr strPtr = Lib.MagicGetPath(magicFilePtr, autoLoad ? 0 : -1);
                 return Marshal.PtrToStringAnsi(strPtr);
             }
             finally
@@ -234,7 +172,7 @@ namespace Joveler.FileMagician
             // In that case, fall back to buffer-based function.
             if (Win32Encoding.IsActiveCodePageCompatible(magicFile))
             { // In non-Windows platform, this path is always active.
-                int ret = NativeMethods.MagicLoad(_magicPtr, magicFile);
+                int ret = Lib.MagicLoad(_magicPtr, magicFile);
                 CheckError(ret);
             }
             else
@@ -262,7 +200,7 @@ namespace Joveler.FileMagician
             UIntPtr[] sizes = new UIntPtr[1] { (UIntPtr)magicBuffer.Length };
             IntPtr[] buffers = new IntPtr[1] { magicBufPtr };
 
-            int ret = NativeMethods.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
+            int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
             CheckError(ret);
         }
 
@@ -280,7 +218,7 @@ namespace Joveler.FileMagician
             UIntPtr[] sizes = new UIntPtr[1] { (UIntPtr)magicSpan.Length };
             IntPtr[] buffers = new IntPtr[1] { magicBufPtr };
 
-            int ret = NativeMethods.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
+            int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
             CheckError(ret);
         }
         #endregion
@@ -293,7 +231,7 @@ namespace Joveler.FileMagician
             // In that case, fall back to buffer-based function.
             if (Win32Encoding.IsActiveCodePageCompatible(inName))
             { // In non-Windows platform, this path is always active.
-                IntPtr strPtr = NativeMethods.MagicFile(_magicPtr, inName);
+                IntPtr strPtr = Lib.MagicFile(_magicPtr, inName);
                 return Marshal.PtrToStringAnsi(strPtr);
             }
             else
@@ -320,7 +258,7 @@ namespace Joveler.FileMagician
             IntPtr strPtr;
             fixed (byte* bufPtr = span)
             {
-                strPtr = NativeMethods.MagicBuffer(_magicPtr, bufPtr, (UIntPtr)span.Length);
+                strPtr = Lib.MagicBuffer(_magicPtr, bufPtr, (UIntPtr)span.Length);
             }
             return Marshal.PtrToStringAnsi(strPtr);
         }
@@ -330,7 +268,7 @@ namespace Joveler.FileMagician
 
         public string GetLastErrorMessage()
         {
-            IntPtr strPtr = NativeMethods.MagicError(_magicPtr);
+            IntPtr strPtr = Lib.MagicError(_magicPtr);
             return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion
@@ -338,12 +276,12 @@ namespace Joveler.FileMagician
         #region Manage Flags
         public MagicFlags GetFlags()
         {
-            return NativeMethods.MagicGetFlags(_magicPtr);
+            return Lib.MagicGetFlags(_magicPtr);
         }
 
         public void SetFlags(MagicFlags flags)
         {
-            int ret = NativeMethods.MagicSetFlags(_magicPtr, flags);
+            int ret = Lib.MagicSetFlags(_magicPtr, flags);
             CheckError(ret);
         }
         #endregion
@@ -351,17 +289,15 @@ namespace Joveler.FileMagician
         #region (Static) Version
         public static int VersionInt()
         {
-            if (!NativeMethods.Loaded)
-                throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
+            Manager.EnsureLoaded();
 
-            return NativeMethods.MagicVersion();
+            return Lib.MagicVersion();
         }
         public static Version VersionInstance()
         {
-            if (!NativeMethods.Loaded)
-                throw new InvalidOperationException(NativeMethods.MsgInitFirstError);
+            Manager.EnsureLoaded();
 
-            int verInt = NativeMethods.MagicVersion();
+            int verInt = Lib.MagicVersion();
             return new Version(verInt / 100, verInt % 100);
         }
         #endregion

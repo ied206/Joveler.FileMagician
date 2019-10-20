@@ -1,4 +1,31 @@
-﻿using System;
+﻿/*
+    C# pinvoke wrapper written by Hajin Jang
+    Copyright (C) 2019 Hajin Jang
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    1. Redistributions of source code must retain the above copyright 
+       notice, this list of conditions and the following disclaimer.
+   
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+    THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 // ReSharper disable InconsistentNaming
@@ -25,8 +52,6 @@ namespace Joveler.FileMagician
             int bufferSize = NativeMethods.Win32.WideCharToMultiByte(CP_ACP, 0, str, -1, null, 0, null, null);
 
             // Try to convert unicode string to multi-byte, and see whether conversion fails or not.
-            // WC_ERR_INVALID_CHARS flag mandates conversion to fail if wide-char string contains incompatible character in system codepage.
-            // https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-widechartomultibyte
             bool lpUsedDefaultChar = false;
             byte[] buffer = new byte[bufferSize + 2];
             int ret = NativeMethods.Win32.WideCharToMultiByte(CP_ACP, 0, str, -1, buffer, bufferSize, null, &lpUsedDefaultChar);

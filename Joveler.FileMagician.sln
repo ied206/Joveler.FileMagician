@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joveler.FileMagician", "Jov
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joveler.FileMagician.Tests", "Joveler.FileMagician.Tests\Joveler.FileMagician.Tests.csproj", "{D533A929-A0DB-4F73-B700-3969FDB7C9F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Joveler.FileMagician.Samples", "Joveler.FileMagician.Samples\Joveler.FileMagician.Samples.csproj", "{EAA388C9-B7F5-441D-BE79-9D4B032EC7BA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{D533A929-A0DB-4F73-B700-3969FDB7C9F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D533A929-A0DB-4F73-B700-3969FDB7C9F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D533A929-A0DB-4F73-B700-3969FDB7C9F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAA388C9-B7F5-441D-BE79-9D4B032EC7BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAA388C9-B7F5-441D-BE79-9D4B032EC7BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAA388C9-B7F5-441D-BE79-9D4B032EC7BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAA388C9-B7F5-441D-BE79-9D4B032EC7BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
