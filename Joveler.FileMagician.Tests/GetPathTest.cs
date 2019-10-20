@@ -40,6 +40,8 @@ namespace Joveler.FileMagician.Tests
             // Magic.GetPath(null, false)'s value changes if MSYS2 is installed, which is required for compiling libmagic.
             string result = Magic.GetPath(TestSetup.MagicFile, true);
             Assert.IsTrue(result.Equals(TestSetup.MagicFile, StringComparison.Ordinal));
+            result = Magic.GetPath(TestSetup.MagicFile);
+            Assert.IsTrue(result.Equals(TestSetup.MagicFile, StringComparison.Ordinal));
             result = Magic.GetPath(TestSetup.MagicFile, false);
             Assert.IsTrue(result.Equals(TestSetup.MagicFile, StringComparison.Ordinal));
         }
