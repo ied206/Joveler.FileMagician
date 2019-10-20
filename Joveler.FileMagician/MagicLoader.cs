@@ -37,9 +37,6 @@ namespace Joveler.FileMagician
     #region NativeMethods
     internal class MagicLoader : DynLoaderBase
     {
-        // public const string MsgInitFirstError = "Please call Magic.GlobalInit() first!";
-        // public const string MsgAlreadyInited = "Joveler.FileMagician is already initialized.";
-
         #region Constructor
         public MagicLoader() : base() { }
         public MagicLoader(string libPath) : base(libPath) { }

@@ -137,9 +137,14 @@ namespace Joveler.FileMagician
 
         #region (Static) Magic File Path
         /// <summary>
+        /// Get default (or given) path of magicFile, and autoload that file.
+        /// </summary>
+        public static string GetPath(string magicFile) => GetPath(magicFile, false);
+
+        /// <summary>
         /// Get default (or given) path of magicFile.
         /// </summary>
-        public static string GetPath(string magicFile, bool autoLoad = true)
+        public static string GetPath(string magicFile, bool autoLoad)
         {
             Manager.EnsureLoaded();
 
