@@ -27,6 +27,9 @@
 */
 
 using System.Runtime.CompilerServices;
+#if !NET451
+using System.Runtime.InteropServices;
+#endif
 // ReSharper disable InconsistentNaming
 
 [assembly: InternalsVisibleTo("Joveler.FileMagician.Tests")]
