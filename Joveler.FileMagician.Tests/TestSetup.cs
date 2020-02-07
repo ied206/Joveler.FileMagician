@@ -25,12 +25,12 @@
     THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Joveler.FileMagician.Tests
 {

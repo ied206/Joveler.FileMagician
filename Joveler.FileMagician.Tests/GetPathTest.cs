@@ -25,8 +25,8 @@
     THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace Joveler.FileMagician.Tests
 {

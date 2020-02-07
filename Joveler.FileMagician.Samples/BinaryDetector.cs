@@ -112,7 +112,7 @@ namespace Joveler.FileMagician.Samples
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             LoadFileMagician(baseDir);
-            
+
             string magicFile = Path.Combine(baseDir, "magic.mgc");
             _magic = Magic.Open(magicFile, MagicFlags.NONE);
         }
@@ -141,7 +141,7 @@ namespace Joveler.FileMagician.Samples
                 {
                     _magic.Dispose();
                     _magic = null;
-                }   
+                }
             }
         }
         #endregion
