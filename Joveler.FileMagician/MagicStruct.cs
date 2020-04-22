@@ -165,24 +165,13 @@ namespace Joveler.FileMagician
         /// </summary>
         public void Load(string magicFile)
         {
-            // Windows version of libmagic cannot handle unicode filepath.
-            // If path includes an unicode char which cannot be converted to system ANSI locale, MagicLoad would fail.
-            // In that case, fall back to buffer-based function.
-            if (Win32Encoding.IsActiveCodePageCompatible(magicFile))
-            { // In non-Windows platform, this path is always active.
-                int ret = Lib.MagicLoad(_magicPtr, magicFile);
-                CheckError(ret);
-            }
-            else
+            byte[] magicBuffer;
+            using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read))
             {
-                byte[] magicBuffer;
-                using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read))
-                {
-                    magicBuffer = new byte[fs.Length];
-                    fs.Read(magicBuffer, 0, magicBuffer.Length);
-                }
-                LoadBuffer(magicBuffer, 0, magicBuffer.Length);
+                magicBuffer = new byte[fs.Length];
+                fs.Read(magicBuffer, 0, magicBuffer.Length);
             }
+            LoadBuffer(magicBuffer, 0, magicBuffer.Length);
         }
 
         /// <summary>
@@ -224,25 +213,14 @@ namespace Joveler.FileMagician
         #region Check Type
         public string CheckFile(string inName)
         {
-            // Windows version of libmagic cannot handle unicode filepath.
-            // If path includes an unicode char which cannot be converted to system ANSI locale, MagicLoad would fail.
-            // In that case, fall back to buffer-based function.
-            if (Win32Encoding.IsActiveCodePageCompatible(inName))
-            { // In non-Windows platform, this path is always active.
-                IntPtr strPtr = Lib.MagicFile(_magicPtr, inName);
-                return Marshal.PtrToStringAnsi(strPtr);
-            }
-            else
+            int bytesRead;
+            byte[] magicBuffer = new byte[256 * 1024]; // `file` command use 256KB buffer by default
+            using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
             {
-                int bytesRead;
-                byte[] magicBuffer = new byte[256 * 1024]; // `file` command use 256KB buffer by default
-                using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
-                {
-                    bytesRead = fs.Read(magicBuffer, 0, magicBuffer.Length);
-                }
-
-                return CheckBuffer(magicBuffer, 0, bytesRead);
+                bytesRead = fs.Read(magicBuffer, 0, magicBuffer.Length);
             }
+
+            return CheckBuffer(magicBuffer, 0, bytesRead);
         }
 
         public string CheckBuffer(byte[] buffer, int offset, int count)

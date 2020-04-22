@@ -35,7 +35,7 @@ namespace Joveler.FileMagician.Tests
     [TestClass]
     public class CheckTest
     {
-        private struct TypeInfo
+        private class TypeInfo
         {
             public readonly string FileType;
             public readonly string MimeType;
@@ -97,8 +97,10 @@ namespace Joveler.FileMagician.Tests
         public void FileType()
         {
             // MagicBuffer
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
                 Template(sampleFileName, 0, MagicFlags.NONE, ti.FileType);
             }
         }
@@ -106,8 +108,10 @@ namespace Joveler.FileMagician.Tests
         [TestMethod]
         public void MimeType()
         {
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
                 Template(sampleFileName, 1, MagicFlags.MIME_TYPE, ti.MimeType);
             }
         }
@@ -115,8 +119,10 @@ namespace Joveler.FileMagician.Tests
         [TestMethod]
         public void MimeEncoding()
         {
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
                 Template(sampleFileName, 2, MagicFlags.MIME_ENCODING, ti.MimeEncoding);
             }
         }
@@ -124,13 +130,15 @@ namespace Joveler.FileMagician.Tests
         [TestMethod]
         public void Extension()
         {
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
                 Template(sampleFileName, 3, MagicFlags.EXTENSION, ti.Extension);
             }
         }
 
-        public void Template(string sampleFileName, int loadMode, MagicFlags flags, string expected)
+        public static void Template(string sampleFileName, int loadMode, MagicFlags flags, string expected)
         {
             using (Magic magic = Magic.Open(flags))
             {
@@ -184,8 +192,13 @@ namespace Joveler.FileMagician.Tests
                 {
                     buffer = new byte[fs.Length];
                     span = buffer.AsSpan();
+#if NETFRAMEWORK
+                    fs.Read(buffer, 0, buffer.Length);
+#else
                     fs.Read(span);
+#endif
                 }
+
                 result = magic.CheckBuffer(span);
                 Assert.IsTrue(result.Equals(expected, StringComparison.Ordinal));
             }

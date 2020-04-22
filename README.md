@@ -50,7 +50,8 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 ### Supported libmagic version
 
 - 5.36
-- 5.37 (Included)
+- 5.37
+- 5.38 (Included)
 
 ## Usage
 
