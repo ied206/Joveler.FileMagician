@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Joveler.FileMagician</PackageId>
     <Title>Joveler.FileMagician</Title>
-    <Version>1.4.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</Authors>
     <Company>Joveler</Company>
     <Description>libmagic (file) pinvoke library for .Net.

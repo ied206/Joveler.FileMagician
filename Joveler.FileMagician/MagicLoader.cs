@@ -134,13 +134,6 @@ namespace Joveler.FileMagician
         internal delegate IntPtr magic_getpath(IntPtr magicfile, int action);
         internal magic_getpath MagicGetPath;
 
-        /// <summary>
-        /// Find type of named file.
-        /// </summary>
-        //[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        //internal delegate IntPtr magic_file(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string inname);
-        //internal magic_file MagicFile;
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal unsafe delegate IntPtr magic_buffer(IntPtr ms, byte* buf, UIntPtr nb);
         internal magic_buffer MagicBuffer;
@@ -160,13 +153,6 @@ namespace Joveler.FileMagician
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_version();
         internal magic_version MagicVersion;
-
-        /// <summary>
-        /// Load a magic file.
-        /// </summary>
-        // [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        // internal delegate int magic_load(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string magicfile);
-        // internal magic_load MagicLoad;
 
         /// <summary>
         /// Install a set of compiled magic buffers.
@@ -199,11 +185,11 @@ namespace Joveler.FileMagician
         internal magic_errno MagicErrno;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate int magic_setparam(IntPtr ms, MagicParam param, ref UIntPtr val);
+        internal unsafe delegate int magic_setparam(IntPtr ms, MagicParam param, UIntPtr* val);
         internal magic_setparam MagicSetParam;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate int magic_getparam(IntPtr ms, MagicParam param, ref UIntPtr val);
+        internal unsafe delegate int magic_getparam(IntPtr ms, MagicParam param, UIntPtr* val);
         internal magic_getparam MagicGetParam;
         #endregion
         #endregion

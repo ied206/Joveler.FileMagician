@@ -4,7 +4,7 @@
     <img src="./Image/Logo.svg" height="128">
 </div>
 
-Cross-platform [libmagic](http://www.darwinsys.com/file/) pinvoke library for .Net.
+Cross-platform [libmagic](http://www.darwinsys.com/file/) pinvoke library for .NET.
 
 libmagic is a file type guesser library which powers POSIX's file command.
 
@@ -23,10 +23,10 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 
 ## Support
 
-### Targeted .Net platforms
+### Targeted .NET platforms
 
-- .Net Framework 4.5.1
-- .Net Standard 2.0 (.Net Framework 4.6.1+, .Net Core 2.0+)
+- .NET Standard 2.0 (.NET Framework 4.6.1+, .NET Core 2.0+)
+- .NET Framework 4.5.1
 
 ### Supported OS platforms
 
@@ -57,11 +57,13 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 
 See [USAGE.md](./USAGE.md).
 
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md).
+
 ## License
 
-`Joveler.FileMagician` and `libmagic` is licensed under the 2-Clause BSD license.  
-Bundled Windows binary also contains LGPLv2 libiconv.  
-See [LICENSE](./LICENSE) for details.
-
-The logo is licensed under Apache 2.0 License.  
-[Search icon](https://material.io/tools/icons/?icon=search&style=baseline) from the Material Icons.
+- `Joveler.FileMagician` and `libmagic` is licensed under the BSD 2-Clause license. 
+- Bundled Windows binary also contains LGPLv2 libiconv. 
+- See [LICENSE](./LICENSE) for details.
+- The logo, [search icon](https://material.io/tools/icons/?icon=search&style=baseline) from the Material Icons, is licensed under Apache 2.0 License.

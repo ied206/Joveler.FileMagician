@@ -104,7 +104,7 @@ namespace Joveler.FileMagician
         #endregion
 
         #region (Static) Open
-        public static Magic Open() => Open(MagicFlags.NONE);
+        public static Magic Open() => Open(MagicFlags.None);
 
         public static Magic Open(MagicFlags flags)
         {
@@ -112,12 +112,12 @@ namespace Joveler.FileMagician
 
             IntPtr ptr = Lib.MagicOpen(flags);
             if (ptr == null)
-                throw new InvalidOperationException("Can't create magic");
+                throw new InvalidOperationException("Cannot create magic");
 
             return new Magic(ptr);
         }
 
-        public static Magic Open(string magicFile) => Open(magicFile, MagicFlags.NONE);
+        public static Magic Open(string magicFile) => Open(magicFile, MagicFlags.None);
 
         public static Magic Open(string magicFile, MagicFlags flags)
         {
@@ -125,37 +125,23 @@ namespace Joveler.FileMagician
 
             IntPtr ptr = Lib.MagicOpen(flags);
             if (ptr == null)
-                throw new InvalidOperationException("Can't create magic");
+                throw new InvalidOperationException("Cannot create magic");
 
             Magic magic = new Magic(ptr);
-            magic.Load(magicFile);
+            magic.LoadMagicFile(magicFile);
             return magic;
         }
         #endregion
 
         #region (Static) Magic File Path
         /// <summary>
-        /// Get default (or given) path of magicFile, and autoload that file.
+        /// Get default path of magicFile.
+        /// NOTE: This function does not support Unicode on Windows.
         /// </summary>
-        public static string GetPath(string magicFile) => GetPath(magicFile, false);
-
-        /// <summary>
-        /// Get default (or given) path of magicFile.
-        /// </summary>
-        public static string GetPath(string magicFile, bool autoLoad)
+        public static string GetDefaultMagicFilePath()
         {
-            Manager.EnsureLoaded();
-
-            IntPtr magicFilePtr = Marshal.StringToHGlobalAnsi(magicFile);
-            try
-            {
-                IntPtr strPtr = Lib.MagicGetPath(magicFilePtr, autoLoad ? 0 : -1);
-                return Marshal.PtrToStringAnsi(strPtr);
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(magicFilePtr);
-            }
+            IntPtr strPtr = Lib.MagicGetPath(IntPtr.Zero, 0);
+            return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion
 
@@ -163,7 +149,7 @@ namespace Joveler.FileMagician
         /// <summary>
         /// Load a magic file.
         /// </summary>
-        public void Load(string magicFile)
+        public void LoadMagicFile(string magicFile)
         {
             byte[] magicBuffer;
             using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read))
@@ -171,13 +157,13 @@ namespace Joveler.FileMagician
                 magicBuffer = new byte[fs.Length];
                 fs.Read(magicBuffer, 0, magicBuffer.Length);
             }
-            LoadBuffer(magicBuffer, 0, magicBuffer.Length);
+            LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
         }
 
         /// <summary>
         /// Install a set of compiled magic buffers.
         /// </summary>
-        public void LoadBuffer(byte[] magicBuffer, int offset, int count)
+        public void LoadMagicBuffer(byte[] magicBuffer, int offset, int count)
         {
             IntPtr magicBufPtr = Marshal.AllocHGlobal(count);
             Marshal.Copy(magicBuffer, offset, magicBufPtr, count);
@@ -188,29 +174,33 @@ namespace Joveler.FileMagician
             IntPtr[] buffers = new IntPtr[1] { magicBufPtr };
 
             int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
-            CheckError(ret);
+            CheckMagicError(ret);
         }
 
         /// <summary>
         /// Install a set of compiled magic buffers.
         /// </summary>
-        public unsafe void LoadBuffer(ReadOnlySpan<byte> magicSpan)
+        public unsafe void LoadMagicBuffer(ReadOnlySpan<byte> magicSpan)
         {
             IntPtr magicBufPtr = Marshal.AllocHGlobal(magicSpan.Length);
             byte* butPtr = (byte*)magicBufPtr.ToPointer();
             for (int i = 0; i < magicSpan.Length; i++)
                 butPtr[i] = magicSpan[i];
 
-            UIntPtr nbufs = (UIntPtr)1;
+            UIntPtr nbufs = new UIntPtr(1);
             UIntPtr[] sizes = new UIntPtr[1] { (UIntPtr)magicSpan.Length };
             IntPtr[] buffers = new IntPtr[1] { magicBufPtr };
 
             int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
-            CheckError(ret);
+            CheckMagicError(ret);
         }
         #endregion
 
         #region Check Type
+        /// <summary>
+        /// Check type of a given file by inspecting first 256KB.
+        /// </summary>
+        /// <param name="inName">File to check its type.</param>
         public string CheckFile(string inName)
         {
             int bytesRead;
@@ -223,12 +213,36 @@ namespace Joveler.FileMagician
             return CheckBuffer(magicBuffer, 0, bytesRead);
         }
 
+        /// <summary>
+        /// Check type of a given file.
+        /// </summary>
+        /// <param name="inName">File to check its type.</param>
+        /// <param name="checkSize">How many bytes to check?</param>
+        /// <returns></returns>
+        public string CheckFile(string inName, int checkSize)
+        {
+            int bytesRead;
+            byte[] magicBuffer = new byte[checkSize];
+            using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
+            {
+                bytesRead = fs.Read(magicBuffer, 0, magicBuffer.Length);
+            }
+
+            return CheckBuffer(magicBuffer, 0, bytesRead);
+        }
+
+        /// <summary>
+        /// Check type of a given buffer.
+        /// </summary>
         public string CheckBuffer(byte[] buffer, int offset, int count)
         {
             ReadOnlySpan<byte> span = buffer.AsSpan(offset, count);
             return CheckBuffer(span);
         }
 
+        /// <summary>
+        /// Check type of a given buffer.
+        /// </summary>
         public unsafe string CheckBuffer(ReadOnlySpan<byte> span)
         {
             IntPtr strPtr;
@@ -236,15 +250,6 @@ namespace Joveler.FileMagician
             {
                 strPtr = Lib.MagicBuffer(_magicPtr, bufPtr, (UIntPtr)span.Length);
             }
-            return Marshal.PtrToStringAnsi(strPtr);
-        }
-        #endregion
-
-        #region Error Messages
-
-        public string GetLastErrorMessage()
-        {
-            IntPtr strPtr = Lib.MagicError(_magicPtr);
             return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion
@@ -258,7 +263,33 @@ namespace Joveler.FileMagician
         public void SetFlags(MagicFlags flags)
         {
             int ret = Lib.MagicSetFlags(_magicPtr, flags);
-            CheckError(ret);
+            CheckMagicError(ret);
+        }
+        #endregion
+
+        #region Managed Params
+        /// <summary>
+        /// Get various limits related to the magic library.
+        /// </summary>
+        /// <param name="param"></param>
+        public unsafe ulong GetParam(MagicParam param)
+        {
+            UIntPtr size = new UIntPtr(0); // size_t
+            int ret = Lib.MagicGetParam(_magicPtr, param, &size);
+            CheckMagicError(ret);
+            return size.ToUInt64();
+        }
+
+        /// <summary>
+        /// Set various limits related to the magic library.
+        /// </summary>
+        /// <param name="param"></param>
+        /// <param name="value"></param>
+        public unsafe void SetParam(MagicParam param, ulong value)
+        {
+            UIntPtr size = new UIntPtr(value); // size_t
+            int ret = Lib.MagicSetParam(_magicPtr, param, &size);
+            CheckMagicError(ret);
         }
         #endregion
 
@@ -279,10 +310,16 @@ namespace Joveler.FileMagician
         #endregion
 
         #region Exception Utility
-        public void CheckError(int ret)
+        private void CheckMagicError(int ret)
         {
             if (ret < 0)
                 throw new InvalidOperationException(GetLastErrorMessage());
+        }
+
+        private string GetLastErrorMessage()
+        {
+            IntPtr strPtr = Lib.MagicError(_magicPtr);
+            return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion
     }

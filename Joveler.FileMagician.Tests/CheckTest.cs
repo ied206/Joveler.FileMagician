@@ -101,7 +101,7 @@ namespace Joveler.FileMagician.Tests
             {
                 string sampleFileName = kv.Key;
                 TypeInfo ti = kv.Value;
-                Template(sampleFileName, 0, MagicFlags.NONE, ti.FileType);
+                Template(sampleFileName, 0, MagicFlags.None, ti.FileType);
             }
         }
 
@@ -112,7 +112,7 @@ namespace Joveler.FileMagician.Tests
             {
                 string sampleFileName = kv.Key;
                 TypeInfo ti = kv.Value;
-                Template(sampleFileName, 1, MagicFlags.MIME_TYPE, ti.MimeType);
+                Template(sampleFileName, 1, MagicFlags.MimeType, ti.MimeType);
             }
         }
 
@@ -123,7 +123,7 @@ namespace Joveler.FileMagician.Tests
             {
                 string sampleFileName = kv.Key;
                 TypeInfo ti = kv.Value;
-                Template(sampleFileName, 2, MagicFlags.MIME_ENCODING, ti.MimeEncoding);
+                Template(sampleFileName, 2, MagicFlags.MimeEncoding, ti.MimeEncoding);
             }
         }
 
@@ -134,7 +134,7 @@ namespace Joveler.FileMagician.Tests
             {
                 string sampleFileName = kv.Key;
                 TypeInfo ti = kv.Value;
-                Template(sampleFileName, 3, MagicFlags.EXTENSION, ti.Extension);
+                Template(sampleFileName, 3, MagicFlags.Extension, ti.Extension);
             }
         }
 
@@ -146,11 +146,11 @@ namespace Joveler.FileMagician.Tests
                 switch (loadMode)
                 {
                     case 0:
-                        magic.Load(TestSetup.MagicFile);
+                        magic.LoadMagicFile(TestSetup.MagicFile);
                         break;
                     case 1:
                         // Force .Net's unicode -> ansi encoding convert failure by using exotic/obscure characters
-                        magic.Load(TestSetup.MagicUnicodeOnlyPath);
+                        magic.LoadMagicFile(TestSetup.MagicUnicodeOnlyPath);
                         break;
                     case 2:
                         using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
@@ -158,7 +158,7 @@ namespace Joveler.FileMagician.Tests
                             magicBuffer = new byte[fs.Length];
                             fs.Read(magicBuffer, 0, magicBuffer.Length);
                         }
-                        magic.LoadBuffer(magicBuffer);
+                        magic.LoadMagicBuffer(magicBuffer);
                         break;
                     case 3:
                         using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
@@ -166,7 +166,7 @@ namespace Joveler.FileMagician.Tests
                             magicBuffer = new byte[fs.Length];
                             fs.Read(magicBuffer, 0, magicBuffer.Length);
                         }
-                        magic.LoadBuffer(magicBuffer, 0, magicBuffer.Length);
+                        magic.LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
                         break;
                 }
 

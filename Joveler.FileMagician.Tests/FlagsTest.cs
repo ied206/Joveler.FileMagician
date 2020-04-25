@@ -38,11 +38,11 @@ namespace Joveler.FileMagician.Tests
             using (Magic magic = Magic.Open(TestSetup.MagicFile))
             {
                 MagicFlags flags = magic.GetFlags();
-                Assert.AreEqual(MagicFlags.NONE, flags);
+                Assert.AreEqual(MagicFlags.None, flags);
 
-                magic.SetFlags(MagicFlags.CONTINUE);
+                magic.SetFlags(MagicFlags.Continue);
                 flags = magic.GetFlags();
-                Assert.AreEqual(MagicFlags.CONTINUE, flags);
+                Assert.AreEqual(MagicFlags.Continue, flags);
             }
         }
     }
