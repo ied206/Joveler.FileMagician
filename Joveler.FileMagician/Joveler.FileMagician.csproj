@@ -22,9 +22,7 @@ Supports Windows, Linux and macOS.</Description>
   <!-- PackageReference -->
   <ItemGroup>
     <PackageReference Include="Joveler.DynLoader" Version="2.0.0" />
-  </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.Memory" Version="4.5.4" />
+    <PackageReference Include="System.Memory" Version="4.5.4" Condition=" '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'netstandard2.0' "/>
   </ItemGroup>
   <!-- Shared NuGet Files -->
   <ItemGroup>
@@ -47,68 +45,58 @@ Supports Windows, Linux and macOS.</Description>
   </ItemGroup>
   <!-- .NET Standard 2.0 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <None Include="Precompiled\x86\*.dll"   Pack="true">
+    <!-- Pack/PackagePath: for NuGet package, Link/CopyToOutputDirectory: for project reference -->
+    <None Include="Precompiled\x86\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\win-x86\native\netstandard2.0\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\win-x86\native\netstandard2.0</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\x64\*.dll"   Pack="true">
+    <None Include="Precompiled\x64\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\win-x64\native\netstandard2.0\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\win-x64\native\netstandard2.0</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\x64\*.so"    Pack="true">
+    <None Include="Precompiled\x64\*.so"    Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\linux-x64\native\netstandard2.0\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\linux-x64\native\netstandard2.0</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\armhf\*.so"  Pack="true">
+    <None Include="Precompiled\armhf\*.so"  Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\linux-arm\native\netstandard2.0\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\linux-arm\native\netstandard2.0</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\arm64\*.so"  Pack="true">
+    <None Include="Precompiled\arm64\*.so"  Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\linux-arm64\native\netstandard2.0\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\linux-arm64\native\netstandard2.0</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\x64\*.dylib" Pack="true">
+    <None Include="Precompiled\x64\*.dylib" Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\osx-x64\native\netstandard2.0\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\osx-x64\native\netstandard2.0</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <!-- .NET Standard 2.1 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
-    <None Include="Precompiled\x86\*.dll"   Pack="true">
+    <!-- Pack/PackagePath: for NuGet package, Link/CopyToOutputDirectory: for project reference -->
+    <None Include="Precompiled\x86\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\win-x86\native\netstandard2.1\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\win-x86\native\netstandard2.1</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\x64\*.dll"   Pack="true">
+    <None Include="Precompiled\x64\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\win-x64\native\netstandard2.1\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\win-x64\native\netstandard2.1</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\x64\*.so"    Pack="true">
+    <None Include="Precompiled\x64\*.so"    Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\linux-x64\native\netstandard2.1\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\linux-x64\native\netstandard2.1</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\armhf\*.so"  Pack="true">
+    <None Include="Precompiled\armhf\*.so"  Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\linux-arm\native\netstandard2.1\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\linux-arm\native\netstandard2.1</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\arm64\*.so"  Pack="true">
+    <None Include="Precompiled\arm64\*.so"  Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\linux-arm64\native\netstandard2.1\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\linux-arm64\native\netstandard2.1</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Precompiled\x64\*.dylib" Pack="true">
+    <None Include="Precompiled\x64\*.dylib" Pack="true" CopyToOutputDirectory="PreserveNewest">
       <Link>runtimes\osx-x64\native\netstandard2.1\%(FileName)%(Extension)</Link>
       <PackagePath>runtimes\osx-x64\native\netstandard2.1</PackagePath>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 </Project>

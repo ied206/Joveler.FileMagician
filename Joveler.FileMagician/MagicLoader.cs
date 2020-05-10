@@ -66,7 +66,6 @@ namespace Joveler.FileMagician
 
             #region Operations
             MagicGetPath = GetFuncPtr<magic_getpath>(nameof(magic_getpath));
-            //MagicFile = GetFuncPtr<magic_file>(nameof(magic_file));
             MagicBuffer = GetFuncPtr<magic_buffer>(nameof(magic_buffer));
 
             MagicError = GetFuncPtr<magic_error>(nameof(magic_error));
@@ -96,7 +95,6 @@ namespace Joveler.FileMagician
 
             #region Operations
             MagicGetPath = null;
-            //MagicFile = null;
             MagicBuffer = null;
 
             MagicError = null;
@@ -104,7 +102,7 @@ namespace Joveler.FileMagician
             MagicSetFlags = null;
 
             MagicVersion = null;
-            //MagicLoad = null;
+            MagicLoad = null;
             MagicLoadBuffers = null;
 
             MagicCompile = null;
