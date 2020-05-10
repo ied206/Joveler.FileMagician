@@ -16,28 +16,99 @@ Supports Windows, Linux and macOS.</Description>
     <PackageProjectUrl>https://github.com/ied206/Joveler.FileMagician</PackageProjectUrl>
     <PackageIcon>images\Logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/ied206/Joveler.FileMagician</RepositoryUrl>
-    <PackageReleaseNotes>- Improve RHEL/CentOS compatibility</PackageReleaseNotes>
+    <PackageReleaseNotes>- Refactor public API design</PackageReleaseNotes>
     <PackageTags>libmagic magic file native pinvoke interop</PackageTags>
   </PropertyGroup>
-  <Import Project="$(MSBuildProjectDirectory)\Joveler.FileMagician.targets" />
+  <!-- PackageReference -->
+  <ItemGroup>
+    <PackageReference Include="Joveler.DynLoader" Version="2.0.0" />
+  </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="System.Memory" Version="4.5.4" />
   </ItemGroup>
+  <!-- Shared NuGet Files -->
   <ItemGroup>
-    <PackageReference Include="Joveler.DynLoader" Version="2.0.0" />
-    <!-- Nuget Pacakge Icon -->
+    <!-- NuGet Pacakge Icon -->
     <None Include="..\Image\Logo.png" Pack="true" PackagePath="images\" />
-    <!-- .Net Framework 4.5.1 -->
-    <None Include="Joveler.FileMagician.targets" Pack="true" PackagePath="build\net451" />
-    <None Include="Precompiled\magic.mgc" Pack="true" PackagePath="build\net451\Precompiled\magic.mgc" />
-    <None Include="Precompiled\x86\*.dll" Pack="true" PackagePath="build\net451\Precompiled\x86" />
-    <None Include="Precompiled\x64\*.dll" Pack="true" PackagePath="build\net451\Precompiled\x64" />
-    <!-- .Net Standard 2.0 -->
-    <None Include="Joveler.FileMagician.targets" Pack="true" PackagePath="build\netstandard2.0" />
-    <None Include="Precompiled\magic.mgc" Pack="true" PackagePath="build\netstandard2.0\Precompiled\magic.mgc" />
-    <None Include="Precompiled\x86\*" Pack="true" PackagePath="build\netstandard2.0\Precompiled\x86" />
-    <None Include="Precompiled\x64\*" Pack="true" PackagePath="build\netstandard2.0\Precompiled\x64" />
-    <None Include="Precompiled\armhf\*" Pack="true" PackagePath="build\netstandard2.0\Precompiled\armhf" />
-    <None Include="Precompiled\arm64\*" Pack="true" PackagePath="build\netstandard2.0\Precompiled\arm64" />
+    <!-- Magic Database -->
+    <None Include="Precompiled\magic.mgc"   Pack="true">
+      <Link>%(FileName)%(Extension)</Link>
+      <PackagePath>content\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <!-- .NET Framework 4.5.1 -->
+  <Import Condition=" '$(TargetFramework)' == 'net451' " Project="$(MSBuildProjectDirectory)\Joveler.FileMagician.netfx.targets"/>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
+    <!-- .NET Framework 4.5.1 -->
+    <None Include="Joveler.FileMagician.netfx.targets" Pack="true" PackagePath="build\net451" />
+    <None Include="Precompiled\x86\*.dll"   Pack="true" PackagePath="build\net451\Precompiled\x86" />
+    <None Include="Precompiled\x64\*.dll"   Pack="true" PackagePath="build\net451\Precompiled\x64" />
+  </ItemGroup>
+  <!-- .NET Standard 2.0 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <None Include="Precompiled\x86\*.dll"   Pack="true">
+      <Link>runtimes\win-x86\native\netstandard2.0\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\win-x86\native\netstandard2.0</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\x64\*.dll"   Pack="true">
+      <Link>runtimes\win-x64\native\netstandard2.0\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\win-x64\native\netstandard2.0</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\x64\*.so"    Pack="true">
+      <Link>runtimes\linux-x64\native\netstandard2.0\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\linux-x64\native\netstandard2.0</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\armhf\*.so"  Pack="true">
+      <Link>runtimes\linux-arm\native\netstandard2.0\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\linux-arm\native\netstandard2.0</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\arm64\*.so"  Pack="true">
+      <Link>runtimes\linux-arm64\native\netstandard2.0\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\linux-arm64\native\netstandard2.0</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\x64\*.dylib" Pack="true">
+      <Link>runtimes\osx-x64\native\netstandard2.0\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\osx-x64\native\netstandard2.0</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <!-- .NET Standard 2.1 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <None Include="Precompiled\x86\*.dll"   Pack="true">
+      <Link>runtimes\win-x86\native\netstandard2.1\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\win-x86\native\netstandard2.1</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\x64\*.dll"   Pack="true">
+      <Link>runtimes\win-x64\native\netstandard2.1\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\win-x64\native\netstandard2.1</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\x64\*.so"    Pack="true">
+      <Link>runtimes\linux-x64\native\netstandard2.1\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\linux-x64\native\netstandard2.1</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\armhf\*.so"  Pack="true">
+      <Link>runtimes\linux-arm\native\netstandard2.1\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\linux-arm\native\netstandard2.1</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\arm64\*.so"  Pack="true">
+      <Link>runtimes\linux-arm64\native\netstandard2.1\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\linux-arm64\native\netstandard2.1</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Precompiled\x64\*.dylib" Pack="true">
+      <Link>runtimes\osx-x64\native\netstandard2.1\%(FileName)%(Extension)</Link>
+      <PackagePath>runtimes\osx-x64\native\netstandard2.1</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

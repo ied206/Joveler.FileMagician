@@ -56,33 +56,50 @@ namespace Joveler.FileMagician.Tests
             MagicUnicodeOnlyPath = Path.Combine(ExeDir, MagicUnicodeOnlyPath);
             File.Copy(MagicFile, MagicUnicodeOnlyPath, true);
 
-            string arch = null;
+
+            string libDir = string.Empty;
+#if !NET48
+            libDir = @"runtimes";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                libDir = Path.Combine(libDir, "win-");
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                libDir = Path.Combine(libDir, "linux-");
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                libDir = Path.Combine(libDir, "osx-");
+#endif
+
             switch (RuntimeInformation.ProcessArchitecture)
             {
                 case Architecture.X86:
-                    arch = "x86";
+                    libDir += "x86";
                     break;
                 case Architecture.X64:
-                    arch = "x64";
+                    libDir += "x64";
                     break;
                 case Architecture.Arm:
-                    arch = "armhf";
+                    libDir += "arm";
                     break;
                 case Architecture.Arm64:
-                    arch = "arm64";
+                    libDir += "arm64";
                     break;
             }
 
+#if NETCOREAPP2_1
+            libDir = Path.Combine(libDir, "native", "netstandard2.0");
+#elif NETCOREAPP3_1
+            libDir = Path.Combine(libDir, "native", "netstandard2.1");
+#endif
+
             string libPath = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                libPath = Path.Combine(arch, "libmagic-1.dll");
+                libPath = Path.Combine(libDir, "libmagic-1.dll");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                libPath = Path.Combine(arch, "libmagic.so");
+                libPath = Path.Combine(libDir, "libmagic.so");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                libPath = Path.Combine(arch, "libmagic.dylib");
+                libPath = Path.Combine(libDir, "libmagic.dylib");
 
             if (libPath == null || !File.Exists(libPath))
-                throw new PlatformNotSupportedException();
+                throw new PlatformNotSupportedException($"Unable to find native library{(libPath == null ? string.Empty : ": " + libPath)}");
 
             Magic.GlobalInit(libPath);
         }
@@ -95,10 +112,10 @@ namespace Joveler.FileMagician.Tests
         }
     }
 
-    #region Helper
+#region Helper
     public static class TestHelper
     {
-        #region File and Path
+#region File and Path
         public static string GetProgramAbsolutePath()
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
@@ -147,7 +164,7 @@ namespace Joveler.FileMagician.Tests
         {
             return tuples.Select(x => new Tuple<string, bool>(NormalizePath(x.Item1), x.Item2)).ToArray();
         }
-        #endregion
+#endregion
     }
-    #endregion
+#endregion
 }

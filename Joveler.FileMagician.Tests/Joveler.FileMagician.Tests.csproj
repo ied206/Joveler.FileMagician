@@ -12,9 +12,6 @@
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
-    <PackageReference Include="System.Memory" Version="4.5.4" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Joveler.FileMagician\Joveler.FileMagician.csproj" />

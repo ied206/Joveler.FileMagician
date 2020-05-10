@@ -19,12 +19,11 @@
   -->
   <PropertyGroup>
     <ExcludePrecompiledJovelerFileMagicianLib Condition="Exists('$(MSBuildProjectDirectory)\Joveler.FileMagician.Lib.Exclude')">true</ExcludePrecompiledJovelerFileMagicianLib>
-    <ExcludePrecompiledJovelerFileMagicianMgc Condition="Exists('$(MSBuildProjectDirectory)\Joveler.FileMagician.Mgc.Exclude')">true</ExcludePrecompiledJovelerFileMagicianMgc>
   </PropertyGroup>
 
  <!--
   ******************************************************************************
-  **                     ZLib Interop Library Build Items                     **
+  **                 libmagic Interop Library Build Items                     **
   ******************************************************************************
   -->
 
@@ -32,16 +31,12 @@
     <JovelerFileMagicianInteropLibFiles Condition="'$(ExcludePrecompiledJovelerFileMagicianLib)' != 'true' And 
                                                    '$(MSBuildThisFileDirectory)' != '' And
                                                    HasTrailingSlash('$(MSBuildThisFileDirectory)')"
-                                        Include="$(MSBuildThisFileDirectory)Precompiled\**\lib*" />
-    <JovelerFileMagicianInteropMgcFiles Condition="'$(ExcludePrecompiledJovelerFileMagicianMgc)' != 'true' And 
-                                                   '$(MSBuildThisFileDirectory)' != '' And
-                                                   HasTrailingSlash('$(MSBuildThisFileDirectory)')"
-                                        Include="$(MSBuildThisFileDirectory)Precompiled\magic.mgc" />
+                                        Include="$(MSBuildThisFileDirectory)Precompiled\**\lib*.dll" />
   </ItemGroup>
 
   <!--
   ******************************************************************************
-  **                    ZLib Interop Library Content Items                    **
+  **                libmagic Interop Library Content Items                    **
   ******************************************************************************
   -->
 
@@ -52,17 +47,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup Condition="'$(ExcludePrecompiledJovelerFileMagicianMgc)' != 'true' And 
-                        '@(JovelerFileMagicianInteropMgcFiles)' != ''">
-    <None Include="@(JovelerFileMagicianInteropMgcFiles)">
-      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
 
   <!--
   ******************************************************************************
-  **                    ZLib Interop Library Build Targets                    **
+  **                libmagic Interop Library Build Targets                    **
   ******************************************************************************
   -->
 
@@ -80,21 +68,6 @@
     <Copy SourceFiles="@(JovelerFileMagicianInteropLibFiles)"
           DestinationFiles="@(JovelerFileMagicianInteropLibFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
-  <Target Name="CopyJovelerFileMagicianInteropMgcFiles"
-          Condition="'$(CopyJovelerFileMagicianInteropMgcFiles)' != 'false' And
-                     '$(OutDir)' != '' And
-                     HasTrailingSlash('$(OutDir)') And
-                     Exists('$(OutDir)')"
-          Inputs="@(JovelerFileMagicianInteropMgcFiles)"
-          Outputs="@(JovelerFileMagicianInteropMgcFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
-    <!--
-        NOTE: Copy "libmagic-1.dll" and all related files, for every
-              architecture that we support, to the build output directory.
-    -->
-    <Copy SourceFiles="@(JovelerFileMagicianInteropMgcFiles)"
-          DestinationFiles="@(JovelerFileMagicianInteropMgcFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
-  </Target>
-
 
   <!--
   ******************************************************************************
@@ -111,21 +84,10 @@
     -->
     <Delete Files="@(JovelerFileMagicianInteropLibFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
   </Target>
-  <Target Name="CleanJovelerFileMagicianInteropMgcFiles"
-          Condition="'$(CleanJovelerFileMagicianInteropMgcFiles)' != 'false' And
-                     '$(OutDir)' != '' And
-                     HasTrailingSlash('$(OutDir)') And
-                     Exists('$(OutDir)')">
-    <!--
-        NOTE: Delete "libmagic-1.dll" and all related files, for every
-              architecture that we support, from the build output directory.
-    -->
-    <Delete Files="@(JovelerFileMagicianInteropMgcFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
-  </Target>
 
   <!--
   ******************************************************************************
-  **                  ZLib Interop Library Build Properties                   **
+  **              libmagic Interop Library Build Properties                   **
   ******************************************************************************
   -->
 

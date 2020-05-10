@@ -74,7 +74,7 @@ namespace Joveler.FileMagician
             MagicSetFlags = GetFuncPtr<magic_setflags>(nameof(magic_setflags));
 
             MagicVersion = GetFuncPtr<magic_version>(nameof(magic_version));
-            //MagicLoad = GetFuncPtr<magic_load>(nameof(magic_load));
+            MagicLoad = GetFuncPtr<magic_load>(nameof(magic_load));
             MagicLoadBuffers = GetFuncPtr<magic_load_buffers>(nameof(magic_load_buffers));
 
             MagicCompile = GetFuncPtr<magic_compile>(nameof(magic_compile));
