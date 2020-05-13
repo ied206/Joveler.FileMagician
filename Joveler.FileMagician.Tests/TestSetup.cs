@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2019 Hajin Jang
+    Copyright (C) 2019-2020 Hajin Jang
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -77,8 +77,8 @@ namespace Joveler.FileMagician.Tests
         {
             string libDir = string.Empty;
 
-#if !NET48
-            libDir = @"runtimes";
+#if !NETFRAMEWORK
+            libDir = "runtimes";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 libDir = Path.Combine(libDir, "win-");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -103,10 +103,8 @@ namespace Joveler.FileMagician.Tests
                     break;
             }
 
-#if NETCOREAPP2_1
-            libDir = Path.Combine(libDir, "native", "netstandard2.0");
-#elif NETCOREAPP3_1
-            libDir = Path.Combine(libDir, "native", "netstandard2.1");
+#if !NETFRAMEWORK
+            libDir = Path.Combine(libDir, "native");
 #endif
 
             string libPath = null;
