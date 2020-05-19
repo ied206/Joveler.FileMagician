@@ -18,71 +18,105 @@
     to disable copying precompiled libmagic binaries.
   -->
   <PropertyGroup>
-    <ExcludePrecompiledJovelerFileMagicianLib Condition="Exists('$(MSBuildProjectDirectory)\Joveler.FileMagician.Lib.Exclude')">true</ExcludePrecompiledJovelerFileMagicianLib>
+    <ExcludeInteropLib Condition="Exists('$(MSBuildProjectDirectory)\Joveler.FileMagician.Lib.Exclude')">true</ExcludeInteropLib>
   </PropertyGroup>
 
  <!--
   ******************************************************************************
-  **                 libmagic Interop Library Build Items                     **
+  **                      Interop Library Build Items                         **
   ******************************************************************************
   -->
 
-  <ItemGroup>
-    <JovelerFileMagicianInteropLibFiles Condition="'$(ExcludePrecompiledJovelerFileMagicianLib)' != 'true' And 
-                                                   '$(MSBuildThisFileDirectory)' != '' And
-                                                   HasTrailingSlash('$(MSBuildThisFileDirectory)')"
-                                        Include="$(MSBuildThisFileDirectory)Precompiled\**\lib*.dll" />
+  <ItemGroup Condition="'$(ExcludeInteropLib)' != 'true' And 
+                        '$(MSBuildThisFileDirectory)' != '' And
+                        HasTrailingSlash('$(MSBuildThisFileDirectory)')">
+    <InteropLibFiles_x86 Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x86\native\*.dll" />
+    <InteropLibFiles_x64 Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\*.dll" />
+    <InteropLibFiles_mgc Include="$(MSBuildThisFileDirectory)..\..\contentFiles\any\any\*" />
   </ItemGroup>
 
   <!--
   ******************************************************************************
-  **                libmagic Interop Library Content Items                    **
+  **                     Interop Library Content Items                        **
   ******************************************************************************
   -->
 
-  <ItemGroup Condition="'$(ExcludePrecompiledJovelerFileMagicianLib)' != 'true' And 
-                        '@(JovelerFileMagicianInteropLibFiles)' != ''">
-    <None Include="@(JovelerFileMagicianInteropLibFiles)">
-      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+  <ItemGroup Condition="'$(ExcludeInteropLib)' != 'true'">
+    <None Condition="'@(InteropLibFiles_x86)' != ''" Include="@(InteropLibFiles_x86)">
+      <Link>x86\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Condition="'@(InteropLibFiles_x64)' != ''" Include="@(InteropLibFiles_x64)">
+      <Link>x64\%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Condition="'@(InteropLibFiles_mgc)' != ''" Include="@(InteropLibFiles_mgc)">
+      <Link>%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <!--
   ******************************************************************************
-  **                libmagic Interop Library Build Targets                    **
+  **                     Interop Library Build Targets                        **
   ******************************************************************************
   -->
 
-  <Target Name="CopyJovelerFileMagicianInteropLibFiles"
-          Condition="'$(CopyJovelerFileMagicianInteropLibFiles)' != 'false' And
+  <Target Name="CopyInteropLibFiles_x86"
+          Condition="'$(CopyInteropLibFiles_x86)' != 'false' And
                      '$(OutDir)' != '' And
                      HasTrailingSlash('$(OutDir)') And
                      Exists('$(OutDir)')"
-          Inputs="@(JovelerFileMagicianInteropLibFiles)"
-          Outputs="@(JovelerFileMagicianInteropLibFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
-    <!--
-        NOTE: Copy "libmagic-1.dll" and all related files, for every
-              architecture that we support, to the build output directory.
-    -->
-    <Copy SourceFiles="@(JovelerFileMagicianInteropLibFiles)"
-          DestinationFiles="@(JovelerFileMagicianInteropLibFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+          Inputs="@(InteropLibFiles_x86)"
+          Outputs="@(InteropLibFiles_x86 -> '$(OutDir)x86\%(Filename)%(Extension)')">
+    <Copy SourceFiles="@(InteropLibFiles_x86)"
+          DestinationFiles="@(InteropLibFiles_x86 -> '$(OutDir)x86\%(Filename)%(Extension)')" />
+  </Target>
+  <Target Name="CopyInteropLibFiles_x64"
+          Condition="'$(CopyInteropLibFiles_x64)' != 'false' And
+                      '$(OutDir)' != '' And
+                      HasTrailingSlash('$(OutDir)') And
+                      Exists('$(OutDir)')"
+          Inputs="@(InteropLibFiles_x64)"
+          Outputs="@(InteropLibFiles_x64 -> '$(OutDir)x86\%(Filename)%(Extension)')">
+    <Copy SourceFiles="@(InteropLibFiles_x64)"
+          DestinationFiles="@(InteropLibFiles_x64 -> '$(OutDir)x64\%(Filename)%(Extension)')" />
+  </Target>
+  <Target Name="CopyInteropLibFiles_mgc"
+          Condition="'$(CopyInteropLibFiles_mgc)' != 'false' And
+                      '$(OutDir)' != '' And
+                      HasTrailingSlash('$(OutDir)') And
+                      Exists('$(OutDir)')"
+          Inputs="@(InteropLibFiles_mgc)"
+          Outputs="@(InteropLibFiles_mgc -> '$(OutDir)x86\%(Filename)%(Extension)')">
+    <Copy SourceFiles="@(InteropLibFiles_mgc)"
+          DestinationFiles="@(InteropLibFiles_mgc -> '$(OutDir)%(Filename)%(Extension)')" />
   </Target>
 
   <!--
   ******************************************************************************
   -->
 
-  <Target Name="CleanJovelerFileMagicianInteropLibFiles"
-          Condition="'$(CleanJovelerFileMagicianInteropLibFiles)' != 'false' And
+  <Target Name="CleanInteropLibFiles_x86"
+          Condition="'$(CleanInteropLibFiles_x86)' != 'false' And
                      '$(OutDir)' != '' And
                      HasTrailingSlash('$(OutDir)') And
                      Exists('$(OutDir)')">
-    <!--
-        NOTE: Delete "libmagic-1.dll" and all related files, for every
-              architecture that we support, from the build output directory.
-    -->
-    <Delete Files="@(JovelerFileMagicianInteropLibFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Delete Files="@(InteropLibFiles_x86 -> '$(OutDir)x86\%(Filename)%(Extension)')" />
+  </Target>
+  <Target Name="CleanInteropLibFiles_x64"
+          Condition="'$(CleanInteropLibFiles_x64)' != 'false' And
+                     '$(OutDir)' != '' And
+                     HasTrailingSlash('$(OutDir)') And
+                     Exists('$(OutDir)')">
+    <Delete Files="@(InteropLibFiles_x64 -> '$(OutDir)x64\%(Filename)%(Extension)')" />
+  </Target>
+  <Target Name="CleanInteropLibFiles_mgc"
+          Condition="'$(CleanInteropLibFiles_mgc)' != 'false' And
+                     '$(OutDir)' != '' And
+                     HasTrailingSlash('$(OutDir)') And
+                     Exists('$(OutDir)')">
+    <Delete Files="@(InteropLibFiles_mgc -> '$(OutDir)mgc\%(Filename)%(Extension)')" />
   </Target>
 
   <!--
@@ -94,15 +128,21 @@
   <PropertyGroup>
     <PostBuildEventDependsOn>
       $(PostBuildEventDependsOn);
-      CopyJovelerFileMagicianInteropLibFiles;
+      CopyInteropLibFiles_x86;
+      CopyInteropLibFiles_x64;
+      CopyInteropLibFiles_mgc;
     </PostBuildEventDependsOn>
     <BuildDependsOn>
       $(BuildDependsOn);
-      CopyJovelerFileMagicianInteropLibFiles;
+      CopyInteropLibFiles_x86;
+      CopyInteropLibFiles_x64;
+      CopyInteropLibFiles_mgc;
     </BuildDependsOn>
     <CleanDependsOn>
       $(CleanDependsOn);
-      CleanJovelerFileMagicianInteropLibFiles;
+      CleanInteropLibFiles_x86;
+      CleanInteropLibFiles_x64;
+      CleanInteropLibFiles_mgc;
     </CleanDependsOn>
   </PropertyGroup>
 </Project>

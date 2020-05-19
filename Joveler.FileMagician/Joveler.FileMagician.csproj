@@ -9,7 +9,7 @@
     <Version>2.0.0</Version>
     <Authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</Authors>
     <Company>Joveler</Company>
-    <Description>libmagic (file) pinvoke library for .Net.
+    <Description>libmagic (file) pinvoke library for .NET.
 Supports Windows, Linux and macOS.</Description>
     <Copyright>Copyright (c) 2019-2020 Hajin Jang</Copyright>
     <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
@@ -25,53 +25,71 @@ Supports Windows, Linux and macOS.</Description>
     <PackageReference Include="System.Memory" Version="4.5.4" Condition=" '$(TargetFramework)' == 'net451' or '$(TargetFramework)' == 'netstandard2.0' "/>
   </ItemGroup>
   <!-- Shared NuGet Files -->
-  <!-- Pack/PackagePath: for NuGet package, Link/CopyToOutputDirectory: for project reference -->
   <ItemGroup>
-    <!-- NuGet Pacakge Icon -->
-    <None Include="..\Image\Logo.png" Pack="true" PackagePath="images\" />
     <!-- Magic Database -->
-    <None Include="runtimes\magic.mgc"   Pack="true" CopyToOutputDirectory="PreserveNewest">
-      <Link>%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>content\magic.mgc</PackagePath> <!-- NuGet Package Path -->
-    </None>
+    <Content Include="runtimes\magic.mgc">
+      <Link>%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>contentFiles/any/any/magic.mgc</PackagePath>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <!-- 
+        [content] is for package.config (.NET Framework), and [contentFiles] is for PacakageReference (.NET Standard, .NET Core) 
+        Instead, store files in contentFiles and copy file with .target on .NET Framework.
+        <PackagePath>content/magic.mgc;contentFiles/any/any/magic.mgc</PackagePath>
+      -->
+    </Content>
   </ItemGroup>
-  <!-- .NET Framework 4.5.1 -->
+  <!-- Native Library for .NET Framework 4.5.1 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
-    <None Include="Joveler.FileMagician.netfx.targets" Pack="true" PackagePath="build\net451\Joveler.FileMagician.netfx.targets"/> <!-- NuGet only -->
-    <None Include="runtimes\win-x86\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\win-x86\*.dll">
       <Link>x86\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>build\net451\Precompiled\x86</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="runtimes\win-x64\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\win-x64\*.dll">
       <Link>x64\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>build\net451\Precompiled\x64</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <!-- .NET Standard 2.0 & 2.1 -->
+  <!-- Native Library for .NET Standard 2.0 & 2.1 -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'">
-    <None Include="runtimes\win-x86\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\win-x86\*.dll">
       <Link>runtimes\win-x86\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>runtimes\win-x86\native</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="runtimes\win-x64\*.dll"   Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\win-x64\*.dll">
       <Link>runtimes\win-x64\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>runtimes\win-x64\native</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="runtimes\linux-x64\*.so"    Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\linux-x64\*.so">
       <Link>runtimes\linux-x64\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>runtimes\linux-x64\native</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="runtimes\linux-arm\*.so"  Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\linux-arm\*.so">
       <Link>runtimes\linux-arm\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>runtimes\linux-arm\native</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="runtimes\linux-arm64\*.so"  Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\linux-arm64\*.so">
       <Link>runtimes\linux-arm64\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>runtimes\linux-arm64\native</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="runtimes\osx-x64\*.dylib" Pack="true" CopyToOutputDirectory="PreserveNewest">
+    <None Include="runtimes\osx-x64\*.dylib">
       <Link>runtimes\osx-x64\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
-      <PackagePath>runtimes\osx-x64\native</PackagePath> <!-- NuGet Package Path -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <!-- NuGet Pacakge -->
+  <ItemGroup>
+    <!-- Build Script for .NET Framework -->
+    <None Include="Joveler.FileMagician.netfx.targets" Pack="true" PackagePath="build\net451\Joveler.FileMagician.targets"/>
+    <!-- NuGet Pacakge Icon -->
+    <None Include="..\Image\Logo.png"         Pack="true" PackagePath="images\Logo.png" />
+    <!-- Native Library -->
+    <None Include="runtimes\win-x86\*.dll"    Pack="true" PackagePath="runtimes\win-x86\native"/>
+    <None Include="runtimes\win-x64\*.dll"    Pack="true" PackagePath="runtimes\win-x64\native"/>
+    <None Include="runtimes\linux-x64\*.so"   Pack="true" PackagePath="runtimes\linux-x64\native"/>
+    <None Include="runtimes\linux-arm\*.so"   Pack="true" PackagePath="runtimes\linux-arm\native"/>
+    <None Include="runtimes\linux-arm64\*.so" Pack="true" PackagePath="runtimes\linux-arm64\native"/>
+    <None Include="runtimes\osx-x64\*.dylib"  Pack="true" PackagePath="runtimes\osx-x64\native"/>
   </ItemGroup>
 </Project>
