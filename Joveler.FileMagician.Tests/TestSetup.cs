@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2019 Hajin Jang
+    Copyright (C) 2019-2020 Hajin Jang
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -25,65 +25,43 @@
     THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Joveler.FileMagician.Tests
 {
     [TestClass]
+    [SuppressMessage("Design", "CA1052:Static holder types should be Static or NotInheritable")]
     public class TestSetup
     {
         public static string ExeDir;
         public static string BaseDir;
         public static string SampleDir;
+        private static string MagicTempDir;
 
         public static string MagicFile = "magic.mgc";
-        // Force .Net's unicode to ansi encoding convert failure by using exotic/obscure characters in path
+        // Force .NET's unicode to ansi encoding convert failure by using exotic/obscure characters in path
         public static string MagicUnicodeOnlyPath = "ᄒᆞᆫ글ḀḘ韓國.mgc";
 
         [AssemblyInitialize]
+        [SuppressMessage("Style", "IDE0060")]
         public static void Init(TestContext context)
         {
             ExeDir = TestHelper.GetProgramAbsolutePath();
             BaseDir = Path.GetFullPath(Path.Combine(ExeDir, "..", "..", ".."));
             SampleDir = Path.Combine(BaseDir, "Samples");
+            MagicTempDir = TestHelper.GetTempDir();
 
             MagicFile = Path.Combine(ExeDir, MagicFile);
-            MagicUnicodeOnlyPath = Path.Combine(ExeDir, MagicUnicodeOnlyPath);
+            MagicUnicodeOnlyPath = Path.Combine(MagicTempDir, MagicUnicodeOnlyPath);
             File.Copy(MagicFile, MagicUnicodeOnlyPath, true);
 
-            string arch = null;
-            switch (RuntimeInformation.OSArchitecture)
-            {
-                case Architecture.X86:
-                    arch = "x86";
-                    break;
-                case Architecture.X64:
-                    arch = "x64";
-                    break;
-                case Architecture.Arm:
-                    arch = "armhf";
-                    break;
-                case Architecture.Arm64:
-                    arch = "arm64";
-                    break;
-            }
-
-            string libPath = null;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                libPath = Path.Combine(arch, "libmagic-1.dll");
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                libPath = Path.Combine(arch, "libmagic.so");
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                libPath = Path.Combine(arch, "libmagic.dylib");
-
-            if (libPath == null || !File.Exists(libPath))
-                throw new PlatformNotSupportedException();
-
+            string libPath = GetNativeLibPath();
             Magic.GlobalInit(libPath);
         }
 
@@ -91,7 +69,58 @@ namespace Joveler.FileMagician.Tests
         public static void Cleanup()
         {
             Magic.GlobalCleanup();
-            File.Delete(MagicUnicodeOnlyPath);
+            if (Directory.Exists(MagicTempDir))
+                Directory.Delete(MagicTempDir, true);
+        }
+
+        private static string GetNativeLibPath()
+        {
+            string libDir = string.Empty;
+
+#if !NETFRAMEWORK
+            libDir = "runtimes";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                libDir = Path.Combine(libDir, "win-");
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                libDir = Path.Combine(libDir, "linux-");
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                libDir = Path.Combine(libDir, "osx-");
+#endif
+
+            switch (RuntimeInformation.ProcessArchitecture)
+            {
+                case Architecture.X86:
+                    libDir += "x86";
+                    break;
+                case Architecture.X64:
+                    libDir += "x64";
+                    break;
+                case Architecture.Arm:
+                    libDir += "arm";
+                    break;
+                case Architecture.Arm64:
+                    libDir += "arm64";
+                    break;
+            }
+
+#if !NETFRAMEWORK
+            libDir = Path.Combine(libDir, "native");
+#endif
+
+            string libPath = null;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                libPath = Path.Combine(libDir, "libmagic-1.dll");
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                libPath = Path.Combine(libDir, "libmagic.so");
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                libPath = Path.Combine(libDir, "libmagic.dylib");
+
+            if (libPath == null)
+                throw new PlatformNotSupportedException($"Unable to find native library.");
+            if (!File.Exists(libPath))
+                throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
+
+            return libPath;
         }
     }
 

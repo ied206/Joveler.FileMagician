@@ -36,11 +36,11 @@ namespace Joveler.FileMagician.Tests
         [TestMethod]
         public void Version()
         {
-            int val = Magic.VersionInt();
-            Console.WriteLine($"Magic.VersionInt = {val}");
+            int val = Magic.VersionInt;
+            Console.WriteLine($"Magic.VersionInt() = {val}");
 
-            Version ver = Magic.VersionInstance();
-            Console.WriteLine($"Magic.VersionInstance = {ver}");
+            Version ver = Magic.Version;
+            Console.WriteLine($"Magic.Version()    = {ver}");
         }
     }
 }

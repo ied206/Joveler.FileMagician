@@ -25,17 +25,17 @@
     THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Joveler.FileMagician.Tests
 {
     [TestClass]
     public class CheckTest
     {
-        private struct TypeInfo
+        private class TypeInfo
         {
             public readonly string FileType;
             public readonly string MimeType;
@@ -67,7 +67,7 @@ namespace Joveler.FileMagician.Tests
             // Hancom Office NEO (2016) - .cell & .show is not exact : Hancom Office suite use compound file format similar to Microsoft Office 2003.
             ["Hancell2016.cell"] = new TypeInfo("Microsoft OOXML", "application/octet-stream", "binary"),
             ["Hanshow2016.show"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary"),
-            ["HWP2016.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 5.x", "application/x-hwp", "binary"),
+            ["HWP2016.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 5.x", "application/x-hwp", "binary", "hwp"),
             // LibreOffice 6.0.7.3
             ["LibreCalc6.ods"] = new TypeInfo("OpenDocument Spreadsheet", "application/vnd.oasis.opendocument.spreadsheet", "binary"),
             ["LibreImpress6.odp"] = new TypeInfo("OpenDocument Presentation", "application/vnd.oasis.opendocument.presentation", "binary"),
@@ -83,7 +83,7 @@ namespace Joveler.FileMagician.Tests
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data", "application/x-xz", "binary"),
             ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract", "application/zip", "binary"),
             // Image Format
-            ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4", "image/x-ms-bmp", "binary"),
+            ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4, image size 8192, cbSize 8310, bits offset 118", "image/bmp", "binary", "bmp"),
             ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
             ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary", "jpeg/jpg/jpe/jfif"),
             ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary", "png"),
@@ -97,40 +97,48 @@ namespace Joveler.FileMagician.Tests
         public void FileType()
         {
             // MagicBuffer
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
-                Template(sampleFileName, 0, MagicFlags.NONE, ti.FileType);
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
+                Template(sampleFileName, 0, MagicFlags.None, ti.FileType);
             }
         }
 
         [TestMethod]
         public void MimeType()
         {
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
-                Template(sampleFileName, 1, MagicFlags.MIME_TYPE, ti.MimeType);
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
+                Template(sampleFileName, 1, MagicFlags.MimeType, ti.MimeType);
             }
         }
 
         [TestMethod]
         public void MimeEncoding()
         {
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
-                Template(sampleFileName, 2, MagicFlags.MIME_ENCODING, ti.MimeEncoding);
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
+                Template(sampleFileName, 2, MagicFlags.MimeEncoding, ti.MimeEncoding);
             }
         }
 
         [TestMethod]
         public void Extension()
         {
-            foreach ((string sampleFileName, TypeInfo ti) in _fileTypeDict)
+            foreach (var kv in _fileTypeDict)
             {
-                Template(sampleFileName, 3, MagicFlags.EXTENSION, ti.Extension);
+                string sampleFileName = kv.Key;
+                TypeInfo ti = kv.Value;
+                Template(sampleFileName, 3, MagicFlags.Extension, ti.Extension);
             }
         }
 
-        public void Template(string sampleFileName, int loadMode, MagicFlags flags, string expected)
+        public static void Template(string sampleFileName, int loadMode, MagicFlags flags, string expected)
         {
             using (Magic magic = Magic.Open(flags))
             {
@@ -138,11 +146,11 @@ namespace Joveler.FileMagician.Tests
                 switch (loadMode)
                 {
                     case 0:
-                        magic.Load(TestSetup.MagicFile);
+                        magic.LoadMagicFile(TestSetup.MagicFile);
                         break;
                     case 1:
                         // Force .Net's unicode -> ansi encoding convert failure by using exotic/obscure characters
-                        magic.Load(TestSetup.MagicUnicodeOnlyPath);
+                        magic.LoadMagicFile(TestSetup.MagicUnicodeOnlyPath);
                         break;
                     case 2:
                         using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
@@ -150,7 +158,7 @@ namespace Joveler.FileMagician.Tests
                             magicBuffer = new byte[fs.Length];
                             fs.Read(magicBuffer, 0, magicBuffer.Length);
                         }
-                        magic.LoadBuffer(magicBuffer);
+                        magic.LoadMagicBuffer(magicBuffer);
                         break;
                     case 3:
                         using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
@@ -158,7 +166,7 @@ namespace Joveler.FileMagician.Tests
                             magicBuffer = new byte[fs.Length];
                             fs.Read(magicBuffer, 0, magicBuffer.Length);
                         }
-                        magic.LoadBuffer(magicBuffer, 0, magicBuffer.Length);
+                        magic.LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
                         break;
                 }
 
@@ -184,8 +192,13 @@ namespace Joveler.FileMagician.Tests
                 {
                     buffer = new byte[fs.Length];
                     span = buffer.AsSpan();
+#if NETFRAMEWORK
+                    fs.Read(buffer, 0, buffer.Length);
+#else
                     fs.Read(span);
+#endif
                 }
+
                 result = magic.CheckBuffer(span);
                 Assert.IsTrue(result.Equals(expected, StringComparison.Ordinal));
             }
