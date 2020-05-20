@@ -170,7 +170,7 @@ namespace Joveler.FileMagician
         /// </summary>
         /// <remarks>
         /// magic_load_buffers() requires the buffer caller provided must be alive until magic handle is freed.
-        /// Internally it stores the reference of the buffer, instead of coping the buffer.
+        /// Internally it stores the reference of the buffer, instead of copying the buffer.
         /// </remarks>
         /// <param name="buf">The array of the pointer of magic buffer.</param>
         /// <param name="sizes">The array of the size of the magic buffer.</param>

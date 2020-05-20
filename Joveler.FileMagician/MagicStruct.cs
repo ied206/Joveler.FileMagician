@@ -368,11 +368,10 @@ namespace Joveler.FileMagician
         }
         #endregion
 
-        #region Managed Params
+        #region Manage Params
         /// <summary>
         /// Get various limits related to the magic library.
         /// </summary>
-        /// <param name="param"></param>
         public unsafe ulong GetParam(MagicParam param)
         {
             UIntPtr size = new UIntPtr(0); // size_t
@@ -384,8 +383,6 @@ namespace Joveler.FileMagician
         /// <summary>
         /// Set various limits related to the magic library.
         /// </summary>
-        /// <param name="param"></param>
-        /// <param name="value"></param>
         public unsafe void SetParam(MagicParam param, ulong value)
         {
             UIntPtr size = new UIntPtr(value); // size_t
@@ -394,19 +391,26 @@ namespace Joveler.FileMagician
         }
         #endregion
 
-        #region (Static) Version
-        public static int VersionInt()
+        #region (Static, Property) Version
+        public static int VersionInt
         {
-            Manager.EnsureLoaded();
+            get
+            {
+                Manager.EnsureLoaded();
 
-            return Lib.MagicVersion();
+                return Lib.MagicVersion();
+            }
         }
-        public static Version VersionInstance()
-        {
-            Manager.EnsureLoaded();
 
-            int verInt = Lib.MagicVersion();
-            return new Version(verInt / 100, verInt % 100);
+        public static Version Version
+        {
+            get
+            {
+                Manager.EnsureLoaded();
+
+                int verInt = Lib.MagicVersion();
+                return new Version(verInt / 100, verInt % 100);
+            }
         }
         #endregion
 

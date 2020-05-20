@@ -16,7 +16,9 @@ Supports Windows, Linux and macOS.</Description>
     <PackageProjectUrl>https://github.com/ied206/Joveler.FileMagician</PackageProjectUrl>
     <PackageIcon>images\Logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/ied206/Joveler.FileMagician</RepositoryUrl>
-    <PackageReleaseNotes>- Refactor public API design</PackageReleaseNotes>
+    <PackageReleaseNotes>- Updated included libmagic to 5.38.
+- Native libraries are now placed following NuGet convention-based working directory on .NET Standard build.
+- Redesign public APIs.</PackageReleaseNotes>
     <PackageTags>libmagic magic file native pinvoke interop</PackageTags>
   </PropertyGroup>
   <!-- PackageReference -->

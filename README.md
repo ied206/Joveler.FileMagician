@@ -25,6 +25,7 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 
 ### Targeted .NET platforms
 
+- .NET Standard 2.1 (.NET Core 3.0+)
 - .NET Standard 2.0 (.NET Framework 4.6.1+, .NET Core 2.0+)
 - .NET Framework 4.5.1
 
@@ -39,7 +40,7 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 |          | arm64        | Yes    |
 | macOS    | x64          | Yes    |
 
-#### Tested linux distributions
+#### Tested Linux distributions
 
 | Architecture | Distribution | Note |
 |--------------|--------------|------|
