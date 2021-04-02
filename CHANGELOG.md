@@ -2,6 +2,14 @@
 
 ## v2.x
 
+### v2.1.0
+
+Reelased on 2021-04-??
+
+- Update included libmagic to 5.40.
+- Support Windows ARM64
+- 
+
 ### v2.0.0
 
 Released on 2020-05-20

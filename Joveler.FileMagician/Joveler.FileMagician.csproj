@@ -63,6 +63,10 @@ Supports Windows, Linux and macOS.</Description>
       <Link>runtimes\win-x64\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="runtimes\win-arm64\*.dll">
+      <Link>runtimes\win-arm64\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="runtimes\linux-x64\*.so">
       <Link>runtimes\linux-x64\native\%(FileName)%(Extension)</Link> <!-- Project Reference -->
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -89,6 +93,7 @@ Supports Windows, Linux and macOS.</Description>
     <!-- Native Library -->
     <None Include="runtimes\win-x86\*.dll"    Pack="true" PackagePath="runtimes\win-x86\native"/>
     <None Include="runtimes\win-x64\*.dll"    Pack="true" PackagePath="runtimes\win-x64\native"/>
+    <None Include="runtimes\win-arm64\*.dll"    Pack="true" PackagePath="runtimes\win-arm64\native"/>
     <None Include="runtimes\linux-x64\*.so"   Pack="true" PackagePath="runtimes\linux-x64\native"/>
     <None Include="runtimes\linux-arm\*.so"   Pack="true" PackagePath="runtimes\linux-arm\native"/>
     <None Include="runtimes\linux-arm64\*.so" Pack="true" PackagePath="runtimes\linux-arm64\native"/>
