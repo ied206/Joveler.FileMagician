@@ -22,7 +22,7 @@
     <ExcludeInteropMgc Condition="Exists('$(MSBuildProjectDirectory)\Joveler.FileMagician.Mgc.Exclude')">true</ExcludeInteropMgc>
   </PropertyGroup>
 
- <!--
+  <!--
   ******************************************************************************
   **                      Interop Library Build Items                         **
   ******************************************************************************
@@ -157,7 +157,7 @@
 
   <!--
   ******************************************************************************
-  **              libmagic Interop Library Build Properties                   **
+  **                    Interop Library Build Properties                      **
   ******************************************************************************
   -->
 

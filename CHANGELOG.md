@@ -4,7 +4,7 @@
 
 ### v2.0.0
 
-Released in 2020-05-20
+Released on 2020-05-20
 
 - Updated included libmagic to 5.38.
 - Native libraries are now placed following [NuGet convention-based working directory](https://docs.microsoft.com/en-US/nuget/create-packages/creating-a-package#create-the-nuspec-file) on .NET Standard build.
@@ -20,13 +20,13 @@ Released in 2020-05-20
 
 ### v1.3.1
 
-Released in 2019-11-01
+Released on 2019-11-01
 
 - Improve RHEL/CentOS compatibility.
 
 ### v1.3.0
 
-Released in 2019-10-20
+Released on 2019-10-20
 
 - Updated included libmagic to 5.37 from 5.36.
 - Support the macOS platform.
@@ -34,25 +34,25 @@ Released in 2019-10-20
 
 ### v1.2.1
 
-Released in 2019-05-08
+Released on 2019-05-08
 
 - Better fix for Unicode path handling on Windows.
 
 ### v1.2.0
 
-Released in 2019-05-03
+Released on 2019-05-03
 
 - Fix Unicode problem on Windows with buffer-based APIs.
 
 ### v1.1.0
 
-Released in 2019-04-18
+Released on 2019-04-18
 
 - New APIs with `Span<T>`.
 
 ### v1.0.0
 
-Released in 2019-04-15
+Released on 2019-04-15
 
 - Initial release.
 - Includes libmagic 5.36 binaries for Windows/Linux.

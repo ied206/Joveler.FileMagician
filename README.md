@@ -45,8 +45,8 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 | Architecture | Distribution | Note |
 |--------------|--------------|------|
 | x64          | Ubuntu 18.04 | Tested on AppVeyor CI         |
-| armhf        | Debian 9     | Emulated on QEMU's virt board |
-| arm64        | Debian 9     | Emulated on QEMU's virt board |
+| armhf        | Debian 10    | Emulated on QEMU's virt board |
+| arm64        | Debian 10    | Emulated on QEMU's virt board |
 
 ### Supported libmagic version
 
