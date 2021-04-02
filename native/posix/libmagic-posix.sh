@@ -66,7 +66,7 @@ ls -lh "${DEST_LIB}" "${DEST_EXE}"
 popd > /dev/null
 
 # Check dependency of a binary
-pushd "${SRCDIR}" > /dev/null
+pushd "${DEST_DIR}" > /dev/null
 ${CHECKDEP} "${DEST_LIB}" "${DEST_EXE}"
 popd > /dev/null
 
