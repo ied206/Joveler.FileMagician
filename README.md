@@ -35,6 +35,7 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 |----------|--------------|--------|
 | Windows  | x86          | Yes    |
 |          | x64          | Yes    |
+|          | arm64        | Yes    |
 | Linux    | x64          | Yes    |
 |          | armhf        | Yes    |
 |          | arm64        | Yes    |
@@ -52,7 +53,8 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 
 - 5.36
 - 5.37
-- 5.38 (Included)
+- 5.38
+- 5.40 (Included)
 
 ## Usage
 
