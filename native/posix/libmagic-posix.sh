@@ -49,7 +49,7 @@ mkdir -p "${DEST_DIR}"
 # Adapted from https://wimlib.net/git/?p=wimlib;a=tree;f=tools/make-windows-release;
 pushd "${SRCDIR}" > /dev/null
 make clean
-./configure --disable-bzlib --disable-xzlib
+./configure --disable-bzlib --disable-xzlib --disable-zlib
 make "-j${CORES}"
 cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
 cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
