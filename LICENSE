@@ -26,10 +26,10 @@ License terms are described in LICENSE.BSD-2.
 
 ----------------------------------------
 
-- libiconv (binary included)
+- libgnurx (binary included for Windows)
 
-https://www.gnu.org/software/libiconv/
+https://download.gnome.org/binaries/win32/dependencies/libgnurx-2.5.zip
 
-Licensed under GNU LGPLv2.
+Licensed under GNU LGPLv2.1.
 
-License terms are described in LICENSE.LGPLv2.
+License terms are described in LICENSE.LGPLv2.1.

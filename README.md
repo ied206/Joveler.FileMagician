@@ -35,24 +35,25 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 |----------|--------------|--------|
 | Windows  | x86          | Yes    |
 |          | x64          | Yes    |
+|          | arm64        | Yes    |
 | Linux    | x64          | Yes    |
 |          | armhf        | Yes    |
 |          | arm64        | Yes    |
 | macOS    | x64          | Yes    |
+
+macOS arm64 should be supported on theory, but I do not have access to an Apple Sillicon device to test. Please contribute if you have an ARM64 macOS machine.
 
 #### Tested Linux distributions
 
 | Architecture | Distribution | Note |
 |--------------|--------------|------|
 | x64          | Ubuntu 18.04 | Tested on AppVeyor CI         |
-| armhf        | Debian 9     | Emulated on QEMU's virt board |
-| arm64        | Debian 9     | Emulated on QEMU's virt board |
+| armhf        | Debian 10    | Emulated on QEMU's virt board |
+| arm64        | Debian 10    | Emulated on QEMU's virt board |
 
 ### Supported libmagic version
 
-- 5.36
-- 5.37
-- 5.38 (Included)
+- 5.40 (Included)
 
 ## Usage
 
@@ -65,6 +66,6 @@ See [CHANGELOG.md](./CHANGELOG.md).
 ## License
 
 - `Joveler.FileMagician` and `libmagic` is licensed under the BSD 2-Clause license. 
-- Bundled Windows binary also contains LGPLv2 libiconv. 
+- Bundled Windows binary depends on LGPLv2.1 libgnurx. 
 - See [LICENSE](./LICENSE) for details.
 - The logo, [search icon](https://material.io/tools/icons/?icon=search&style=baseline) from the Material Icons, is licensed under Apache 2.0 License.

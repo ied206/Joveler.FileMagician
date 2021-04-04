@@ -39,7 +39,6 @@ namespace Joveler.FileMagician
     {
         #region Constructor
         public MagicLoader() : base() { }
-        public MagicLoader(string libPath) : base(libPath) { }
         #endregion
 
         #region (override) DefaultLibFileName
