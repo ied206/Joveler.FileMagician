@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Joveler.FileMagician</PackageId>
     <Title>Joveler.FileMagician</Title>
-    <Version>2.0.0</Version>
+    <Version>2.1.0</Version>
     <Authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</Authors>
     <Company>Joveler</Company>
     <Description>libmagic (file) pinvoke library for .NET.
@@ -16,9 +16,8 @@ Supports Windows, Linux and macOS.</Description>
     <PackageProjectUrl>https://github.com/ied206/Joveler.FileMagician</PackageProjectUrl>
     <PackageIcon>images\Logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/ied206/Joveler.FileMagician</RepositoryUrl>
-    <PackageReleaseNotes>- Updated included libmagic to 5.38.
-- Native libraries are now placed following NuGet convention-based working directory on .NET Standard build.
-- Redesign public APIs.</PackageReleaseNotes>
+    <PackageReleaseNotes>- Update included libmagic to 5.40.
+- Official support for Windows ARM64.</PackageReleaseNotes>
     <PackageTags>libmagic magic file native pinvoke interop</PackageTags>
   </PropertyGroup>
   <!-- PackageReference -->

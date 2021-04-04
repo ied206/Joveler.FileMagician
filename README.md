@@ -66,6 +66,6 @@ See [CHANGELOG.md](./CHANGELOG.md).
 ## License
 
 - `Joveler.FileMagician` and `libmagic` is licensed under the BSD 2-Clause license. 
-- Bundled Windows binary also contains LGPLv2 libgnurx. 
+- Bundled Windows binary depends on LGPLv2.1 libgnurx. 
 - See [LICENSE](./LICENSE) for details.
 - The logo, [search icon](https://material.io/tools/icons/?icon=search&style=baseline) from the Material Icons, is licensed under Apache 2.0 License.
