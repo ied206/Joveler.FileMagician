@@ -7,8 +7,9 @@ To compile libmagic on Windows, you should use MSYS2.
 - [MSYS2](https://www.msys2.org/)
     - Install `base-devel`, `mingw-w64-x86_64-toolchain`, `mingw-w64-i686-toolchain` packages.
 - [libmagic source](http://www.darwinsys.com/file/)
-- [llvm-mingw](https://github.com/mstorsjo/llvm-mingw) (for ARM64)
-    - MSYS2 does not provide ARM64 gcc toolchain, so instead clang cross-compiles ARM64 binary.
+- [llvm-mingw](https://github.com/mstorsjo/llvm-mingw)
+    - Binaries compiled from MSYS2 MinGW 32bit compiler depends on `libgcc_s_dw2-1.dl` and `libwinpthread-1.dll`. Compiling with clang avoids this problem.
+    - MSYS2 does not provide ARM64 gcc toolchain, so instead use clang to cross-compile ARM64 binary.
 
 ## Manual
 
@@ -22,11 +23,12 @@ To compile libmagic on Windows, you should use MSYS2.
 1. Apply patches to `libmagic` source if needed.
     - Refer to [patch README](patch\README.md) to when and why the patches are necessary.
 1. Run `libmagic-msys2.sh`.
-    - You need to pass a path of `llvm-mingw` to compile ARM64 binaries.
+    - You are recommended to pass a path of `llvm-mingw` to compile x86/x64 binaries.
+    - You must pass a path of `llvm-mingw` to compile ARM64 binaries.
     ```
     [Examples]
-    x86: ./libmagic-msys2.sh -a i686 /d/build/native/file-5.40 
-    x64: ./libmagic-msys2.sh -a x86_64 /d/build/native/file-5.40 
+    x86: ./libmagic-msys2.sh -a i686 -t /c/llvm-mingw /d/build/native/file-5.40 
+    x64: ./libmagic-msys2.sh -a x86_64 -t /c/llvm-mingw /d/build/native/file-5.40 
     aarch64: ./libmagic-msys2.sh -a aarch64 -t /c/llvm-mingw /d/build/native/file-5.40 
     ```
 1. Gather binaries from `build-<arch>` directory.

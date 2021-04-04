@@ -100,10 +100,7 @@ File signature database is copied to `$(OutDir)\magic.mgc`.
 
 - Create an empty file named `Joveler.FileMagician.Lib.Exclude` in the project directory to prevent copying of the package-embedded binary.
 - Create an empty file named `Joveler.FileMagician.Mgc.Exclude` in the project directory to prevent copying of the package-embedded file signature database.
-- libmagic depends on libgnurx (included) and some MinGW runtime libraries (included) on Windows. 
-    - MinGW support libraries are covered by GPLv3 with [GCC RUNTIME LIBRARY EXCEPTION](https://www.gnu.org/licenses/gcc-exception-3.1.html)*. 
-
-*[GCC RUNTIME LIBRARY EXCEPTION](https://www.gnu.org/licenses/gcc-exception-3.1.html) frees you and your software from GPLv3 obligations. 
+- libmagic depends on libgnurx (included) on Windows, which is covered by LGPLv2.1.
 
 #### For .NET Standard 2.0+
 
@@ -120,6 +117,7 @@ File signature database is copied to `$(OutDir)\magic.mgc`.
 - If you call `Magic.GlobalInit()` without `libPath` parameter on Linux or macOS, it will search for system-installed libmagic.
 - Linux binaries are not portable. They may not work on your distribution. In that case, call parameter-less `Magic.GlobalInit()` to use system-installed libmagic.
 - libmagic depends on zlib (not included) on Linux.
+- libmagic depends on libgnurx (included) on Windows, which is covered by LGPLv2.1.
 
 ### Custom binary
 

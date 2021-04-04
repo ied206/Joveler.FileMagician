@@ -43,7 +43,6 @@ mkdir -p "${DEST_DIR}"
 
 # Set library paths
 GNURX_LIB="libgnurx-0.dll"
-PTHREAD_LIB="libwinpthread-1.dll"
 DEST_LIB="libmagic-1.dll"
 DEST_EXE="file.exe"
 STRIP="strip"
@@ -53,8 +52,10 @@ CHECKDEP="ldd"
 if [ "${ARCH}" = i686 ]; then
     TARGET_TRIPLE="i686-w64-mingw32"
     # Binaries built from MSYS2-MINGW32 shell requires libgcc and winpthreads runtime
-    cp "/mingw32/bin/libgcc_s_dw2-1.dll" "${DEST_DIR}"
-cp "/mingw32/bin/libwinpthread-1.dll" "${DEST_DIR}"
+    if [[ -z "${TOOLCHAIN_DIR}" ]]; then
+        cp "/mingw32/bin/libgcc_s_dw2-1.dll" "${DEST_DIR}"
+        cp "/mingw32/bin/libwinpthread-1.dll" "${DEST_DIR}"
+    fi
 elif [ "${ARCH}" = x86_64 ]; then
     TARGET_TRIPLE="x86_64-w64-mingw32"
 elif [ "${ARCH}" = aarch64 ]; then
