@@ -151,45 +151,44 @@ namespace Joveler.FileMagician.Samples
         {
             if (!_magicLoaded)
             {
-                const string x64 = "x64";
-                const string x86 = "x86";
-                const string armhf = "armhf";
-                const string arm64 = "arm64";
+                string libDir = Path.Combine(baseDir, "runtimes");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    libDir = Path.Combine(libDir, "win-");
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    libDir = Path.Combine(libDir, "linux-");
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    libDir = Path.Combine(libDir, "osx-");
 
-                const string dllName = "libmagic-1.dll";
-                const string soName = "libmagic.so";
+                switch (RuntimeInformation.ProcessArchitecture)
+                {
+                    case Architecture.X86:
+                        libDir += "x86";
+                        break;
+                    case Architecture.X64:
+                        libDir += "x64";
+                        break;
+                    case Architecture.Arm:
+                        libDir += "arm";
+                        break;
+                    case Architecture.Arm64:
+                        libDir += "arm64";
+                        break;
+                }
+
+                libDir = Path.Combine(libDir, "native");
 
                 string libPath = null;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    switch (RuntimeInformation.ProcessArchitecture)
-                    {
-                        case Architecture.X86:
-                            libPath = Path.Combine(baseDir, x86, dllName);
-                            break;
-                        case Architecture.X64:
-                            libPath = Path.Combine(baseDir, x64, dllName);
-                            break;
-                    }
-                }
+                    libPath = Path.Combine(libDir, "libmagic-1.dll");
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    switch (RuntimeInformation.ProcessArchitecture)
-                    {
-                        case Architecture.X64:
-                            libPath = Path.Combine(baseDir, x64, soName);
-                            break;
-                        case Architecture.Arm:
-                            libPath = Path.Combine(baseDir, armhf, soName);
-                            break;
-                        case Architecture.Arm64:
-                            libPath = Path.Combine(baseDir, arm64, soName);
-                            break;
-                    }
-                }
+                    libPath = Path.Combine(libDir, "libmagic.so");
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    libPath = Path.Combine(libDir, "libmagic.dylib");
 
                 if (libPath == null)
-                    throw new PlatformNotSupportedException();
+                    throw new PlatformNotSupportedException($"Unable to find native library.");
+                if (!File.Exists(libPath))
+                    throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
 
                 Magic.GlobalInit(libPath);
                 _magicLoaded = true;
