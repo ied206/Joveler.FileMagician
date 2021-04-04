@@ -80,8 +80,13 @@ namespace Joveler.FileMagician.Tests
             ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary", "7z/cb7"),
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary", "tar/gtar"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
+            // Originally application/x-xz, but broken in 5.40, look https://bugs.astron.com/view.php?id=257.
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/octet-stream", "binary"),
             ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract, compression method=deflate", "application/zip", "binary"),
+            ["Samples.alz"] = new TypeInfo("ALZ archive data", "application/octet-stream", "binary", "alz"),
+            ["Samples.egg"] = new TypeInfo("EGG archive data, version 1.0", "application/octet-stream", "binary", "egg"),
+            ["Samples.rar"] = new TypeInfo("RAR archive data, v4, os: Win32", "application/x-rar", "binary", "rar/cbr"),
+            ["Samples.rar5"] = new TypeInfo("RAR archive data, v5", "application/x-rar", "binary", "rar"),
             // Image Format
             ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4, image size 8192, cbSize 8310, bits offset 118", "image/x-ms-bmp", "binary", "bmp"),
             ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
