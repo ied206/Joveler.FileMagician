@@ -26,10 +26,16 @@ License terms are described in LICENSE.BSD-2.
 
 ----------------------------------------
 
-- libiconv (binary included)
+- libgnurx (binary included for Windows)
 
-https://www.gnu.org/software/libiconv/
+https://download.gnome.org/binaries/win32/dependencies/libgnurx-2.5.zip
 
-Licensed under GNU LGPLv2.
+Licensed under GNU LGPLv2.1.
 
-License terms are described in LICENSE.LGPLv2.
+License terms are described in LICENSE.LGPLv2.1.
+
+----------------------------------------
+
+- libgcc, libwinpthreads (binary included for Windows x86)
+
+MinGW support libraries are covered by GPLv3 with [GCC RUNTIME LIBRARY EXCEPTION](https://www.gnu.org/licenses/gcc-exception-3.1.html), which frees any software linked to it from GPLv3 obligations. 

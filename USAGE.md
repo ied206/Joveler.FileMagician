@@ -87,7 +87,7 @@ public static void InitNativeLibrary()
 
 ### Embedded binary
 
-`Joveler.FileMagician` comes with sets of binaries of `libmagic 5.38` and its file signature database. They will be copied into the build directory at build time.
+`Joveler.FileMagician` comes with sets of binaries of `libmagic 5.40` and its file signature database. They will be copied into the build directory at build time.
 
 File signature database is copied to `$(OutDir)\magic.mgc`.
 
@@ -95,30 +95,31 @@ File signature database is copied to `$(OutDir)\magic.mgc`.
 
 | Platform         | Binary                         | License                 |
 |------------------|--------------------------------|-------------------------|
-| Windows x86      | `$(OutDir)\x86\libmagic-1.dll` | 2-Clause BSD (w LGPLv2 `libiconv-2.dll`) |
-| Windows x64      | `$(OutDir)\x64\libmagic-1.dll` | 2-Clause BSD (w LGPLv2 `libiconv-2.dll`) |
+| Windows x86      | `$(OutDir)\x86\libmagic-1.dll` | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
+| Windows x64      | `$(OutDir)\x64\libmagic-1.dll` | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
 
 - Create an empty file named `Joveler.FileMagician.Lib.Exclude` in the project directory to prevent copying of the package-embedded binary.
 - Create an empty file named `Joveler.FileMagician.Mgc.Exclude` in the project directory to prevent copying of the package-embedded file signature database.
-- libmagic depends on libiconv (included) and some MinGW runtime libraries (included) on Windows. 
+- libmagic depends on libgnurx (included) and some MinGW runtime libraries (included) on Windows. 
     - MinGW support libraries are covered by GPLv3 with [GCC RUNTIME LIBRARY EXCEPTION](https://www.gnu.org/licenses/gcc-exception-3.1.html)*. 
 
 *[GCC RUNTIME LIBRARY EXCEPTION](https://www.gnu.org/licenses/gcc-exception-3.1.html) frees you and your software from GPLv3 obligations. 
 
 #### For .NET Standard 2.0+
 
-| Platform         | Binary                                       | License                 |
-|------------------|----------------------------------------------|-------------------------|
-| Windows x86      | `$(OutDir)\runtimes\win-x86\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2 `libiconv-2.dll`) |
-| Windows x64      | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2 `libiconv-2.dll`) |
-| Ubuntu 18.04 x64 | `$(OutDir)\runtimes\linux-x64\libmagic.so`   | 2-Clause BSD |
-| Debian 9 armhf   | `$(OutDir)\runtimes\linux-arm\libmagic.so`   | 2-Clause BSD |
-| Debian 9 arm64   | `$(OutDir)\runtimes\linux-arm64\libmagic.so` | 2-Clause BSD |
-| macOS 10.15      | `$(OutDir)\runtimes\osx-x64\libmagic.dylib`  | 2-Clause BSD |
+| Platform           | Binary                                       | License                 |
+|--------------------|----------------------------------------------|-------------------------|
+| Windows x86        | `$(OutDir)\runtimes\win-x86\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
+| Windows x64        | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
+| Windows arm64      | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
+| Ubuntu 18.04 x64   | `$(OutDir)\runtimes\linux-x64\libmagic.so`   | 2-Clause BSD |
+| Debian 10 armhf    | `$(OutDir)\runtimes\linux-arm\libmagic.so`   | 2-Clause BSD |
+| Debian 10 arm64    | `$(OutDir)\runtimes\linux-arm64\libmagic.so` | 2-Clause BSD |
+| macOS Catalina x64 | `$(OutDir)\runtimes\osx-x64\libmagic.dylib`  | 2-Clause BSD |
 
 - If you call `Magic.GlobalInit()` without `libPath` parameter on Linux or macOS, it will search for system-installed libmagic.
 - Linux binaries are not portable. They may not work on your distribution. In that case, call parameter-less `Magic.GlobalInit()` to use system-installed libmagic.
-- libmagic depends on zlib (not included) on Linux and macOS.
+- libmagic depends on zlib (not included) on Linux.
 
 ### Custom binary
 
