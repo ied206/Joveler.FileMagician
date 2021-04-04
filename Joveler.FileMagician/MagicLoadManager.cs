@@ -36,6 +36,5 @@ namespace Joveler.FileMagician
         protected override string ErrorMsgAlreadyLoaded => "Joveler.FileMagician is already initialized.";
 
         protected override MagicLoader CreateLoader() => new MagicLoader();
-        protected override MagicLoader CreateLoader(string libPath) => new MagicLoader(libPath);
     }
 }
