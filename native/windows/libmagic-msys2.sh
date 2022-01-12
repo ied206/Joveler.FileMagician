@@ -65,7 +65,6 @@ elif [ "${ARCH}" = aarch64 ]; then
         echo "Please provide llvm-mingw as [TOOLCHAIN_DIR] for aarch64 build." >&2
         exit 1
     fi
-    export PATH=${TOOLCHAIN_DIR}/bin:${PATH}
 else
     echo "${ARCH} is not a supported architecture" >&2
     exit 1
