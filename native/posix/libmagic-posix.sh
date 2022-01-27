@@ -54,7 +54,7 @@ make "-j${CORES}"
 cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
 cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
 cp magic/magic.mgc "${DEST_DIR}"
-cat magic/Magdir/* > "${DEST_DIR}/magic.txt"
+cat magic/Magdir/* > "${DEST_DIR}/magic.src"
 cp COPYING "${DEST_DIR}"
 popd > /dev/null
 

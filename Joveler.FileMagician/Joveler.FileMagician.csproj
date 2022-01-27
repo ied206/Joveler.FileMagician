@@ -39,6 +39,13 @@ Supports Windows, Linux and macOS.</Description>
         <PackagePath>content/magic.mgc;contentFiles/any/any/magic.mgc</PackagePath>
       -->
     </Content>
+    <Content Include="contentFiles\any\any\magic.src">
+      <Link>%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>contentFiles\any\any\magic.src</PackagePath>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
   </ItemGroup>
   <!-- Native Library for .NET Framework 4.5.1 -->
   <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
