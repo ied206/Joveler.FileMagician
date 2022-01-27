@@ -109,10 +109,10 @@ File signature database is copied to `$(OutDir)\magic.mgc`.
 | Windows x86        | `$(OutDir)\runtimes\win-x86\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
 | Windows x64        | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
 | Windows arm64      | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`  | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) |
-| Ubuntu 18.04 x64   | `$(OutDir)\runtimes\linux-x64\libmagic.so`   | 2-Clause BSD |
-| Debian 10 armhf    | `$(OutDir)\runtimes\linux-arm\libmagic.so`   | 2-Clause BSD |
-| Debian 10 arm64    | `$(OutDir)\runtimes\linux-arm64\libmagic.so` | 2-Clause BSD |
-| macOS Catalina x64 | `$(OutDir)\runtimes\osx-x64\libmagic.dylib`  | 2-Clause BSD |
+| Ubuntu 20.04 x64   | `$(OutDir)\runtimes\linux-x64\libmagic.so`   | 2-Clause BSD |
+| Debian 11 armhf    | `$(OutDir)\runtimes\linux-arm\libmagic.so`   | 2-Clause BSD |
+| Debian 11 arm64    | `$(OutDir)\runtimes\linux-arm64\libmagic.so` | 2-Clause BSD |
+| macOS Big Sur x64  | `$(OutDir)\runtimes\osx-x64\libmagic.dylib`  | 2-Clause BSD |
 
 - If you call `Magic.GlobalInit()` without `libPath` parameter on Linux or macOS, it will search for system-installed libmagic.
 - Linux binaries are not portable. They may not work on your distribution. In that case, call parameter-less `Magic.GlobalInit()` to use system-installed libmagic.
