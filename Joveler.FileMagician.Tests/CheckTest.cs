@@ -81,21 +81,21 @@ namespace Joveler.FileMagician.Tests
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary", "tar/gtar"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
             // Originally application/x-xz, but broken in 5.40, look https://bugs.astron.com/view.php?id=257.
-            ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/octet-stream", "binary"),
+            ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary"),
             ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract, compression method=deflate", "application/zip", "binary"),
             ["Samples.alz"] = new TypeInfo("ALZ archive data", "application/octet-stream", "binary", "alz"),
             ["Samples.egg"] = new TypeInfo("EGG archive data, version 1.0", "application/octet-stream", "binary", "egg"),
             ["Samples.rar"] = new TypeInfo("RAR archive data, v4, os: Win32", "application/x-rar", "binary", "rar/cbr"),
             ["Samples.rar5"] = new TypeInfo("RAR archive data, v5", "application/x-rar", "binary", "rar"),
             // Image Format
-            ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4, image size 8192, cbSize 8310, bits offset 118", "image/x-ms-bmp", "binary", "bmp"),
+            ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4, image size 8192, cbSize 8310, bits offset 118", "image/bmp", "binary", "bmp"),
             ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
             ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary", "jpeg/jpg/jpe/jfif"),
             ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary", "png"),
             ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image", "image/svg+xml", "us-ascii"),
             ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image", "image/webp", "binary", "webp"),
             // Database + Unicode-only path test 
-            ["ᄒᆞᆫ글ḀḘ韓國.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002", "application/x-sqlite3", "binary", "sqlite/sqlite3/db/dbe"),
+            ["ᄒᆞᆫ글ḀḘ韓國.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "sqlite/sqlite3/db/db3/dbe/sdb/help"),
         };
 
         [TestMethod]

@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>Joveler.FileMagician</PackageId>
     <Title>Joveler.FileMagician</Title>
-    <Version>2.1.0</Version>
+    <Version>2.2.0</Version>
     <Authors>Ian F. Darwin, Christos Zoulas, Hajin Jang</Authors>
     <Company>Joveler</Company>
     <Description>libmagic (file) pinvoke library for .NET.
@@ -16,8 +16,7 @@ Supports Windows, Linux and macOS.</Description>
     <PackageProjectUrl>https://github.com/ied206/Joveler.FileMagician</PackageProjectUrl>
     <PackageIcon>images\Logo.png</PackageIcon>
     <RepositoryUrl>https://github.com/ied206/Joveler.FileMagician</RepositoryUrl>
-    <PackageReleaseNotes>- Update included libmagic to 5.40.
-- Official support for Windows ARM64.</PackageReleaseNotes>
+    <PackageReleaseNotes>- Update included libmagic to 5.41.</PackageReleaseNotes>
     <PackageTags>libmagic magic file native pinvoke interop</PackageTags>
   </PropertyGroup>
   <!-- PackageReference -->
@@ -39,6 +38,13 @@ Supports Windows, Linux and macOS.</Description>
         Instead, store files in contentFiles and copy file with .target on .NET Framework.
         <PackagePath>content/magic.mgc;contentFiles/any/any/magic.mgc</PackagePath>
       -->
+    </Content>
+    <Content Include="contentFiles\any\any\magic.src">
+      <Link>%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackagePath>contentFiles\any\any\magic.src</PackagePath>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
   </ItemGroup>
   <!-- Native Library for .NET Framework 4.5.1 -->
