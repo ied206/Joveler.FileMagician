@@ -11,7 +11,7 @@ namespace Joveler.FileMagician.Samples
     public class BinaryDetector : IDisposable
     {
         #region Fields and Properties
-        private Magic _magic = null;
+        private Magic? _magic = null;
         private readonly object _magicLock = new object();
         private static bool _magicLoaded = false;
         #endregion
@@ -177,7 +177,7 @@ namespace Joveler.FileMagician.Samples
 
                 libDir = Path.Combine(libDir, "native");
 
-                string libPath = null;
+                string? libPath = null;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     libPath = Path.Combine(libDir, "libmagic-1.dll");
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -270,6 +270,9 @@ namespace Joveler.FileMagician.Samples
 
         public BinInfo InspectBinary(string binFilePath)
         {
+            if (_magic == null)
+                throw new InvalidOperationException($"{nameof(_magic)} is null");
+
             string typeStr;
             lock (_magicLock)
             {
