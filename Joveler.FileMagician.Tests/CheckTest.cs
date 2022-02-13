@@ -64,7 +64,7 @@ namespace Joveler.FileMagician.Tests
             ["UTF8_EN_woBOM.txt"] = new TypeInfo("ASCII text, with no line terminators", "text/plain", "us-ascii"),
             ["UTF8_KR_wBOM.txt"] = new TypeInfo("Unicode text, UTF-8 (with BOM) text, with no line terminators", "text/plain", "utf-8"),
             ["UTF8_KR_woBOM.txt"] = new TypeInfo("Unicode text, UTF-8 text, with no line terminators", "text/plain", "utf-8"),
-            // Hancom Office NEO (2016) - .cell & .show is not exact : Hancom Office suite use compound file format similar to Microsoft Office 2003.
+            // Hancom Office NEO (2016)
             ["Hancell2016.cell"] = new TypeInfo("Microsoft OOXML", "application/octet-stream", "binary"),
             ["Hanshow2016.show"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary"),
             ["HWP2016.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 5.x", "application/x-hwp", "binary", "hwp"),
@@ -80,7 +80,6 @@ namespace Joveler.FileMagician.Tests
             ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary", "7z/cb7"),
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary", "tar/gtar"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
-            // Originally application/x-xz, but broken in 5.40, look https://bugs.astron.com/view.php?id=257.
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary"),
             ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract, compression method=deflate", "application/zip", "binary"),
             ["Samples.alz"] = new TypeInfo("ALZ archive data", "application/octet-stream", "binary", "alz"),
@@ -154,7 +153,7 @@ namespace Joveler.FileMagician.Tests
                         magic.LoadMagicFile(TestSetup.MagicFile);
                         break;
                     case 1:
-                        // Force .Net's unicode -> ansi encoding convert failure by using exotic/obscure characters
+                        // Force .NET's unicode -> ansi encoding convert failure by using exotic/obscure characters
                         magic.LoadMagicFile(TestSetup.MagicUnicodeOnlyPath);
                         break;
                     case 2:

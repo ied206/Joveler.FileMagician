@@ -129,7 +129,7 @@ namespace Joveler.FileMagician
             return magic;
         }
         #endregion
-
+        
         #region (Static) Magic File Path
         /// <summary>
         /// Get default path of magicFile.
@@ -152,17 +152,47 @@ namespace Joveler.FileMagician
             { // Load default magic database
                 int ret = Lib.MagicLoad(_magicPtr, magicFile);
                 CheckMagicError(ret);
+                return;
             }
-            else
-            { // magic_load() does not support unicode on Windows, so use LoadMagicBuffer whenever possible
+
+            // magic_load_buffers() : Does not support auto compiling
+            // magic_load() : Does not support Unicode on Windows, support auto compiling
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !Helper.IsActiveCodePageCompatible(magicFile))
+            {
+                // magicFile is unicode-only path
                 byte[] magicBuffer;
-                using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read))
+                using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
                     magicBuffer = new byte[fs.Length];
                     fs.Read(magicBuffer, 0, magicBuffer.Length);
                 }
-                LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
+
+                // Check if magicBuffer has NULL byte.
+                if (magicBuffer.Any(x => x == 0))
+                { // has NULL byte -> compiled .mgc
+                    LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
+                }
+                else
+                { // Does not has NULL byte -> text.
+                    // Copy to temp dir and load/compile from file
+                    string tempFile = Path.GetTempFileName();
+                    try
+                    {
+                        File.Copy(magicFile, tempFile, true);
+
+                        int ret = Lib.MagicLoad(_magicPtr, tempFile);
+                        CheckMagicError(ret);
+                    }
+                    finally
+                    {
+                        if (File.Exists(tempFile))
+                            File.Delete(tempFile);
+                    }
+                }
+                return;
             }
+            
+            LoadMagicFile(magicFile);
         }
 
         /// <summary>
@@ -170,14 +200,8 @@ namespace Joveler.FileMagician
         /// </summary>
         public void LoadMagicBuffer(byte[] magicBuf, int offset, int count)
         {
-            // Free and re-alloc magic buffers.
-            FreeMagicBuffers();
-            AllocMagicBuffer(magicBuf, offset, count);
-
-            // Call magic_load_buffers()
-            GetMagicBufferPtrs(out IntPtr[] buffers, out UIntPtr[] sizes, out UIntPtr nbufs);
-            int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
-            CheckMagicError(ret);
+            CheckReadWriteArgs(magicBuf, offset, count);
+            LoadMagicBuffer(magicBuf.AsSpan(offset, count));
         }
 
         /// <summary>
@@ -229,23 +253,6 @@ namespace Joveler.FileMagician
         #endregion
 
         #region (private) Manage Magic Buffers
-        /// <summary>
-        /// Allocate and copy the magic database buffer into native heap.
-        /// </summary>
-        private unsafe void AllocMagicBuffer(byte[] magicBuf, int offset, int count)
-        {
-            CheckReadWriteArgs(magicBuf, offset, count);
-
-            // Allocate native heap
-            IntPtr magicBufPtr = Marshal.AllocHGlobal(magicBuf.Length);
-
-            // Copy the buffer to native heap from managed heap
-            Marshal.Copy(magicBuf, offset, magicBufPtr, count);
-
-            // Add the new heap into the heap list
-            _magicBuffers.Add(new Tuple<IntPtr, UIntPtr>(magicBufPtr, (UIntPtr)count));
-        }
-
         /// <summary>
         /// Allocate and copy the magic database buffer into native heap.
         /// </summary>
@@ -391,7 +398,64 @@ namespace Joveler.FileMagician
         }
         #endregion
 
-        #region (Static, Property) Version
+        #region Compile
+        public void Compile(string magicSrcFile, string magicDestFile)
+        {
+            // magic_compile() creates magic.mgc file on current directory.
+            // To control dest file name and location, operate on temp directory.
+            string curDirBak = Environment.CurrentDirectory;
+            string tempDir = Helper.GetTempDir();
+            try
+            {
+                string srcFile = Path.Combine(tempDir, "magic.src");
+                string destFile = Path.Combine(tempDir, "magic.mgc");
+                File.Copy(magicSrcFile, srcFile, true);
+
+                Environment.CurrentDirectory = tempDir;
+                int ret = Lib.MagicCompile(_magicPtr, srcFile);
+                CheckMagicError(ret);
+
+                File.Copy(destFile, magicDestFile, true);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, true);
+                Environment.CurrentDirectory = curDirBak;
+            }
+        }
+
+        internal void Compile(Stream magicSrcStream, string magicDestFile)
+        {
+            // magic_compile() creates magic.mgc file on current directory.
+            // To control dest file name and location, operate on temp directory.
+            string curDirBak = Environment.CurrentDirectory;
+            string tempDir = Helper.GetTempDir();
+            try
+            {
+                string srcFile = Path.Combine(tempDir, "magic.src");
+                string destFile = Path.Combine(tempDir, "magic.mgc");
+                using (FileStream fs = new FileStream(srcFile, FileMode.OpenOrCreate, FileAccess.Write))
+                {
+                    magicSrcStream.CopyTo(fs);
+                }
+
+                Environment.CurrentDirectory = tempDir;
+                int ret = Lib.MagicCompile(_magicPtr, srcFile);
+                CheckMagicError(ret);
+
+                File.Copy(destFile, magicDestFile, true);
+            }
+            finally
+            {
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, true);
+                Environment.CurrentDirectory = curDirBak;
+            }
+        }
+        #endregion
+
+        #region (static, property) Version
         public static int VersionInt
         {
             get
