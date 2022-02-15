@@ -75,6 +75,7 @@ namespace Joveler.FileMagician.Tests
 
         private static string GetNativeLibPath()
         {
+            string libBaseDir = TestHelper.GetProgramAbsolutePath();
             string libDir = string.Empty;
 
 #if !NETFRAMEWORK
@@ -109,11 +110,11 @@ namespace Joveler.FileMagician.Tests
 
             string libPath = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                libPath = Path.Combine(libDir, "libmagic-1.dll");
+                libPath = Path.Combine(libBaseDir, libDir, "libmagic-1.dll");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                libPath = Path.Combine(libDir, "libmagic.so");
+                libPath = Path.Combine(libBaseDir, libDir, "libmagic.so");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                libPath = Path.Combine(libDir, "libmagic.dylib");
+                libPath = Path.Combine(libBaseDir, libDir, "libmagic.dylib");
 
             if (libPath == null)
                 throw new PlatformNotSupportedException($"Unable to find native library.");
