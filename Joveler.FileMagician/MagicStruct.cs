@@ -148,16 +148,21 @@ namespace Joveler.FileMagician
         /// </summary>
         public void LoadMagicFile(string magicFile)
         {
-            if (magicFile == null)
-            { // Load default magic database
+            void InternalLoadMagicFile()
+            {
                 int ret = Lib.MagicLoad(_magicPtr, magicFile);
                 CheckMagicError(ret);
+            }
+
+            if (magicFile == null)
+            { // Load default magic database
+                InternalLoadMagicFile();
                 return;
             }
 
             // magic_load_buffers() : Does not support auto compiling
             // magic_load() : Does not support Unicode on Windows, support auto compiling
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || !Helper.IsActiveCodePageCompatible(magicFile))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Helper.IsActiveCodePageCompatible(magicFile))
             {
                 // magicFile is unicode-only path
                 byte[] magicBuffer;
@@ -180,8 +185,7 @@ namespace Joveler.FileMagician
                     {
                         File.Copy(magicFile, tempFile, true);
 
-                        int ret = Lib.MagicLoad(_magicPtr, tempFile);
-                        CheckMagicError(ret);
+                        InternalLoadMagicFile();
                     }
                     finally
                     {
@@ -191,8 +195,8 @@ namespace Joveler.FileMagician
                 }
                 return;
             }
-            
-            LoadMagicFile(magicFile);
+
+            InternalLoadMagicFile();
         }
 
         /// <summary>
@@ -399,6 +403,13 @@ namespace Joveler.FileMagician
         #endregion
 
         #region Compile
+        /// <summary>
+        /// Compile magic database file passed in <paramref name="magicSrcFile"/> to <paramref name="magicDestFile"/>.
+        /// </summary>
+        /// <remarks>
+        /// WARNING: Current Directory is altered and rollbacked in the process, it may cause issues on multi-threaded application.
+        /// Use the other override in order to avoid this problem.
+        /// </remarks>
         public void Compile(string magicSrcFile, string magicDestFile)
         {
             // magic_compile() creates magic.mgc file on current directory.
@@ -425,33 +436,25 @@ namespace Joveler.FileMagician
             }
         }
 
-        internal void Compile(Stream magicSrcStream, string magicDestFile)
+        /// <summary>
+        /// Compile magic database file passed in <paramref name="magicSrcFile"/> to [CurrentDirectory/magic.mgc].
+        /// </summary>
+        /// <remarks>
+        /// The destination path is hard-wired by libmagic itself. 
+        /// This method does not change current directory.
+        /// </remarks>
+        /// <returns>
+        /// Returns created mgc file path
+        /// </returns>
+        public string Compile(string magicSrcFile)
         {
             // magic_compile() creates magic.mgc file on current directory.
             // To control dest file name and location, operate on temp directory.
-            string curDirBak = Environment.CurrentDirectory;
-            string tempDir = Helper.GetTempDir();
-            try
-            {
-                string srcFile = Path.Combine(tempDir, "magic.src");
-                string destFile = Path.Combine(tempDir, "magic.mgc");
-                using (FileStream fs = new FileStream(srcFile, FileMode.OpenOrCreate, FileAccess.Write))
-                {
-                    magicSrcStream.CopyTo(fs);
-                }
+            int ret = Lib.MagicCompile(_magicPtr, magicSrcFile);
+            CheckMagicError(ret);
 
-                Environment.CurrentDirectory = tempDir;
-                int ret = Lib.MagicCompile(_magicPtr, srcFile);
-                CheckMagicError(ret);
-
-                File.Copy(destFile, magicDestFile, true);
-            }
-            finally
-            {
-                if (Directory.Exists(tempDir))
-                    Directory.Delete(tempDir, true);
-                Environment.CurrentDirectory = curDirBak;
-            }
+            string destFile = Path.Combine(Environment.CurrentDirectory, "magic.mgc");
+            return destFile;
         }
         #endregion
 

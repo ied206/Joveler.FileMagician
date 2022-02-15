@@ -50,6 +50,9 @@ namespace Joveler.FileMagician
         /// </remarks>
         public static unsafe bool IsActiveCodePageCompatible(string str)
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) == false)
+                return true;
+
             return IsCodePageCompatible(NativeMethods.CP_ACP, str);
         }
 
@@ -62,7 +65,7 @@ namespace Joveler.FileMagician
         public static unsafe bool IsCodePageCompatible(uint codepage, string str)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) == false)
-                throw new PlatformNotSupportedException();
+                return true;
 
             // Empty string must be compatible to any encoding, right?
             if (str.Length == 0)
