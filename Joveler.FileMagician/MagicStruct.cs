@@ -1,6 +1,6 @@
 ﻿/*
     C# pinvoke wrapper written by Hajin Jang
-    Copyright (C) 2019 Hajin Jang
+    Copyright (C) 2019-2022 Hajin Jang
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -32,9 +32,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-
-// ReSharper disable RedundantExplicitArraySize
-// ReSharper disable UnusedMember.Global
 
 namespace Joveler.FileMagician
 {
@@ -129,7 +126,7 @@ namespace Joveler.FileMagician
             return magic;
         }
         #endregion
-        
+
         #region (Static) Magic File Path
         /// <summary>
         /// Get default path of magicFile.
