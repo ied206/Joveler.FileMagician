@@ -17,7 +17,7 @@ namespace Joveler.FileMagician.Samples
         public bool Version { get; set; }
     }
 
-    // [Verb("ext", HelpText = "Determine extensions.")]
+    [Verb("detect", HelpText = "Determine file type.")]
     public class FileDetectOptions : ParamOptions
     {
         [Option("extension", Required = false, Default = false, HelpText = "Output extension.")]
@@ -28,6 +28,12 @@ namespace Joveler.FileMagician.Samples
         public bool OutputMimeEncoding { get; set; }
         [Value(0, HelpText = "FILEs to insepct.")]
         public string TargetFile { get; set; } = string.Empty;
+        
+    }
+
+    [Verb("compile", HelpText = "Compile file specified by -m.")]
+    public class MagicCompileOptions : ParamOptions
+    {
     }
     #endregion
 
@@ -53,7 +59,7 @@ namespace Joveler.FileMagician.Samples
         public static string BaseDir { get; set; } = string.Empty;
         public static string MagicFileMgc { get; set; } = string.Empty;
         public static string MagicFileSrc { get; set; } = string.Empty;
-        private static ParserResult<FileDetectOptions>? _parserResult = null;
+        private static ParserResult<object>? _parserResult = null;
 
         #region PrintErrorAndExit
         internal static void PrintErrorAndExit(IEnumerable<Error> errs)
@@ -145,8 +151,9 @@ namespace Joveler.FileMagician.Samples
                 conf.CaseSensitive = false;
             });
 
-            _parserResult = argParser.ParseArguments<FileDetectOptions>(args);
+            _parserResult = argParser.ParseArguments<FileDetectOptions, MagicCompileOptions>(args);
             _parserResult.WithParsed<FileDetectOptions>(x => opts = x)
+                .WithParsed<MagicCompileOptions>(x => opts = x)
                 .WithNotParsed(errs => PrintErrorAndExit(errs));
 
             if (opts == null)
@@ -156,6 +163,9 @@ namespace Joveler.FileMagician.Samples
             {
                 case FileDetectOptions detectOpts:
                     CheckFile(detectOpts);
+                    break;
+                case MagicCompileOptions compileOpts:
+                    CompileFile(compileOpts);
                     break;
             }
 
@@ -248,6 +258,24 @@ namespace Joveler.FileMagician.Samples
             {
                 Console.WriteLine($"{entry.DisplayName.PadRight(maxPathSize)}: {entry.Output}");
             }
+        }
+        #endregion
+
+        #region Compile File
+        public static void CompileFile(MagicCompileOptions opts)
+        {
+            // Process magicFile
+            if (opts.MagicFile == null)
+            {
+                Console.WriteLine($"No magic database specified.");
+                Environment.Exit(1);
+            }
+
+            using (Magic magic = Magic.Open(MagicFlags.None))
+            {
+                magic.Compile(opts.MagicFile);
+            }
+            Console.WriteLine($"Successfully compiled magic database.");
         }
         #endregion
     }
