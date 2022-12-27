@@ -40,8 +40,7 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 |          | armhf        | Yes    |
 |          | arm64        | Yes    |
 | macOS    | x64          | Yes    |
-
-macOS arm64 should be supported on theory, but I do not have access to an Apple Sillicon device to test. Please contribute if you have an ARM64 macOS machine.
+|          | arm64        | Yes    |
 
 #### Tested Linux distributions
 

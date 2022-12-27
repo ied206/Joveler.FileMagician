@@ -1,0 +1,13 @@
+diff --git a/src/file.c b/src/file.c
+index 1566a17..737ce31 100644
+--- a/src/file.c
++++ b/src/file.c
+@@ -602,7 +602,7 @@ fname_print(const char *inname)
+ 	for (i = 0; i < n; i++) {
+ 		unsigned char c = CAST(unsigned char, inname[i]);
+ 		if (isprint(c)) {
+-			putc(c);
++			putc(c, stdout);
+ 			continue;
+ 		}
+ 		file_octal(c);

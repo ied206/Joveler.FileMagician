@@ -67,7 +67,7 @@ namespace Joveler.FileMagician
 
         #region IsAnsiCompatible
         /// <summary>
-        /// Check if the given string is compatible with system's active ANSI codepage.
+        /// Check if the given string is compatible with system's active Windows ANSI codepage.
         /// </summary>
         /// <remarks>
         /// Same functionality can be implemented with Encoding and EncoderFallback, but it involves exception throwing.
@@ -81,7 +81,7 @@ namespace Joveler.FileMagician
         }
 
         /// <summary>
-        /// Check if the given string is compatible with a given codepage.
+        /// Check if the given string is compatible with a given Windows codepage.
         /// </summary>
         /// <remarks>
         /// Same functionality can be implemented with Encoding and EncoderFallback, but it involves exception throwing.

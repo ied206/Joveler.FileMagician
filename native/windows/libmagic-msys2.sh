@@ -39,6 +39,7 @@ DEST_DIR=${BASE_DIR}/build-${ARCH}
 CORES=$(grep -c ^processor /proc/cpuinfo)
 
 # Create dest directory
+rm -rf "${DEST_DIR}"
 mkdir -p "${DEST_DIR}"
 
 # Set library paths
@@ -51,11 +52,6 @@ CHECKDEP="ldd"
 # Set target triple
 if [ "${ARCH}" = i686 ]; then
     TARGET_TRIPLE="i686-w64-mingw32"
-    # Binaries built from MSYS2-MINGW32 shell requires libgcc and winpthreads runtime
-    if [[ -z "${TOOLCHAIN_DIR}" ]]; then
-        cp "/mingw32/bin/libgcc_s_dw2-1.dll" "${DEST_DIR}"
-        cp "/mingw32/bin/libwinpthread-1.dll" "${DEST_DIR}"
-    fi
 elif [ "${ARCH}" = x86_64 ]; then
     TARGET_TRIPLE="x86_64-w64-mingw32"
 elif [ "${ARCH}" = aarch64 ]; then

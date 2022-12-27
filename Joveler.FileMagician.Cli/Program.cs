@@ -53,7 +53,7 @@ namespace Joveler.FileMagician.Samples
     }
     #endregion
 
-    #region Prorgram
+    #region Program
     public class Program
     {
         public static string BaseDir { get; set; } = string.Empty;

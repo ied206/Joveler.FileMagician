@@ -1,0 +1,15 @@
+diff --git a/src/funcs.c b/src/funcs.c
+index 41c4106..f9920a5 100644
+--- a/src/funcs.c
++++ b/src/funcs.c
+@@ -844,7 +844,9 @@ file_print_guid(char *str, size_t len, const uint64_t *guid)
+ protected int
+ file_pipe_closexec(int *fds)
+ {
+-#ifdef HAVE_PIPE2
++#ifdef __MINGW32__
++	return 0;
++#elif defined(HAVE_PIPE2)
+ 	return pipe2(fds, O_CLOEXEC);
+ #else
+ 	if (pipe(fds) == -1)
