@@ -24,9 +24,9 @@ while getopts "a:t:" opt; do
 done
 # Parse <FILE_SRCDIR>
 shift $(( OPTIND - 1 ))
-SRCDIR="$@"
-if ! [[ -d "${SRCDIR}" ]]; then
-    echo "[${SRCDIR}] is not a directory!" >&2
+SRC_DIR="$@"
+if ! [[ -d "${SRC_DIR}" ]]; then
+    echo "[${SRC_DIR}] is not a directory!" >&2
     exit 1
 fi
 
@@ -35,12 +35,9 @@ fi
 # BASE_DIR: Absolute path of the parent dir of this script, e.g. /home/user/bin
 BASE_ABS_PATH=$(readlink -f "$0")
 BASE_DIR=$(dirname "${BASE_ABS_PATH}")
+GNURX_DIR="${BASE_DIR}/libgnurx-2.5"
 DEST_DIR=${BASE_DIR}/build-${ARCH}
 CORES=$(grep -c ^processor /proc/cpuinfo)
-
-# Create dest directory
-rm -rf "${DEST_DIR}"
-mkdir -p "${DEST_DIR}"
 
 # Set library paths
 GNURX_LIB="libgnurx-0.dll"
@@ -66,34 +63,64 @@ else
     exit 1
 fi
 
+# Create dest directory
+mkdir -p "${DEST_DIR}"
+
 # Let custom toolchain is called first in PATH
 if ! [[ -z "${TOOLCHAIN_DIR}" ]]; then
     export PATH=${TOOLCHAIN_DIR}/bin:${PATH}
 fi
 
 # Compile libgnurx
-pushd "${BASE_DIR}/libgnurx-2.5" > /dev/null
+pushd "${GNURX_DIR}" > /dev/null
 make clean
 make "-j${CORES}" TARGET_TRIPLE=${TARGET_TRIPLE}-
 cp "${GNURX_LIB}" "${DEST_DIR}"
 cp COPYING.gnurx "${DEST_DIR}/COPYING.gnurx"
-export LDFLAGS="-L${PWD}"
-export CFLAGS="-I${PWD}"
+export CFLAGS="-I${GNURX_DIR}"
+export LDFLAGS="-L${GNURX_DIR}"
+# Use .dll.a instead for static compile, but beware of LGPL.
+# export LDFLAGS="libgnurx.dll.a"
 popd > /dev/null
 
 # Compile libmagic
 # If a target arch is not compatible with host arch, magic.mgc creation will fail, but it is ignorable.
 # If you want to really prevent this, run make with 'FILE_COMPILE={PATH_TO_RUNNABLE_FILE_SAME_VER}'.
-pushd "${SRCDIR}" > /dev/null
+BUILD_MODES=( "lib" "exe" )
+pushd "${SRC_DIR}" > /dev/null
+for BUILD_MODE in "${BUILD_MODES[@]}"; do
+    CONFIGURE_ARGS=""
+    if [ "$BUILD_MODE" = "lib" ]; then
+        CONFIGURE_ARGS="--enable-shared"
+    elif [ "$BUILD_MODE" = "exe" ]; then
+        CONFIGURE_ARGS="--disable-shared"
+    fi
+
+    make clean
+    autoreconf -f -i # Required to use own libgnurx
+    ./configure --host=${TARGET_TRIPLE} \
+      --disable-zlib \
+      --disable-bzlib \
+      --disable-xzlib \
+      --disable-zstdlib \
+      --disable-lzlib \
+        ${CONFIGURE_ARGS}
+    make "-j${CORES}"
+
+    if [ "$BUILD_MODE" = "lib" ]; then
+        cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
+        cat magic/Magdir/* > "${DEST_DIR}/magic.src"
+        cp COPYING "${DEST_DIR}"
+    elif [ "$BUILD_MODE" = "exe" ]; then
+        cp "src/${DEST_EXE}" "${DEST_DIR}"
+        cp magic/magic.mgc "${DEST_DIR}"
+    fi    
+done 
+popd > /dev/null
+
+# Clean libgnurx
+pushd "${GNURX_DIR}" > /dev/null
 make clean
-autoreconf -f -i # Required to use own libgnurx
-./configure --host=${TARGET_TRIPLE} --disable-bzlib --disable-xzlib --disable-zlib
-make "-j${CORES}"
-cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
-cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
-cp magic/magic.mgc "${DEST_DIR}"
-cat magic/Magdir/* > "${DEST_DIR}/magic.src"
-cp COPYING "${DEST_DIR}"
 popd > /dev/null
 
 # Strip a binary

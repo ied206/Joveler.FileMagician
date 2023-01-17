@@ -35,8 +35,8 @@ D:\Jang\Build\Source\PEBakery\Library\libmagic\file-5.43\src/funcs.c:850: undefi
 You must patch `file-5.43` with `MinGW_w64_pipe_fix.diff`.
 
 ```sh
-cd file-5.40
-patch -p1 < $REPO/native/windows/patch/MinGW_w64_fcntl_fix.diff
+cd file-5.43
+patch -p1 < $REPO/native/windows/patch-5.43/MinGW_w64_fcntl_fix.diff
 ```
 
 ## ioctl
@@ -50,6 +50,6 @@ C:/msys64/mingw32/bin/../lib/gcc/i686-w64-mingw32/10.2.0/../../../../i686-w64-mi
 To use `xz-utils`/`bzip2` capabilities of libmagic, you must apply `MinGW_w64_ioctl_fix.diff` to `file-5.40`.
 
 ```sh
-cd file-5.40
-patch -p1 < $REPO/native/windows/patch/MinGW_w64_ioctl_fix.diff
+cd file-5.43
+patch -p1 < $REPO/native/windows/patch-5.43/MinGW_w64_ioctl_fix.diff
 ```
