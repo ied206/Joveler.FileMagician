@@ -38,10 +38,6 @@ BASE_DIR=$(dirname "${BASE_ABS_PATH}")
 DEST_DIR=${BASE_DIR}/build-${ARCH}
 CORES=$(grep -c ^processor /proc/cpuinfo)
 
-# Create dest directory
-rm -rf "${DEST_DIR}"
-mkdir -p "${DEST_DIR}"
-
 # Set library paths
 GNURX_LIB="libgnurx-0.dll"
 DEST_LIB="libmagic-1.dll"
@@ -66,6 +62,9 @@ else
     exit 1
 fi
 
+# Create dest directory
+mkdir -p "${DEST_DIR}"
+
 # Let custom toolchain is called first in PATH
 if ! [[ -z "${TOOLCHAIN_DIR}" ]]; then
     export PATH=${TOOLCHAIN_DIR}/bin:${PATH}
@@ -87,7 +86,12 @@ popd > /dev/null
 pushd "${SRCDIR}" > /dev/null
 make clean
 autoreconf -f -i # Required to use own libgnurx
-./configure --host=${TARGET_TRIPLE} --disable-bzlib --disable-xzlib --disable-zlib
+./configure --host=${TARGET_TRIPLE} \
+    --disable-bzlib \
+    --disable-xzlib \
+    --disable-zlib \
+    --disable-zstdlib \
+    --disable-lzlib
 make "-j${CORES}"
 cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
 cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"

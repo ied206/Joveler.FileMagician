@@ -68,6 +68,7 @@ namespace Joveler.FileMagician.Tests
             ["Hancell2016.cell"] = new TypeInfo("Microsoft Excel 2007+", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "binary", "xlsx"),
             ["Hanshow2016.show"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary", "pptx"),
             ["HWP2016.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 5.x", "application/x-hwp", "binary", "hwp"),
+            ["HWP2016.hwpx"] = new TypeInfo("Zip data (MIME type \"application/hwp+zip\"?)", "application/zip", "binary"),
             // LibreOffice 6.0.7.3
             ["LibreCalc6.ods"] = new TypeInfo("OpenDocument Spreadsheet", "application/vnd.oasis.opendocument.spreadsheet", "binary", "ods"),
             ["LibreImpress6.odp"] = new TypeInfo("OpenDocument Presentation", "application/vnd.oasis.opendocument.presentation", "binary", "odp"),
