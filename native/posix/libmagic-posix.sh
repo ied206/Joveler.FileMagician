@@ -90,4 +90,3 @@ popd > /dev/null
 pushd "${DEST_DIR}" > /dev/null
 ${CHECKDEP} "${DEST_LIB}" "${DEST_EXE}"
 popd > /dev/null
-

@@ -35,6 +35,7 @@ fi
 # BASE_DIR: Absolute path of the parent dir of this script, e.g. /home/user/bin
 BASE_ABS_PATH=$(readlink -f "$0")
 BASE_DIR=$(dirname "${BASE_ABS_PATH}")
+GNURX_DIR="${BASE_DIR}/libgnurx-2.5"
 DEST_DIR=${BASE_DIR}/build-${ARCH}
 CORES=$(grep -c ^processor /proc/cpuinfo)
 
@@ -71,13 +72,15 @@ if ! [[ -z "${TOOLCHAIN_DIR}" ]]; then
 fi
 
 # Compile libgnurx
-pushd "${BASE_DIR}/libgnurx-2.5" > /dev/null
+pushd "${GNURX_DIR}" > /dev/null
 make clean
 make "-j${CORES}" TARGET_TRIPLE=${TARGET_TRIPLE}-
 cp "${GNURX_LIB}" "${DEST_DIR}"
 cp COPYING.gnurx "${DEST_DIR}/COPYING.gnurx"
-export LDFLAGS="-L${PWD}"
-export CFLAGS="-I${PWD}"
+export CFLAGS="-I${GNURX_DIR}"
+export LDFLAGS="-L${GNURX_DIR}"
+# Use .dll.a instead for static compile, but beware of LGPL.
+# export LDFLAGS="libgnurx.dll.a"
 popd > /dev/null
 
 # Compile libmagic
@@ -92,7 +95,7 @@ for BUILD_MODE in "${BUILD_MODES[@]}"; do
     elif [ "$BUILD_MODE" = "exe" ]; then
         CONFIGURE_ARGS="--disable-shared"
     fi
-    
+
     make clean
     autoreconf -f -i # Required to use own libgnurx
     ./configure --host=${TARGET_TRIPLE} \
@@ -109,10 +112,15 @@ for BUILD_MODE in "${BUILD_MODES[@]}"; do
         cat magic/Magdir/* > "${DEST_DIR}/magic.src"
         cp COPYING "${DEST_DIR}"
     elif [ "$BUILD_MODE" = "exe" ]; then
-        cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
+        cp "src/${DEST_EXE}" "${DEST_DIR}"
         cp magic/magic.mgc "${DEST_DIR}"
     fi    
 done 
+popd > /dev/null
+
+# Clean libgnurx
+pushd "${GNURX_DIR}" > /dev/null
+make clean
 popd > /dev/null
 
 # Strip a binary

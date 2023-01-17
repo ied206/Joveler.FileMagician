@@ -81,7 +81,7 @@ namespace Joveler.FileMagician.Tests
             ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary", "7z/cb7"),
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary", "tar/gtar"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary", "bz2"),
-            ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary"),
+            ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary", "xz"),
             ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract, compression method=deflate", "application/zip", "binary"),
             ["Samples.alz"] = new TypeInfo("ALZ archive data", "application/octet-stream", "binary", "alz"),
             ["Samples.egg"] = new TypeInfo("EGG archive data, version 1.0", "application/octet-stream", "binary", "egg"),
