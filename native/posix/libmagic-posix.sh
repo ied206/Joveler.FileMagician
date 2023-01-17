@@ -13,7 +13,7 @@ if ! [[ -d "$1" ]]; then
     echo "[$1] is not a directory!" >&2
     exit 1
 fi
-SRCDIR=$1
+SRC_DIR=$1
 
 # Query environment info
 OS=$(uname -s) # Linux, Darwin, MINGW64_NT-10.0-19042, MSYS_NT-10.0-18363, ...
@@ -43,24 +43,40 @@ BASE_DIR=$(dirname "${BASE_ABS_PATH}")
 DEST_DIR="${BASE_DIR}/build"
 
 # Create dest directory
+rm -rf "${DEST_DIR}"
 mkdir -p "${DEST_DIR}"
 
 # Compile libmagic
 # Adapted from https://wimlib.net/git/?p=wimlib;a=tree;f=tools/make-windows-release;
-pushd "${SRCDIR}" > /dev/null
-make clean
-./configure \
-    --disable-bzlib \
-    --disable-xzlib \
-    --disable-zlib \
-    --disable-zstdlib \
-    --disable-lzlib
-make "-j${CORES}"
-cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
-cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
-cp magic/magic.mgc "${DEST_DIR}"
-cat magic/Magdir/* > "${DEST_DIR}/magic.src"
-cp COPYING "${DEST_DIR}"
+BUILD_MODES=( "lib" "exe" )
+pushd "${SRC_DIR}" > /dev/null
+for BUILD_MODE in "${BUILD_MODES[@]}"; do
+    CONFIGURE_ARGS=""
+    if [ "$BUILD_MODE" = "lib" ]; then
+        CONFIGURE_ARGS="--enable-static=no --enable-shared=yes"
+    elif [ "$BUILD_MODE" = "exe" ]; then
+        CONFIGURE_ARGS="--enable-static=yes --enable-shared=no"
+    fi
+
+    make clean
+    ./configure \
+        --disable-zlib \
+        --disable-bzlib \
+        --disable-xzlib \
+        --disable-zstdlib \
+        --disable-lzlib \
+        ${CONFIGURE_ARGS}
+    make "-j${CORES}"
+
+    if [ "$BUILD_MODE" = "lib" ]; then
+        cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
+        cat magic/Magdir/* > "${DEST_DIR}/magic.src"
+        cp COPYING "${DEST_DIR}"
+    elif [ "$BUILD_MODE" = "exe" ]; then
+        cp "src/${DEST_EXE}" "${DEST_DIR}"
+        cp magic/magic.mgc "${DEST_DIR}"
+    fi
+done
 popd > /dev/null
 
 # Strip a binary

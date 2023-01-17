@@ -24,9 +24,9 @@ while getopts "a:t:" opt; do
 done
 # Parse <FILE_SRCDIR>
 shift $(( OPTIND - 1 ))
-SRCDIR="$@"
-if ! [[ -d "${SRCDIR}" ]]; then
-    echo "[${SRCDIR}] is not a directory!" >&2
+SRC_DIR="$@"
+if ! [[ -d "${SRC_DIR}" ]]; then
+    echo "[${SRC_DIR}] is not a directory!" >&2
     exit 1
 fi
 
@@ -83,21 +83,36 @@ popd > /dev/null
 # Compile libmagic
 # If a target arch is not compatible with host arch, magic.mgc creation will fail, but it is ignorable.
 # If you want to really prevent this, run make with 'FILE_COMPILE={PATH_TO_RUNNABLE_FILE_SAME_VER}'.
-pushd "${SRCDIR}" > /dev/null
-make clean
-autoreconf -f -i # Required to use own libgnurx
-./configure --host=${TARGET_TRIPLE} \
-    --disable-bzlib \
-    --disable-xzlib \
-    --disable-zlib \
-    --disable-zstdlib \
-    --disable-lzlib
-make "-j${CORES}"
-cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
-cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
-cp magic/magic.mgc "${DEST_DIR}"
-cat magic/Magdir/* > "${DEST_DIR}/magic.src"
-cp COPYING "${DEST_DIR}"
+BUILD_MODES=( "lib" "exe" )
+pushd "${SRC_DIR}" > /dev/null
+for BUILD_MODE in "${BUILD_MODES[@]}"; do
+    CONFIGURE_ARGS=""
+    if [ "$BUILD_MODE" = "lib" ]; then
+        CONFIGURE_ARGS="--enable-shared"
+    elif [ "$BUILD_MODE" = "exe" ]; then
+        CONFIGURE_ARGS="--disable-shared"
+    fi
+    
+    make clean
+    autoreconf -f -i # Required to use own libgnurx
+    ./configure --host=${TARGET_TRIPLE} \
+      --disable-zlib \
+      --disable-bzlib \
+      --disable-xzlib \
+      --disable-zstdlib \
+      --disable-lzlib \
+        ${CONFIGURE_ARGS}
+    make "-j${CORES}"
+
+    if [ "$BUILD_MODE" = "lib" ]; then
+        cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
+        cat magic/Magdir/* > "${DEST_DIR}/magic.src"
+        cp COPYING "${DEST_DIR}"
+    elif [ "$BUILD_MODE" = "exe" ]; then
+        cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
+        cp magic/magic.mgc "${DEST_DIR}"
+    fi    
+done 
 popd > /dev/null
 
 # Strip a binary
