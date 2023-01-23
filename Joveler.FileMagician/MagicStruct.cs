@@ -1,6 +1,6 @@
 ﻿/*
     C# pinvoke wrapper written by Hajin Jang
-    Copyright (C) 2019-2022 Hajin Jang
+    Copyright (C) 2019-2023 Hajin Jang
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -29,10 +29,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using static Joveler.FileMagician.MagicLoader;
 
 namespace Joveler.FileMagician
 {
@@ -89,11 +87,11 @@ namespace Joveler.FileMagician
             if (_magicPtr == IntPtr.Zero)
                 return;
 
-            // Close magic_t
+            // Close magic_t instance.
             Lib.MagicClose(_magicPtr);
             _magicPtr = IntPtr.Zero;
 
-            // Free database buffer if has been allocated
+            // Free database buffer if it has been allocated.
             FreeMagicBuffers();
         }
         #endregion
@@ -171,10 +169,9 @@ namespace Joveler.FileMagician
                 }
 
                 // magic_load_buffers(): Does not support auto-compile.
-                // magic_load() : Does not support Unicode on Windows, supports auto-compile (See src/apprentice.c - apprentice_1())
+                // magic_load() : Does not support Unicode on Windows, supports auto-compile. (See src/apprentice.c - apprentice_1())
 
-                // Compiled magic database starts with 0xF11E041C.
-                // The database can be both LE or BE, but it has to be equal to system architecture.
+                // Compiled magic database starts with 0xF11E041C. The database can be both LE or BE.
                 if (IsBufferCompiledMagic(magicBuffer))
                 { // Compiled magic database
                     LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
@@ -416,25 +413,22 @@ namespace Joveler.FileMagician
         {
             // magic_compile() creates magic.mgc file on same directory as source.
             // To control dest file name and location, operate on temp directory.
-            string curDirBak = Environment.CurrentDirectory;
             string tempDir = Helper.GetTempDir();
             try
             {
-                string srcFile = Path.Combine(tempDir, "magic.src");
-                string destFile = Path.Combine(tempDir, "magic.mgc");
-                File.Copy(magicSrcFile, srcFile, true);
+                string tempSrcFile = Path.Combine(tempDir, "magic.src");
+                string tempDestFile = Path.Combine(tempDir, "magic.src.mgc");
+                File.Copy(magicSrcFile, tempSrcFile, true);
 
-                Environment.CurrentDirectory = tempDir;
-                int ret = Lib.MagicCompile(_magicPtr, srcFile);
+                int ret = Lib.MagicCompile(_magicPtr, tempSrcFile);
                 CheckMagicError(ret);
 
-                File.Copy(destFile, magicDestFile, true);
+                File.Copy(tempDestFile, magicDestFile, true);
             }
             finally
             {
                 if (Directory.Exists(tempDir))
                     Directory.Delete(tempDir, true);
-                Environment.CurrentDirectory = curDirBak;
             }
         }
 
@@ -478,17 +472,28 @@ namespace Joveler.FileMagician
         }
         #endregion
 
-        #region (private) IsFileCopmiledMagic
-        private bool IsBufferCompiledMagic(byte[] buffer, int offset, int count)
+        #region (static) Is{File,Buffer}CompiledMagic
+        public static bool IsFileCompiledMagic(string magicFile)
         {
-            if (count < 4)
-                return false;
-
-            uint mgcMagic = BitConverter.ToUInt32(buffer, 0);
-            return IsBufferCompiledMagic(mgcMagic);
+            int readBytes = 0;
+            byte[] buffer = new byte[4];
+            using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read))
+            {
+                readBytes = fs.Read(buffer, 0, buffer.Length);
+            }
+            return IsBufferCompiledMagic(buffer, 0, readBytes);
         }
 
-        private bool IsBufferCompiledMagic(Span<byte> span)
+        public static bool IsBufferCompiledMagic(byte[] buffer, int offset, int count)
+        {
+            if (count < offset + 4)
+                return false;
+
+            uint mgcMagic = BitConverter.ToUInt32(buffer, offset);
+            return IsNumberCompiledMagic(mgcMagic);
+        }
+
+        public static bool IsBufferCompiledMagic(Span<byte> span)
         {
             if (span.Length < 4)
                 return false;
@@ -506,13 +511,13 @@ namespace Joveler.FileMagician
 #else
             mgcMagic = BitConverter.ToUInt32(span);
 #endif
-            return IsBufferCompiledMagic(mgcMagic);
+            return IsNumberCompiledMagic(mgcMagic);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool IsBufferCompiledMagic(uint magicDword)
+        private static bool IsNumberCompiledMagic(uint magicNums)
         {
-            return magicDword == 0xF11E041C;
+            return magicNums == 0xF11E041C || magicNums == 0x1C041EF1;
         }
         #endregion
 

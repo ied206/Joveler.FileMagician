@@ -1,3 +1,42 @@
+# Joveler.FileMagician
+
+Cross-platform [libmagic](http://www.darwinsys.com/file/) pinvoke library for .NET.
+
+libmagic is a file type guesser library that powers POSIX's file command.
+
+## Support
+
+### Targeted .NET platforms
+
+- .NET Core 3.1
+- .NET Standard 2.0
+- .NET Framework 4.6
+
+### Supported OS platforms
+
+| Platform | Architecture | Tested |
+|----------|--------------|--------|
+| Windows  | x86          | Yes    |
+|          | x64          | Yes    |
+|          | arm64        | Yes    |
+| Linux    | x64          | Yes    |
+|          | armhf        | Yes    |
+|          | arm64        | Yes    |
+| macOS    | x64          | Yes    |
+|          | arm64        | Yes    |
+
+#### Tested Linux distributions
+
+| Architecture | Distribution | Note |
+|--------------|--------------|------|
+| x64          | Ubuntu 20.04 | Tested on AppVeyor CI         |
+| armhf        | Debian 11    | Emulated on QEMU's virt board |
+| arm64        | Debian 11    | Emulated on QEMU's virt board |
+
+### Tested libmagic version
+
+- 5.44 (Included)
+
 # Usage
 
 ## Initialization
@@ -67,7 +106,7 @@ public static void InitNativeLibrary()
     }
     libDir = Path.Combine(libDir, "native");
 
-    // Some platforms require the native library custom path to be an absolute path.
+    // Some platforms require native library custom path to be an absolute path.
     string libPath = null;
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         libPath = Path.Combine(libBaseDir, libDir, "libmagic-1.dll");
@@ -85,13 +124,13 @@ public static void InitNativeLibrary()
 }
 ```
 
-**WARNING**: The caller process and callee library must have the same architecture!
+**WARNING**: Caller process and callee library must have the same architecture!
 
 ### Embedded binaries
 
 `Joveler.FileMagician` comes with sets of binaries of `libmagic 5.44` and its file signature database. They will be copied into the build directory at build time.
 
-File signature database is copied to `$(OutDir)\magic.mgc` (compiled), and `$(OutDir)\magic.src` (source). Set up the `Copy to output directory` property of those files to `PreserveNewest` or `None` following your need.
+File signature database is copied to `$(OutDir)\magic.mgc` (compiled), and `$(OutDir)\magic.src` (source). Set up `Copy to output directory` property of those files to `PreserveNewest` or `None` following your need.
 
 #### For .NET Framework
 
@@ -138,11 +177,9 @@ To unload the libmagic library explicitly, call `Magic.GlobalCleanup()`.
 
 ## API
 
-`Joveler.FileMagician` provides `Magic` class, a wrapper of `libmagic`.
+`Joveler.FileMagician` provides the `Magic` class, a wrapper of `libmagic`.
 
-For advanced use cases, look for test codes on [Joveler.FileMagician.Tests](./Joveler.FileMagician.Tests/).
-
-`Magic` class implements the disposable pattern, so do not forget to clean up resources with `using` keyword.
+The `Magic` class implements the disposable pattern, so do not forget to clean up resources with the `using` keyword.
 
 ```csharp
 string result;
@@ -164,7 +201,7 @@ Console.WriteLine(result);
 static Magic Open();
 ```
 
-This overload loads the magic database automatically. It supports both compiled magic databases and magic database sources.
+This overload loads the magic database automatically. It supports both a compiled magic database and a database source.
 
 ```csharp
 static Magic Open(string magicFile);
@@ -183,8 +220,8 @@ static Magic Open(string magicFile, MagicFlags flags);
 
 Magic database must be loaded first after creating a `Magic` instance unless you loaded it with `Magic.Open()`.
 
-- `LoadMagicFile()` supports both compiled magic database and the source of the magic database.
-- `LoadMagicBuffer()` supports only compiled magic databases.
+- `LoadMagicFile()` supports both a compiled magic database and a database source.
+- `LoadMagicBuffer()` supports only a compiled magic database.
 
 ```csharp
 void LoadMagicFile(string magicFile);
@@ -193,9 +230,6 @@ void LoadMagicBuffer(ReadOnlySpan<byte> magicSpan);
 void LoadMagicBuffers(IEnumerable<byte[]> magicBufs);
 void LoadMagicBuffers(IEnumerable<ArraySegment<byte>> magicBufs);
 ```
-
-###
-
 
 ### Check the type of data
 

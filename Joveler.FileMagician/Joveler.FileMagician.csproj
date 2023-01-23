@@ -11,7 +11,7 @@
 	<Company>Joveler</Company>
     <Description>libmagic (file) pinvoke library for .NET.
 Supports Windows, Linux and macOS.</Description>
-    <Copyright>Copyright (c) 2019-2022 Hajin Jang</Copyright>
+    <Copyright>Copyright (C) 2019-2023 Hajin Jang</Copyright>
     <PackageLicenseExpression>BSD-2-Clause</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/ied206/Joveler.FileMagician</PackageProjectUrl>
     <PackageIcon>images\Logo.png</PackageIcon>
@@ -24,6 +24,7 @@ Supports Windows, Linux and macOS.</Description>
   <ItemGroup>
     <PackageReference Include="Joveler.DynLoader" Version="2.1.1" />
     <PackageReference Include="System.Memory" Version="4.5.5" Condition=" '$(TargetFramework)' == 'net46' or '$(TargetFramework)' == 'netstandard2.0' " />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" Condition=" '$(TargetFramework)' == 'net46' " />
   </ItemGroup>
   <!-- Shared NuGet Files -->
   <ItemGroup>

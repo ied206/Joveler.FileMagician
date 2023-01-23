@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Joveler.FileMagician.Cli": {
-      "commandName": "Project",
-      "commandLineArgs": "\"E:\\Game\\Switch\\Pokemon\\Pokemon Legends Arceus [XCI]\\*\""
-    }
-  }
-}

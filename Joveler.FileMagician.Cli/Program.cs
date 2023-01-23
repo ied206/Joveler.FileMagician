@@ -28,7 +28,7 @@ namespace Joveler.FileMagician.Samples
         public bool OutputMimeEncoding { get; set; }
         [Value(0, HelpText = "FILEs to insepct.")]
         public string TargetFile { get; set; } = string.Empty;
-        
+
     }
 
     [Verb("compile", HelpText = "Compile file specified by -m.")]
@@ -268,7 +268,6 @@ namespace Joveler.FileMagician.Samples
                 {
                     Console.ForegroundColor = cc;
                 }
-                
             }
         }
         #endregion
@@ -279,7 +278,7 @@ namespace Joveler.FileMagician.Samples
             // Process magicFile
             if (opts.MagicFile == null)
             {
-                Console.WriteLine($"No magic database specified.");
+                Console.WriteLine($"No magic database source specified.");
                 Environment.Exit(1);
             }
 
@@ -287,7 +286,7 @@ namespace Joveler.FileMagician.Samples
             {
                 magic.Compile(opts.MagicFile);
             }
-            Console.WriteLine($"Successfully compiled magic database.");
+            Console.WriteLine($"Successfully compiled magic database source.");
         }
         #endregion
     }
