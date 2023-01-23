@@ -41,6 +41,7 @@ public static void InitNativeLibrary()
 ```cs
 public static void InitNativeLibrary()
 {
+    string libBaseDir = AppDomain.CurrentDomain.BaseDirectory;
     string libDir = "runtimes";
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         libDir = Path.Combine(libDir, "win-");
@@ -66,13 +67,14 @@ public static void InitNativeLibrary()
     }
     libDir = Path.Combine(libDir, "native");
 
+    // Some platforms require native library custom path to be an absolute path.
     string libPath = null;
     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        libPath = Path.Combine(libDir, "libmagic-1.dll");
+        libPath = Path.Combine(libBaseDir, libDir, "libmagic-1.dll");
     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        libPath = Path.Combine(libDir, "libmagic.so");
+        libPath = Path.Combine(libBaseDir, libDir, "libmagic.so");
     else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        libPath = Path.Combine(libDir, "libmagic.dylib");
+        libPath = Path.Combine(libBaseDir, libDir, "libmagic.dylib");
 
     if (libPath == null)
         throw new PlatformNotSupportedException($"Unable to find native library.");

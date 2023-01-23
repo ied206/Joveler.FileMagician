@@ -32,6 +32,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using static Joveler.FileMagician.MagicLoader;
 
 namespace Joveler.FileMagician
 {
@@ -145,23 +146,23 @@ namespace Joveler.FileMagician
         /// </summary>
         public void LoadMagicFile(string magicFile)
         {
-            void InternalLoadMagicFile()
+            void InternalLoadMagicFile(string filepath)
             {
-                int ret = Lib.MagicLoad(_magicPtr, magicFile);
+                int ret = Lib.MagicLoad(_magicPtr, filepath);
                 CheckMagicError(ret);
             }
 
+            // [*] Stage 01: magicFile is null, load default magic database
             if (magicFile == null)
-            { // Load default magic database
-                InternalLoadMagicFile();
+            {
+                InternalLoadMagicFile(null);
                 return;
             }
 
-            // magic_load_buffers() : Does not support auto compiling
-            // magic_load() : Does not support Unicode on Windows, support auto compiling
+            // [*] Stage 02: If a path is an Unicode path and the OS is Windows, use a workaround.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !Helper.IsActiveCodePageCompatible(magicFile))
             {
-                // magicFile is unicode-only path
+                // magicFile path requires Unicode (cannot be represented on active code page).
                 byte[] magicBuffer;
                 using (FileStream fs = new FileStream(magicFile, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
@@ -169,20 +170,22 @@ namespace Joveler.FileMagician
                     fs.Read(magicBuffer, 0, magicBuffer.Length);
                 }
 
-                // Check if magicBuffer has NULL byte.
-                if (magicBuffer.Any(x => x == 0))
-                { // has NULL byte -> compiled .mgc
+                // magic_load_buffers(): Does not support auto-compile.
+                // magic_load() : Does not support Unicode on Windows, supports auto-compile (See src/apprentice.c - apprentice_1())
+
+                // Compiled magic database starts with 0xF11E041C.
+                // The database can be both LE or BE, but it has to be equal to system architecture.
+                if (IsBufferCompiledMagic(magicBuffer))
+                { // Compiled magic database
                     LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
                 }
                 else
-                { // Does not has NULL byte -> text.
-                    // Copy to temp dir and load/compile from file
+                { // Copy to temp dir and load/compile from file
                     string tempFile = Path.GetTempFileName();
                     try
                     {
                         File.Copy(magicFile, tempFile, true);
-
-                        InternalLoadMagicFile();
+                        InternalLoadMagicFile(tempFile);
                     }
                     finally
                     {
@@ -193,7 +196,7 @@ namespace Joveler.FileMagician
                 return;
             }
 
-            InternalLoadMagicFile();
+            InternalLoadMagicFile(magicFile);
         }
 
         /// <summary>
@@ -403,13 +406,15 @@ namespace Joveler.FileMagician
         /// <summary>
         /// Compile magic database file passed in <paramref name="magicSrcFile"/> to <paramref name="magicDestFile"/>.
         /// </summary>
+        /// <param name="magicSrcFile">Magic database as text to compile.</param>
+        /// <param name="magicDestFile">Output path of a compiled magic database</param>
         /// <remarks>
         /// WARNING: Current Directory is altered and rollbacked in the process, it may cause issues on multi-threaded application.
         /// Use the other override in order to avoid this problem.
         /// </remarks>
         public void Compile(string magicSrcFile, string magicDestFile)
         {
-            // magic_compile() creates magic.mgc file on current directory.
+            // magic_compile() creates magic.mgc file on same directory as source.
             // To control dest file name and location, operate on temp directory.
             string curDirBak = Environment.CurrentDirectory;
             string tempDir = Helper.GetTempDir();
@@ -434,24 +439,19 @@ namespace Joveler.FileMagician
         }
 
         /// <summary>
-        /// Compile magic database file passed in <paramref name="magicSrcFile"/> to [CurrentDirectory/magic.mgc].
+        /// Compile magic database file passed in <paramref name="magicSrcFile"/> to magic.mgc on same directory.
+        /// Compiled file path would be $"{magicSrcFile}.mgc".
         /// </summary>
         /// <remarks>
         /// The destination path is hard-wired by libmagic itself. 
         /// This method does not change current directory.
-        /// </remarks>
-        /// <returns>
-        /// Returns created mgc file path
         /// </returns>
-        public string Compile(string magicSrcFile)
+        public void Compile(string magicSrcFile)
         {
-            // magic_compile() creates magic.mgc file on current directory.
-            // To control dest file name and location, operate on temp directory.
+            // magic_compile() creates magic.mgc file on same directory as source.
+            // Filename would be $"{magicSrcFile}.mgc".
             int ret = Lib.MagicCompile(_magicPtr, magicSrcFile);
             CheckMagicError(ret);
-
-            string destFile = Path.Combine(Environment.CurrentDirectory, "magic.mgc");
-            return destFile;
         }
         #endregion
 
@@ -478,6 +478,44 @@ namespace Joveler.FileMagician
         }
         #endregion
 
+        #region (private) IsFileCopmiledMagic
+        private bool IsBufferCompiledMagic(byte[] buffer, int offset, int count)
+        {
+            if (count < 4)
+                return false;
+
+            uint mgcMagic = BitConverter.ToUInt32(buffer, 0);
+            return IsBufferCompiledMagic(mgcMagic);
+        }
+
+        private bool IsBufferCompiledMagic(Span<byte> span)
+        {
+            if (span.Length < 4)
+                return false;
+
+            uint mgcMagic = 0;
+#if NETFRAMEWORK || NETSTANDARD
+            byte[] buffer = new byte[4]
+            {
+                span[0],
+                span[1],
+                span[2],
+                span[3],
+            };
+            mgcMagic = BitConverter.ToUInt32(buffer, 0);
+#else
+            mgcMagic = BitConverter.ToUInt32(span);
+#endif
+            return IsBufferCompiledMagic(mgcMagic);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsBufferCompiledMagic(uint magicDword)
+        {
+            return magicDword == 0xF11E041C;
+        }
+        #endregion
+
         #region (private) Exception Utility
         private void CheckMagicError(int ret)
         {
@@ -488,6 +526,8 @@ namespace Joveler.FileMagician
         private string GetLastErrorMessage()
         {
             IntPtr strPtr = Lib.MagicError(_magicPtr);
+            if (strPtr == IntPtr.Zero)
+                return "Unknown libmagic error.";
             return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion

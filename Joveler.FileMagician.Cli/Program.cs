@@ -256,7 +256,19 @@ namespace Joveler.FileMagician.Samples
             // Print output
             foreach (MagicEntry entry in targetFiles)
             {
-                Console.WriteLine($"{entry.DisplayName.PadRight(maxPathSize)}: {entry.Output}");
+                ConsoleColor cc = Console.ForegroundColor;
+                try
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write($"{entry.DisplayName.PadRight(maxPathSize)}:");
+                    Console.ForegroundColor = cc;
+                    Console.WriteLine($" {entry.Output}");
+                }
+                finally
+                {
+                    Console.ForegroundColor = cc;
+                }
+                
             }
         }
         #endregion

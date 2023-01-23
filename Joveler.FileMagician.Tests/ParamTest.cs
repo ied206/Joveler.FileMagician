@@ -66,7 +66,7 @@ namespace Joveler.FileMagician.Tests
                 Console.WriteLine($"{nameof(MagicParam.BytesMax)}    : {bytesMax}");
             }
 
-            using (Magic magic = Magic.Open(TestSetup.MagicFile))
+            using (Magic magic = Magic.Open(TestSetup.MagicCompiledFile))
             {
                 Console.WriteLine("[Default Values]");
                 ReadParams(magic);

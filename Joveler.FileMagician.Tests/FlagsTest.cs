@@ -35,7 +35,7 @@ namespace Joveler.FileMagician.Tests
         [TestMethod]
         public void GetSetFlags()
         {
-            using (Magic magic = Magic.Open(TestSetup.MagicFile))
+            using (Magic magic = Magic.Open(TestSetup.MagicCompiledFile))
             {
                 MagicFlags flags = magic.GetFlags();
                 Assert.AreEqual(MagicFlags.None, flags);
