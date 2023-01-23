@@ -4,6 +4,8 @@
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netstandard2.0;netcoreapp3.1;</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsTrimmable>true</IsTrimmable>
+    
     <PackageId>Joveler.FileMagician</PackageId>
     <Title>Joveler.FileMagician</Title>
     <Version>2.4.0</Version>

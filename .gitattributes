@@ -9,8 +9,8 @@ native/windows/*.sh text eol=lf
 ###############################################################################
 # magic.mgc / magic.txt 
 ###############################################################################
-Joveler.FileMagician/runtimes/magic.mgc binary
-Joveler.FileMagician/runtimes/magic.src text eol=lf
+Joveler.FileMagician/**/magic.mgc binary
+Joveler.FileMagician/**/magic.src text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.
