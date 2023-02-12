@@ -101,13 +101,13 @@ File signature database is copied to `$(OutDir)\magic.mgc` (compiled), and `$(Ou
 | Windows x64      | `$(OutDir)\x64\libmagic-1.dll` | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
 
 - Bundled Windows binaries now target [Universal CRT](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170) for better interopability with MSVC.
-    - UCRT is installed on Windows 10 by default, so action is required.
+    - UCRT is installed on Windows 10 by default, so no action is required.
     - Windows Vista, 7 or 8.1 users may require [manual installation](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170) of UCRT.
 - Create an empty file named `Joveler.FileMagician.Lib.Exclude` in the project directory to prevent copying of the package-embedded binary.
 - Create an empty file named `Joveler.FileMagician.Mgc.Exclude` in the project directory to prevent copying of the package-embedded file signature database.
 - libmagic depends on libgnurx (included) on Windows, which is covered by LGPLv2.1.
 
-#### For .NET Standard & .NET Core
+#### On .NET Standard & .NET Core
 
 | Platform           | Binary                                        | License                                    | C Runtime     |
 |--------------------|-----------------------------------------------|--------------------------------------------|---------------|
@@ -194,9 +194,6 @@ void LoadMagicBuffers(IEnumerable<byte[]> magicBufs);
 void LoadMagicBuffers(IEnumerable<ArraySegment<byte>> magicBufs);
 ```
 
-###
-
-
 ### Check the type of data
 
 Check the type of file or buffer.
@@ -235,11 +232,15 @@ static Version Version { get; }
 static int VersionInt { get; }
 ```
 
-### Compile Magic Database
+### (Unstable) Compile Magic Database
 
 Compile a magic database from a database source. Useful when you need a custom magic database.
 
-**WARNING:** Note that two-parameter override uses temp directory in the middle. `libmagic` does not offer creating a compiled database into a custom path, so it has to use a workaround.
+### WARNING
+
+- **Behavior of the the API is unstable, do not use it in stable API!**
+- `libmagic` has undefined behavior that it may use different destination path on different platforms. It may create compiled database file on current directory, or the sample directory with src file. 
+- If you want to simply load magic database in source, use `LoadMagicFile()` instead.
 
 ```csharp
 // Compiled database will be written into magicDestFile.
