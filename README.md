@@ -4,9 +4,9 @@
     <img src="./Image/Logo.svg" height="128">
 </div>
 
-Cross-platform [libmagic](http://www.darwinsys.com/file/) pinvoke library for .NET.
+Joveler.FileMagician is a cross-platform [libmagic](http://www.darwinsys.com/file/) pinvoke library for .NET.
 
-libmagic is a file type guesser library that powers POSIX's file command.
+libmagic is a file-type guesser library that powers POSIX's file command.
 
 | CI Server       | Branch  | Build Status   |
 |-----------------|---------|----------------|

@@ -4,7 +4,11 @@
 
 `Joveler.FileMagician` requires explicit loading of a libmagic library.
 
-You must call `Magic.GlobalInit()` before using `Joveler.FileMagician`. Please put this code snippet in your application init code:
+You must call `Magic.GlobalInit()` before using `Joveler.FileMagician`.
+
+### Init Code Example
+
+Please put this code snippet in your application init code:
 
 #### On .NET Framework
 
@@ -238,13 +242,11 @@ Compile a magic database from a database source. Useful when you need a custom m
 
 ### WARNING
 
-- **Behavior of the the API is unstable, do not use it in stable API!**
-- `libmagic` has undefined behavior that it may use different destination path on different platforms. It may create compiled database file on current directory, or the sample directory with src file. 
-- If you want to simply load magic database in source, use `LoadMagicFile()` instead.
+- **Behavior of the API is unstable, do not use it in stable API!**
+- `libmagic` has undefined behavior that it may use different destination paths on different platforms. It may create a compiled database file on the current directory or the sample directory with the src file. 
+- If you want to simply load the magic database as a source, use `LoadMagicFile()` instead.
 
 ```csharp
-// Compiled database will be written into magicDestFile.
-void Compile(string magicSrcFile, string magicDestFile);
 // Compiled database will be written into $"{magicSrcFile}.mgc".
 void Compile(string magicSrcFile);
 ```

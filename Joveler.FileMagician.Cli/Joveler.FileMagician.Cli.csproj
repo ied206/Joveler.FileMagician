@@ -4,6 +4,14 @@
         <TargetFramework>net6.0</TargetFramework>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
+        <IsTrimmable>true</IsTrimmable>
+
+        <Title>Joveler.FileMagician.Cli</Title>
+        <Version>2.3.0</Version>
+        <Authors>Hajin Jang</Authors>
+        <Company>Joveler</Company>
+        <Description>.NET CLI of libmagic</Description>
+        <Copyright>Copyright (C) 2022-2023 Hajin Jang</Copyright>
     </PropertyGroup>
 
     <ItemGroup>

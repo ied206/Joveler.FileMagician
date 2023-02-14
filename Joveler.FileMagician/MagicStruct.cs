@@ -400,8 +400,9 @@ namespace Joveler.FileMagician
         #endregion
 
         #region Compile
+#if ENABLE_TWOPARAM_COMPILE
         /// <summary>
-        /// Compile magic database file passed in <paramref name="magicSrcFile"/> to <paramref name="magicDestFile"/>.
+        /// (Unstable API) Compile magic database file passed in <paramref name="magicSrcFile"/> to <paramref name="magicDestFile"/>.
         /// </summary>
         /// <param name="magicSrcFile">Magic database as text to compile.</param>
         /// <param name="magicDestFile">Output path of a compiled magic database</param>
@@ -414,6 +415,7 @@ namespace Joveler.FileMagician
             // magic_compile() creates magic.mgc file on same directory as source.
             // To control dest file name and location, operate on temp directory.
             string tempDir = Helper.GetTempDir();
+            string curDirBak = Environment.CurrentDirectory;
             try
             {
                 string tempSrcFile = Path.Combine(tempDir, "magic.src");
@@ -431,10 +433,10 @@ namespace Joveler.FileMagician
                     Directory.Delete(tempDir, true);
             }
         }
+#endif
 
         /// <summary>
-        /// Compile magic database file passed in <paramref name="magicSrcFile"/> to magic.mgc on same directory.
-        /// Compiled file path would be $"{magicSrcFile}.mgc".
+        /// (Unstable API) Compile magic database file passed in <paramref name="magicSrcFile"/>.
         /// </summary>
         /// <remarks>
         /// The destination path is hard-wired by libmagic itself. 

@@ -27,8 +27,7 @@ namespace Joveler.FileMagician.Samples
         [Option("mime-encoding", Required = false, Default = false, HelpText = "Output MIME encoding.")]
         public bool OutputMimeEncoding { get; set; }
         [Value(0, HelpText = "FILEs to insepct.")]
-        public string TargetFile { get; set; } = string.Empty;
-
+        public IEnumerable<string> TargetFiles { get; set; } = Array.Empty<string>();
     }
 
     [Verb("compile", HelpText = "Compile file specified by -m.")]
@@ -65,7 +64,18 @@ namespace Joveler.FileMagician.Samples
         internal static void PrintErrorAndExit(IEnumerable<Error> errs)
         {
             foreach (Error err in errs)
-                Console.WriteLine(err.ToString());
+            {
+                switch (err)
+                {
+                    case HelpRequestedError:
+                    case HelpVerbRequestedError:
+                    case VersionRequestedError:
+                        break;
+                    default:
+                        Console.WriteLine(err.ToString());
+                        break;
+                }
+            }
             Environment.Exit(1);
         }
         #endregion
@@ -76,7 +86,6 @@ namespace Joveler.FileMagician.Samples
             HelpText helpText = HelpText.AutoBuild(_parserResult, h =>
             {
                 h.AddNewLineBetweenHelpSections = true;
-                // h.Heading = $"PEBakery {Global.Const.ProgramVersionStrFull}";
                 if (appendMessage != null)
                     h.AddPreOptionsText(appendMessage);
                 return h;
@@ -117,20 +126,24 @@ namespace Joveler.FileMagician.Samples
             }
             libDir = Path.Combine(libDir, "native");
 
-            string? libPath = null;
+            string? libName = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                libPath = Path.Combine(libDir, "libmagic-1.dll");
+                libName = "libmagic-1.dll";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                libPath = Path.Combine(libDir, "libmagic.so");
+                libName = "libmagic.so";
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                libPath = Path.Combine(libDir, "libmagic.dylib");
-
-            if (libPath == null)
+                libName = "libmagic.dylib";
+            else
                 throw new PlatformNotSupportedException($"Unable to find native library.");
-            if (!File.Exists(libPath))
-                throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
 
-            Magic.GlobalInit(libPath);
+            string libPath = Path.Combine(libDir, libName);
+
+            if (File.Exists(libPath))
+                Magic.GlobalInit(libPath);
+            else if (File.Exists(libName))
+                Magic.GlobalInit(libName); // Try the same directory with executable
+            else
+                throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
         }
 
         public static void NativeGlobalCleanup()
@@ -189,47 +202,50 @@ namespace Joveler.FileMagician.Samples
                 magicFlags |= MagicFlags.MimeEncoding;
 
             // Process target files
-            string rawTargetFile = opts.TargetFile;
-            if (rawTargetFile.Length == 0)
-            {
-                Console.WriteLine($"FILE path is empty.");
-                Environment.Exit(0);
-            }
-
             List<MagicEntry> targetFiles = new List<MagicEntry>();
-            char[] wildcardAnyOf = new char[] { '*', '?' };
-            if (rawTargetFile.IndexOfAny(wildcardAnyOf) != -1)
-            { // wildcard
-                string fullPath = Path.GetFullPath(rawTargetFile);
-                string? dirPath = Path.GetDirectoryName(fullPath);
-                if (dirPath == null)
-                    return;
-                string fileName = Path.GetFileName(fullPath);
-
-                try
-                {
-                    IEnumerable<string> fsEntries = Directory.EnumerateFileSystemEntries(dirPath, fileName, SearchOption.TopDirectoryOnly);
-                    targetFiles.AddRange(fsEntries.Select(x => new MagicEntry(x, x[(dirPath.Length + 1)..])));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Cannot glob [{rawTargetFile}]: {e.Message}");
-                    Environment.Exit(1);
-                }
-            }
-            else
+            string[] rawTargetFiles = opts.TargetFiles.ToArray();
+            if (rawTargetFiles.Length == 0)
             {
-                string fullPath = Path.GetFullPath(rawTargetFile);
-                targetFiles.Add(new MagicEntry(fullPath, rawTargetFile));
+                Console.WriteLine($"No target file or directory");
+                Environment.Exit(1);
+            }
+            
+            char[] wildcardAnyOf = new char[] { '*', '?' };
+            foreach (string rawTargetFile in rawTargetFiles)
+            {
+                if (rawTargetFile.IndexOfAny(wildcardAnyOf) != -1)
+                { // wildcard
+                    string fullPath = Path.GetFullPath(rawTargetFile);
+                    string? dirPath = Path.GetDirectoryName(fullPath);
+                    if (dirPath == null)
+                        continue;
+                    string fileName = Path.GetFileName(fullPath);
+
+                    try
+                    {
+                        IEnumerable<string> fsEntries = Directory.EnumerateFileSystemEntries(dirPath, fileName, SearchOption.TopDirectoryOnly);
+                        targetFiles.AddRange(fsEntries.Select(x => new MagicEntry(x, x[(dirPath.Length + 1)..])));
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Cannot glob [{rawTargetFile}]: {e.Message}");
+                        Environment.Exit(1);
+                    }
+                }
+                else
+                {
+                    string fullPath = Path.GetFullPath(rawTargetFile);
+                    targetFiles.Add(new MagicEntry(fullPath, rawTargetFile));
+                }
             }
 
             if (targetFiles.Count == 0)
             {
-                Console.WriteLine($"{rawTargetFile}: No such file or directory");
-                Environment.Exit(0);
+                Console.WriteLine($"No target file or directory");
+                Environment.Exit(1);
             }
 
-            int maxPathSize = targetFiles.Max(x => x.DisplayName.Length);
+            int maxPathSize = Math.Min(targetFiles.Max(x => x.DisplayName.Length), 60);
             List<MagicEntry> results = new List<MagicEntry>(targetFiles.Count);
             using (Magic magic = Magic.Open(magicFile, magicFlags))
             {

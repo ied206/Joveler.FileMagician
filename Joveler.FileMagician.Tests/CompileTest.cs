@@ -31,6 +31,7 @@ using System.IO;
 
 namespace Joveler.FileMagician.Tests
 {
+#if ENABLE_TWOPARAM_COMPILE
     [TestClass]
     public class CompileTest
     {
@@ -102,4 +103,5 @@ namespace Joveler.FileMagician.Tests
             };
         }
     }
+#endif
 }

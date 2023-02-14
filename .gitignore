@@ -184,7 +184,7 @@ DocProject/Help/Html2
 DocProject/Help/html
 
 # Click-Once directory
-publish/
+#publish/
 
 # Publish Web Output
 *.[Pp]ublish.xml
@@ -360,8 +360,13 @@ healthchecksdb
 MigrationBackup/
 # End of https://www.gitignore.io/api/csharp
 
+# Joveler-specific
 # libgnurx-2.5
 native/windows/libgnurx-2.5/*.a
 native/windows/libgnurx-2.5/*.o
 native/windows/libgnurx-2.5/*.def
 native/windows/libgnurx-2.5/libgnurx-0.dll
+
+# publish directory
+/Publish/*
+!/Publish/_tools
