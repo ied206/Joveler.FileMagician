@@ -1,0 +1,47 @@
+diff --git a/src/funcs.c b/src/funcs.c
+index b926625d..642fd3ac 100644
+--- a/src/funcs.c
++++ b/src/funcs.c
+@@ -812,6 +812,10 @@ file_print_guid(char *str, size_t len, const uint64_t *guid)
+ protected int
+ file_pipe_closexec(int *fds)
+ {
++#ifdef WIN32
++	// F_SETFD is not supported on Windows
++	return 0;
++#else
+ #ifdef HAVE_PIPE2
+ 	return pipe2(fds, O_CLOEXEC);
+ #else
+@@ -821,11 +825,17 @@ file_pipe_closexec(int *fds)
+ 	(void)fcntl(fds[1], F_SETFD, FD_CLOEXEC);
+ 	return 0;
+ #endif
++#endif
+ }
+ 
+ protected int
+ file_clear_closexec(int fd) {
++#ifdef WIN32
++	// F_SETFD is not supported on Windows
++	return 0;
++#else
+ 	return fcntl(fd, F_SETFD, 0);
++#endif;
+ }
+ 
+ protected char *
+diff --git a/src/magic.c b/src/magic.c
+index 81a0840f..5457d359 100644
+--- a/src/magic.c
++++ b/src/magic.c
+@@ -460,7 +460,8 @@ file_or_fd(struct magic_set *ms, const char *inname, int fd)
+ 			rv = 0;
+ 			goto done;
+ 		}
+-#if O_CLOEXEC == 0
++#if O_CLOEXEC == 0 && !defined(WIN32)
++		// F_SETFD is not supported on Windows
+ 		(void)fcntl(fd, F_SETFD, FD_CLOEXEC);
+ #endif
+ 	}

@@ -2,6 +2,21 @@
 
 ## v2.x
 
+### v2.3.0
+
+Released on 2023-02-15
+
+- Update included libmagic to 5.44.
+- Provide Joveler.FileMagician.Cli program on release.
+- Target .NET Core 3.1 instead of .NET Standard 2.1.
+- Target .NET Framework 4.6 instead of discontinued .NET Framework 4.5.1.
+
+### v2.2.0
+
+Released on 2022-01-28
+
+- Update included libmagic to 5.41.
+
 ### v2.1.0
 
 Reelased on 2021-04-05

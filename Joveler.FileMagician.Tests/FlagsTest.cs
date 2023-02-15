@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2019 Hajin Jang
+    Copyright (C) 2019-2023 Hajin Jang
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@ namespace Joveler.FileMagician.Tests
         [TestMethod]
         public void GetSetFlags()
         {
-            using (Magic magic = Magic.Open(TestSetup.MagicFile))
+            using (Magic magic = Magic.Open(TestSetup.MagicCompiledFile))
             {
                 MagicFlags flags = magic.GetFlags();
                 Assert.AreEqual(MagicFlags.None, flags);

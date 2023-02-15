@@ -28,7 +28,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -36,20 +35,19 @@ using System.Runtime.InteropServices;
 namespace Joveler.FileMagician.Tests
 {
     [TestClass]
-    [SuppressMessage("Design", "CA1052:Static holder types should be Static or NotInheritable")]
     public class TestSetup
     {
-        public static string ExeDir;
-        public static string BaseDir;
-        public static string SampleDir;
-        private static string MagicTempDir;
+        public static string ExeDir { get; private set; }
+        public static string BaseDir { get; private set; }
+        public static string SampleDir { get; private set; }
+        private static string MagicTempDir { get; set; }
 
-        public static string MagicFile = "magic.mgc";
+        public static string MagicCompiledFile { get; private set; } = "magic.mgc";
         // Force .NET's unicode to ansi encoding convert failure by using exotic/obscure characters in path
-        public static string MagicUnicodeOnlyPath = "ᄒᆞᆫ글ḀḘ韓國.mgc";
+        public static string MagicCompiledUnicodeOnlyPath { get; private set; } = "ᄒᆞᆫ글ḀḘ韓國.mgc";
+        public static string MagicSourceFile { get; private set; } = "magic.src";
 
         [AssemblyInitialize]
-        [SuppressMessage("Style", "IDE0060")]
         public static void Init(TestContext context)
         {
             ExeDir = TestHelper.GetProgramAbsolutePath();
@@ -57,9 +55,10 @@ namespace Joveler.FileMagician.Tests
             SampleDir = Path.Combine(BaseDir, "Samples");
             MagicTempDir = TestHelper.GetTempDir();
 
-            MagicFile = Path.Combine(ExeDir, MagicFile);
-            MagicUnicodeOnlyPath = Path.Combine(MagicTempDir, MagicUnicodeOnlyPath);
-            File.Copy(MagicFile, MagicUnicodeOnlyPath, true);
+            MagicCompiledFile = Path.Combine(ExeDir, MagicCompiledFile);
+            MagicCompiledUnicodeOnlyPath = Path.Combine(MagicTempDir, MagicCompiledUnicodeOnlyPath);
+            MagicSourceFile = Path.Combine(ExeDir, MagicSourceFile);
+            File.Copy(MagicCompiledFile, MagicCompiledUnicodeOnlyPath, true);
 
             string libPath = GetNativeLibPath();
             Magic.GlobalInit(libPath);
@@ -75,6 +74,7 @@ namespace Joveler.FileMagician.Tests
 
         private static string GetNativeLibPath()
         {
+            string libBaseDir = TestHelper.GetProgramAbsolutePath();
             string libDir = string.Empty;
 
 #if !NETFRAMEWORK
@@ -109,11 +109,11 @@ namespace Joveler.FileMagician.Tests
 
             string libPath = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                libPath = Path.Combine(libDir, "libmagic-1.dll");
+                libPath = Path.Combine(libBaseDir, libDir, "libmagic-1.dll");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                libPath = Path.Combine(libDir, "libmagic.so");
+                libPath = Path.Combine(libBaseDir, libDir, "libmagic.so");
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                libPath = Path.Combine(libDir, "libmagic.dylib");
+                libPath = Path.Combine(libBaseDir, libDir, "libmagic.dylib");
 
             if (libPath == null)
                 throw new PlatformNotSupportedException($"Unable to find native library.");

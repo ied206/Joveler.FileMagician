@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2019 Hajin Jang
+    Copyright (C) 2019-2023 Hajin Jang
 
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
@@ -64,24 +64,29 @@ namespace Joveler.FileMagician.Tests
             ["UTF8_EN_woBOM.txt"] = new TypeInfo("ASCII text, with no line terminators", "text/plain", "us-ascii"),
             ["UTF8_KR_wBOM.txt"] = new TypeInfo("Unicode text, UTF-8 (with BOM) text, with no line terminators", "text/plain", "utf-8"),
             ["UTF8_KR_woBOM.txt"] = new TypeInfo("Unicode text, UTF-8 text, with no line terminators", "text/plain", "utf-8"),
-            // Hancom Office NEO (2016) - .cell & .show is not exact : Hancom Office suite use compound file format similar to Microsoft Office 2003.
-            ["Hancell2016.cell"] = new TypeInfo("Microsoft OOXML", "application/octet-stream", "binary"),
-            ["Hanshow2016.show"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary"),
+            // Hancom Office
+            ["HWP97.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 3.0", "application/octet-stream", "binary"),
             ["HWP2016.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 5.x", "application/x-hwp", "binary", "hwp"),
+            ["HWP2016.hwpx"] = new TypeInfo("Zip data (MIME type \"application/hwp+zip\"?)", "application/zip", "binary"),
+            ["Hancell2016.cell"] = new TypeInfo("Microsoft Excel 2007+", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "binary", "xlsx"),
+            ["Hanshow2016.show"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary", "pptx"),
             // LibreOffice 6.0.7.3
             ["LibreCalc6.ods"] = new TypeInfo("OpenDocument Spreadsheet", "application/vnd.oasis.opendocument.spreadsheet", "binary", "ods"),
             ["LibreImpress6.odp"] = new TypeInfo("OpenDocument Presentation", "application/vnd.oasis.opendocument.presentation", "binary", "odp"),
             ["LibreWriter6.odt"] = new TypeInfo("OpenDocument Text", "application/vnd.oasis.opendocument.text", "binary", "odt"),
+            // Micorsoft Office 2003
+            //["Office2003.doc"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Author: Joveler Jang, Template: Normal.dotm, Last Saved By: Jang Joveler, Revision Number: 2, Name of Creating Application: Microsoft Office Word, Create Time/Date: Mon Jan 23 06:26:00 2023, Last Saved Time/Date: Mon Jan 23 06:26:00 2023, Number of Pages: 1, Number of Words: 7, Number of Characters: 40, Security: 0", "application/msword", "binary", "doc/dot/"),
+            //["Office2003.ppt"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Title: Microsoft Office Powerpoint 2019, Author: Jang Joveler, Last Saved By: Jang Joveler, Revision Number: 2, Name of Creating Application: Microsoft Office PowerPoint, Total Editing Time: 08:07, Create Time/Date: Sat Apr 20 04:54:43 2019, Last Saved Time/Date: *Bad* 0x38ec24c063cdaa29, Number of Words: 8", "application/vnd.ms-powerpoint", "binary", "ppt/pps/pot"),
+            //["Office2003.xls"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Name of Creating Application: Microsoft Excel, Create Time/Date: Fri Jun  5 18:19:34 2015, Last Saved Time/Date: Mon Jan 23 06:27:21 2023, Security: 0", "application/vnd.ms-excel", "binary", "xls/xlt"),
             // Microsoft Office 2019
-            ["Office2019.docx"] = new TypeInfo("Microsoft Word 2007+", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "binary"),
-            ["Office2019.pptx"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary"),
-            ["Office2019.xlsx"] = new TypeInfo("Microsoft Excel 2007+", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "binary"),
+            ["Office2019.docx"] = new TypeInfo("Microsoft Word 2007+", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "binary", "docx"),
+            ["Office2019.pptx"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary", "pptx"),
+            ["Office2019.xlsx"] = new TypeInfo("Microsoft Excel 2007+", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "binary", "xlsx"),
             // Archive Format
             ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary", "7z/cb7"),
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary", "tar/gtar"),
-            ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary"),
-            // Originally application/x-xz, but broken in 5.40, look https://bugs.astron.com/view.php?id=257.
-            ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary"),
+            ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary", "bz2"),
+            ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary", "xz"),
             ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract, compression method=deflate", "application/zip", "binary"),
             ["Samples.alz"] = new TypeInfo("ALZ archive data", "application/octet-stream", "binary", "alz"),
             ["Samples.egg"] = new TypeInfo("EGG archive data, version 1.0", "application/octet-stream", "binary", "egg"),
@@ -92,9 +97,10 @@ namespace Joveler.FileMagician.Tests
             ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
             ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary", "jpeg/jpg/jpe/jfif"),
             ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary", "png"),
-            ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image", "image/svg+xml", "us-ascii"),
+            ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image", "image/svg+xml", "us-ascii", "svg"),
             ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image", "image/webp", "binary", "webp"),
             // Database + Unicode-only path test 
+            ["DB.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "sqlite/sqlite3/db/db3/dbe/sdb/help"),
             ["ᄒᆞᆫ글ḀḘ韓國.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "sqlite/sqlite3/db/db3/dbe/sdb/help"),
         };
 
@@ -151,14 +157,14 @@ namespace Joveler.FileMagician.Tests
                 switch (loadMode)
                 {
                     case 0:
-                        magic.LoadMagicFile(TestSetup.MagicFile);
+                        magic.LoadMagicFile(TestSetup.MagicCompiledFile);
                         break;
                     case 1:
-                        // Force .Net's unicode -> ansi encoding convert failure by using exotic/obscure characters
-                        magic.LoadMagicFile(TestSetup.MagicUnicodeOnlyPath);
+                        // Force .NET's unicode -> ansi encoding convert failure by using exotic/obscure characters
+                        magic.LoadMagicFile(TestSetup.MagicCompiledUnicodeOnlyPath);
                         break;
                     case 2:
-                        using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
+                        using (FileStream fs = new FileStream(TestSetup.MagicCompiledFile, FileMode.Open, FileAccess.Read))
                         {
                             magicBuffer = new byte[fs.Length];
                             fs.Read(magicBuffer, 0, magicBuffer.Length);
@@ -166,12 +172,7 @@ namespace Joveler.FileMagician.Tests
                         magic.LoadMagicBuffer(magicBuffer);
                         break;
                     case 3:
-                        using (FileStream fs = new FileStream(TestSetup.MagicFile, FileMode.Open, FileAccess.Read))
-                        {
-                            magicBuffer = new byte[fs.Length];
-                            fs.Read(magicBuffer, 0, magicBuffer.Length);
-                        }
-                        magic.LoadMagicBuffer(magicBuffer, 0, magicBuffer.Length);
+                        magic.LoadMagicFile(TestSetup.MagicSourceFile);
                         break;
                 }
 
