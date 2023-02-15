@@ -10,37 +10,9 @@ You must call `Magic.GlobalInit()` before using `Joveler.FileMagician`.
 
 Please put this code snippet in your application init code:
 
-#### On .NET Framework
+**WARNING**: The caller process and callee library must have the same architecture!
 
-```cs
-public static void InitNativeLibrary()
-{
-    string arch = null;
-    switch (RuntimeInformation.ProcessArchitecture)
-    {
-        case Architecture.X86:
-            arch = "x86";
-            break;
-        case Architecture.X64:
-            arch = "x64";
-            break;
-        case Architecture.Arm:
-            arch = "armhf";
-            break;
-        case Architecture.Arm64:
-            arch = "arm64";
-            break;
-    }
-    string libPath = Path.Combine(arch, "libmagic-1.dll");
-
-    if (!File.Exists(libPath))
-        throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
-
-    Magic.GlobalInit(libPath);
-}
-```
-
-#### On .NET Standard, .NET Core
+#### On .NET Core
 
 ```cs
 public static void InitNativeLibrary()
@@ -89,7 +61,35 @@ public static void InitNativeLibrary()
 }
 ```
 
-**WARNING**: The caller process and callee library must have the same architecture!
+#### On .NET Framework
+
+```cs
+public static void InitNativeLibrary()
+{
+    string arch = null;
+    switch (RuntimeInformation.ProcessArchitecture)
+    {
+        case Architecture.X86:
+            arch = "x86";
+            break;
+        case Architecture.X64:
+            arch = "x64";
+            break;
+        case Architecture.Arm:
+            arch = "armhf";
+            break;
+        case Architecture.Arm64:
+            arch = "arm64";
+            break;
+    }
+    string libPath = Path.Combine(arch, "libmagic-1.dll");
+
+    if (!File.Exists(libPath))
+        throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
+
+    Magic.GlobalInit(libPath);
+}
+```
 
 ### Embedded binaries
 
