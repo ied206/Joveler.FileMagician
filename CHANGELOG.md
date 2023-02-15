@@ -4,7 +4,7 @@
 
 ### v2.3.0
 
-Released on 2023-02-14
+Released on 2023-02-15
 
 - Update included libmagic to 5.44.
 - Provide Joveler.FileMagician.Cli program on release.
