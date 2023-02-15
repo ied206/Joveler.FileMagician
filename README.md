@@ -29,6 +29,12 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 - .NET Standard 2.0
 - .NET Framework 4.6
 
+#### Discontinued platforms
+
+| Platform | Last Supported Version |
+|----------|------------------------|
+| .NET Framework 4.5.1 | [v2.2.0](https://www.nuget.org/packages/Joveler.FileMagician/2.2.0) |
+
 ### Supported OS platforms
 
 | Platform | Architecture | Tested |
