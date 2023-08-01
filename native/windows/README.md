@@ -33,6 +33,10 @@ To compile libmagic on Windows, you should use MSYS2.
     ```
 1. Gather binaries from `build-<arch>` directory.
 
+## Dependency
+
+- libgnurx 2.5.1, source retrieved from [Fedora repository](https://src.fedoraproject.org/repo/pkgs/mingw32-libgnurx/)
+
 ## Compiler Behavior Diffence
 
 MinGW-w64 and Clang behaves differently on processing wildcards in arguments.

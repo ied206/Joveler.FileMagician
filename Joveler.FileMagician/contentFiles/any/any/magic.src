@@ -558,7 +558,7 @@
 >4	beshort		x			\b, %d banks
 
 #------------------------------------------------------------
-# $File: android,v 1.19 2021/04/26 15:56:00 christos Exp $
+# $File: android,v 1.24 2023/02/20 16:51:59 christos Exp $
 # Various android related magic entries
 #------------------------------------------------------------
 
@@ -738,7 +738,9 @@
 # In include/androidfw/ResourceTypes.h:
 # RES_XML_TYPE = 0x0003 followed by the size of the header (ResXMLTree_header),
 # which is 8 bytes (2 bytes type + 2 bytes header size + 4 bytes size).
+# The strength is increased to avoid misidentifying as Targa image data
 0	lelong	0x00080003	Android binary XML
+!:strength +1
 
 # Android cryptfs footer
 # From https://android.googlesource.com/\
@@ -766,8 +768,56 @@
 >12	lelong	>0	number of dex files: %d,
 >16	lelong	>0	verifier deps size: %d
 
+# Disassembled DEX files
+0	string/t	.class\x20
+>&0	regex/512	\^\\.super\x20L.*;$	disassembled Android DEX Java class (smali/baksmali)
+!:ext	smali
+
+# Android ART (baseline) profile + metadata: baseline.prof, baseline.profm
+# Reference: https://android.googlesource.com/platform/frameworks/support/\
+#            +/refs/heads/androidx-main/profileinstaller/profileinstaller/\
+#            src/main/java/androidx/profileinstaller/ProfileTranscoder.java
+# Reference: https://android.googlesource.com/platform/frameworks/support/\
+#            +/refs/heads/androidx-main/profileinstaller/profileinstaller/\
+#            src/main/java/androidx/profileinstaller/ProfileVersion.java
+0	string	pro\x00
+>0	regex	pro\x000[0-9][0-9]\x00	Android ART profile
+!:ext	prof
+>>4	string	001\x00	\b, version 001 N
+>>4	string	005\x00	\b, version 005 O
+>>4	string	009\x00	\b, version 009 O MR1
+>>4	string	010\x00	\b, version 010 P
+>>4	string	015\x00	\b, version 015 S
+0	string	prm\x00
+>0	regex	prm\x000[0-9][0-9]\x00	Android ART profile metadata
+!:ext	profm
+>>4	string	001\x00	\b, version 001 N
+>>4	string	002\x00	\b, version 002
+
+# Android package resource table (ARSC): resources.arsc
+# Reference: https://android.googlesource.com/platform/tools/base/\
+#            +/refs/heads/mirror-goog-studio-main/apkparser/binary-resources/\
+#            src/main/java/com/google/devrel/gmscore/tools/apk/arsc
+# 00: resource table type = 0x0002 (2) + header size = 12 (2)
+# 04: chunk size (4, skipped)
+# 08: #packages (4)
+0	ulelong	0x000c0002	Android package resource table (ARSC)
+!:ext	arsc
+>8	ulelong	!1	\b, %d packages
+# 12: string pool type = 0x0001 (2) + header size = 28 (2)
+# 16: chunk size (4, skipped)
+# 20: #strings (4), #styles (4), flags (4)
+>12	ulelong	0x001c0001
+>>20	ulelong	!0	\b, %d string(s)
+>>24	ulelong	!0	\b, %d style(s)
+>>28	ulelong	&1	\b, sorted
+>>28	ulelong	&256	\b, utf8
+
+# extracted APK Signing Block
+-16	string	APK\x20Sig\x20Block\x2042	APK Signing Block
+
 #------------------------------------------------------------------------------
-# $File: animation,v 1.91 2022/11/30 20:34:47 christos Exp $
+# $File: animation,v 1.94 2023/06/16 20:06:50 christos Exp $
 # animation:  file(1) magic for animation/movie formats
 #
 # animation formats
@@ -785,8 +835,8 @@
 >12     string          rmra            \b multiple URLs
 4       string          mdat            Apple QuickTime movie (unoptimized)
 !:mime	video/quicktime
-#4       string          wide            Apple QuickTime movie (unoptimized)
-#!:mime	video/quicktime
+4       string          wide            Apple QuickTime movie (unoptimized)
+!:mime	video/quicktime
 #4       string          skip            Apple QuickTime movie (modified)
 #!:mime	video/quicktime
 #4       string          free            Apple QuickTime movie (modified)
@@ -804,6 +854,7 @@
 4	string		ftyp		ISO Media
 # https://aeroquartet.com/wordpress/2016/03/05/3-xavc-s/
 >8	string		XAVC		\b, MPEG v4 system, Sony XAVC Codec
+!:mime	video/mp4
 >>96	string		x		\b, Audio "%.4s"
 >>118	beshort		x		at %dHz
 >>140	string		x		\b, Video "%.4s"
@@ -1962,6 +2013,15 @@
 >34	lelong	x	\b, %d bit
 >38	lelong	x	\b, frames: %d
 
+# https://wiki.multimedia.cx/index.php/Duck_IVF
+0	string	DKIF	Duck IVF video file
+!:mime	video/x-ivf
+>4	leshort	>0	\b, version %d
+>8	string	x	\b, codec %s
+>12	leshort x	\b, %d
+>14	leshort x	\bx%d
+>24	lelong	>0	\b, %d frames
+
 #------------------------------------------------------------------------------
 # $File: aout,v 1.1 2013/01/09 22:37:23 christos Exp $
 # aout:  file(1) magic for a.out executable/object/etc entries that
@@ -2044,7 +2104,7 @@
 0	long		0100554		APL workspace (Ken's original?)
 
 #------------------------------------------------------------------------------
-# $File: apple,v 1.47 2022/12/09 15:48:14 christos Exp $
+# $File: apple,v 1.48 2023/05/01 14:20:21 christos Exp $
 # apple:  file(1) magic for Apple file formats
 #
 0	search/1/t	FiLeStArTfIlEsTaRt	binscii (apple ][) text
@@ -2468,7 +2528,13 @@
 #>0x410	string	disk\ image	UDIF read/write image (UDRW)
 
 # From: Toby Peterson <toby@apple.com>
+# From https://www.nationalarchives.gov.uk/pronom/fmt/866
+0	string	bplist00
+>8	search/500	WebMainResource	Apple Safari Webarchive
+!:mime	application/x-webarchive
+!:strength +50
 0	string	bplist00	Apple binary property list
+!:mime	application/x-bplist
 
 # Apple binary property list (bplist)
 #  Assumes version bytes are hex.
@@ -2882,7 +2948,7 @@
 >>5	ubyte	    	x		\b.%u, little-endian
 >>0	use		\^apt-cache-be
 #------------------------------------------------------------------------------
-# $File: archive,v 1.179 2022/12/21 15:50:59 christos Exp $
+# $File: archive,v 1.193 2023/07/27 17:55:58 christos Exp $
 # archive:  file(1) magic for archive formats (see also "msdos" for self-
 #           extracting compressed archives)
 #
@@ -2913,9 +2979,11 @@
 # check for 1st image main name with digits used for sorting
 # and for name extension case insensitive like: PNG JPG JPEG TIF TIFF GIF BMP
 >>>>>>>>0	regex		\^[0-9]{2,4}[.](png|jpg|jpeg|tif|tiff|gif|bmp)
-#foo
 >>>>>>>>>0	use	tar-cbt
-# if 1st member name without digits and without used image suffix then it is a TAR archive
+# check for 1st member name with ovf suffix
+>>>>>>>>0	regex		\^.{1,96}[.](ovf)
+>>>>>>>>>0	use	tar-ova
+# if 1st member name without digits and without used image suffix and without *.ovf then it is a TAR archive
 >>>>>>>>0	default		x
 >>>>>>>>>0	use	tar-file
 #	minimal check and then display tar archive information which can also be
@@ -3051,6 +3119,21 @@
 # name[100] probably like: 19.jpg 0001.png 0002.png
 # or maybe like ComicInfo.xml
 >0	string		>\0		\b, 1st image %-.60s
+# Summary:	Open Virtualization Format *.OVF with disk images and more packed as TAR archive *.OVA
+# From:		Joerg Jenderek
+# URL:		https://en.wikipedia.org/wiki/Open_Virtualization_Format
+#		http://fileformats.archiveteam.org/wiki/OVF_(Open_Virtualization_Format)
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/o/ova.trid.xml
+# Note:		called "Open Virtualization Format package" by TrID
+#		assuming *.ovf comes first
+0	name		tar-ova
+>0	string		x		Open Virtualization Format Archive
+#!:mime	application/x-ustar
+# http://extension.nirsoft.net/ova
+!:mime	application/x-virtualbox-ova
+!:ext	ova
+# assuming name[100] like: DOS-0.9.ovf FreeDOS_1.ovf Win98SE_DE.ovf
+>0	string		>\0		\b, with %-.60s
 
 # Incremental snapshot gnu-tar format from:
 # https://www.gnu.org/software/tar/manual/html_node/Snapshot-Files.html
@@ -3068,16 +3151,88 @@
 # The SVR4 "cpio(4)" hints that there are additional formats, but they
 # are defined as "short"s; I think all the new formats are
 # character-header formats and thus are strings, not numbers.
-0	short		070707		cpio archive
+# URL:		http://fileformats.archiveteam.org/wiki/Cpio
+#		https://en.wikipedia.org/wiki/Cpio
+# Reference:	https://people.freebsd.org/~kientzle/libarchive/man/cpio.5.txt
+# Update:	Joerg Jenderek
+#
+# Reference:    http://mark0.net/download/triddefs_xml.7z/defs/a/ark-cpio-bin.trid.xml
+# Note:		called "CPIO archive (binary)" by TrID, "cpio/Binary LE" by 7-Zip and "CPIO" by DROID via PUID fmt/635
+0	short		070707
+# skip DROID fmt-635-signature-id-960.cpio by looking for pathname of 1st entry
+>26	string		>\0		cpio archive
 !:mime	application/x-cpio
+# https://download.opensuse.org/distribution/leap/15.4/iso/openSUSE-Leap-15.4-NET-x86_64-Media.iso
+# boot/x86_64/loader/bootlogo
+# message.cpi
+!:ext	/cpio/cpi
+>>0	use	cpio-bin
+# Reference:    http://mark0.net/download/triddefs_xml.7z/defs/a/ark-cpio-bin-sw.trid.xml
+# Note:		called "CPIO archive (byte swapped binary)" by TrID and "Cpio/Binary BE" by 7-Zip
 0	short		0143561		byte-swapped cpio archive
 !:mime	application/x-cpio # encoding: swapped
+# https://telparia.com/fileFormatSamples/archive/cpio/skeleton2.cpio
+!:ext	cpio
+>0	use	cpio-bin-be
+# Reference:    http://mark0.net/download/triddefs_xml.7z/defs/a/ark-cpio.trid.xml
+# Note:		called "CPIO archive (portable)" by TrID, "cpio/Portable ASCII" by 7-Zip and "cpio/odc" by GNU cpio
 0	string		070707		ASCII cpio archive (pre-SVR4 or odc)
 !:mime	application/x-cpio
+# https://telparia.com/fileFormatSamples/archive/cpio/ pthreads-1.60B5.osr5src.cpio cinema.cpi VOL.000.008 VOL.000.012
+!:ext	cpio/cpi/008/012
+# Note:		called "CPIO archive (portable)" by TrID, "cpio/New ASCII" by 7-Zip and "cpio/newc" by GNU cpio
 0	string		070701		ASCII cpio archive (SVR4 with no CRC)
 !:mime	application/x-cpio
+# https://telparia.com/fileFormatSamples/archive/cpio/MainActor-2.06.3.cpio
+!:ext	cpio
+# Note:		called "CPIO archive (portable)" by TrID, "cpio/New CRC" by 7-Zip and "cpio/crc" by GNU cpio
 0	string		070702		ASCII cpio archive (SVR4 with CRC)
 !:mime	application/x-cpio
+# http://ftp.gnu.org/gnu/tar/tar-1.27.cpio.gz
+# https://telparia.com/fileFormatSamples/archive/cpio/pcmcia
+!:ext	/cpio
+#	display information of old binary cpio archive
+# Note:	verfied by 7-Zip `7z l -tcpio -slt *.cpio` and
+#	`cpio -ivt --numeric-uid-gid --file=clam.bin-le.cpio`
+0	name	cpio-bin
+# c_dev; device number; WHAT IS THAT?
+>2	uleshort	x		\b; device %u
+# c_ino; truncated inode number; use `ls --inode`
+>4	uleshort	x		\b, inode %u
+# c_mode; mode specifies permissions and file type like: ?622~?rw-r--r-- by `ls -l`
+>6	uleshort	x		\b, mode %o
+# c_uid; numeric user id; use `ls --numeric-uid-gid`
+>8	uleshort	x		\b, uid %u
+# c_gid; numeric group id
+>10	uleshort	x		\b, gid %u
+# c_nlink; links to this file; directories at least 2
+>12	uleshort	>1		\b, %u links
+# c_rdev; device number for block and character entries; zero for all other entries by writers
+# like 0x0440 for /dev/ttyS0
+>14	uleshort	>0		\b, device %#4.4x
+# c_mtime[2]; modification time in seconds since 1 January 1970; most-significant 16 bits first 
+>16	medate		x		\b, modified %s
+# c_filesize[2]; size of pathname; most-significant 16 bits first like: 544
+>22	melong		x		\b, %u bytes
+# c_namesize; bytes in the pathname that follows the header like: 9
+#>20	uleshort	x		\b, namesize %u
+# pathname of entry like: "clam.exe"
+>26	string		x		"%s"
+#	display information of old binary byte swapped cpio archive
+# Note:	verfied by 7-Zip `7z l -tcpio -slt *.cpio` and
+#	`LANGUAGE=C cpio -ivt --numeric-uid-gid --file=clam.bin-be.cpio`
+0	name	cpio-bin-be
+>2	ubeshort	x		\b; device %u
+>4	ubeshort	x		\b, inode %u
+>6	ubeshort	x		\b, mode %o
+>8	ubeshort	x		\b, uid %u
+>10	ubeshort	x		\b, gid %u
+>12	ubeshort	>1		\b, %u links
+>14	ubeshort	>0		\b, device %#4.4x
+>16	bedate		x		\b, modified %s
+>22	ubelong	 	x		\b, %u bytes
+#>20	ubeshort	x		\b, namesize %u
+>26	string		x		"%s"
 
 #
 # Various archive formats used by various versions of the "ar"
@@ -3154,7 +3309,8 @@
 #>>68	string		x		(format %.3s)
 >68	string		=2.0\n
 # 2nd archive name=control archive name like control.tar.gz or control.tar.xz
->>72	string		>\0		\b, with %.14s
+# or control.tar.zst
+>>72	string		>\0		\b, with %.15s
 # look for 3rd archive name=data archive name like data.tar.{gz,xz,bz2,lzma}
 >>0	search/0x93e4f	data.tar.	\b, data compression
 # the above line only works if FILE_BYTES_MAX in ../../src/file.h is raised
@@ -3891,11 +4047,39 @@
 # TPac
 0	string	\4TPAC\3 TPac archive data
 # Ai
+# Update:	Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/Ai_Archiver
 0	string	Ai\1\1\0 Ai archive data
+#!:mime	application/octet-stream
+!:mime	application/x-compress-ai
+!:ext	ai
 0	string	Ai\1\0\0 Ai archive data
+#!:mime	application/octet-stream
+!:mime	application/x-compress-ai
+!:ext	ai
 # Ai32
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/a/ark-ai.trid.xml
+# Note:		called "Ai Archivator compressed archive" by TrID
 0	string	Ai\2\0 Ai32 archive data
+#!:mime	application/octet-stream
+!:mime	application/x-compress-ai
+!:ext	ai
+# original file name
+>8	pstring/h x	"%s"
+# according to TrID the next 3 bytes are nil
+>5	ubyte	!0	\b, at 5 %#x
+>6	ubyte	!0	\b, at 6 %#x
+>7	ubyte	!0	\b, at 7 %#x
+# the fourth byte with value 0 is probably a flag for "non solid" mode
+#>3	ubyte	=0x00	\b, unsolid mode
 0	string	Ai\2\1 Ai32 archive data
+#!:mime	application/octet-stream
+!:mime	application/x-compress-ai
+!:ext	ai
+# original file name
+>8	pstring/h x	"%s"
+# the fourth byte with value 0x01 is probably a flag for "solid" mode; this is not the default
+>3	ubyte	=0x01	\b, solid mode
 # SBC
 0	string	SBC SBC archive data
 # Ybs
@@ -4388,6 +4572,83 @@
 !:mime	application/zip
 !:ext zip/cbz
 
+# Android APK file (Zip archive)
+0	string		PK\003\004
+!:strength +1
+# Starts with AndroidManifest.xml (file name length = 19)
+>26	uleshort	19
+>>30	string	AndroidManifest.xml	Android package (APK), with AndroidManifest.xml
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>-22	string	PK\005\006
+>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+# Starts with META-INF/com/android/build/gradle/app-metadata.properties
+>26	uleshort	57
+>>30	string	META-INF/com/android/build/gradle/
+>>>&0	string	app-metadata.properties	Android package (APK), with gradle app-metadata.properties
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>>-22	string	PK\005\006
+>>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+# Starts with classes.dex (file name length = 11)
+>26	uleshort	11
+>>30	string	classes.dex	Android package (APK), with classes.dex
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>-22	string	PK\005\006
+>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+# Starts with META-INF/MANIFEST.MF (file name length = 20)
+# NB: checks for resources.arsc, classes.dex, etc. as well to avoid matching JAR files
+>26	uleshort	20
+>>30	string	META-INF/MANIFEST.MF
+# Contains resources.arsc (near the end, in the central directory)
+>>>-512	search	resources.arsc	Android package (APK), with MANIFEST.MF and resources.arsc
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>>-22	string	PK\005\006
+>>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+>>>-512	default x
+# Contains classes.dex (near the end, in the central directory)
+>>>>-512	search	classes.dex	Android package (APK), with MANIFEST.MF and classes.dex
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>>>-22	string	PK\005\006
+>>>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+>>>>-512	default x
+# Contains lib/armeabi (near the end, in the central directory)
+>>>>>-512	search	lib/armeabi	Android package (APK), with MANIFEST.MF and armeabi lib
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>>>>-22	string	PK\005\006
+>>>>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+>>>>>-512	default x
+# Contains drawables (near the end, in the central directory)
+>>>>>>-512	search	res/drawable	Android package (APK), with MANIFEST.MF and drawables
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>>>>>-22	string	PK\005\006
+>>>>>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+# It may or may not be an APK file, but it's definitely a Java JAR file
+>>>>>>-512	default x	Java archive data (JAR)
+!:mime	application/java-archive
+!:ext	jar
+# Starts with zipflinger virtual entry (28 + 104 = 132 bytes)
+# See https://github.com/obfusk/apksigcopier/blob/666f5b7/apksigcopier/__init__.py#L230
+>4	string	\x00\x00\x00\x00\x00\x00
+>>&0	string	\x21\x08\x21\x02
+>>>&0	string	\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00
+>>>>&0	string	\x00\x00	Android package (APK), with zipflinger virtual entry
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+>>>>>-22	string	PK\005\006
+>>>>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	\b, with APK Signing Block
+# APK Signing Block
+>0	default	x
+>>-22	string	PK\005\006
+>>>(-6.l-16)	string	APK\x20Sig\x20Block\x2042	Android package (APK), with APK Signing Block
+!:mime	application/vnd.android.package-archive
+!:ext	apk
+
 # Zip archives (Greg Roelofs, c/o zip-bugs@wkuvx1.wku.edu)
 0	string		PK\005\006	Zip archive data (empty)
 !:mime application/zip
@@ -4490,9 +4751,13 @@
 >>>>77	string	-web			HTML Document Template
 !:mime	application/vnd.oasis.opendocument.text-web
 !:ext	oth
->>>>77	string	-master			Master Document
+>>>>77	string	-master
+>>>>>84	byte	!0x2d			Master Document
 !:mime	application/vnd.oasis.opendocument.text-master
 !:ext	odm
+>>>>>84	string	-template		Master Template
+!:mime	application/vnd.oasis.opendocument.text-master-template
+!:ext	otm
 >>>73	string	graphics
 >>>>81	byte	!0x2d			Drawing
 !:mime	application/vnd.oasis.opendocument.graphics
@@ -4535,8 +4800,7 @@
 # Valid for LibreOffice Base 6.0.1.1 at least
 >>>73	string	base 			Database
 # https://bugs.documentfoundation.org/show_bug.cgi?id=45854
-!:mime	application/vnd.oasis.opendocument.database
-#!:mime	application/vnd.oasis.opendocument.base
+!:mime	application/vnd.oasis.opendocument.base
 !:ext	odb
 >>>73	string	image
 >>>>78	byte	!0x2d			Image
@@ -4551,6 +4815,16 @@
 #    From: Ralf Brown <ralf.brown@gmail.com>
 >>50	string	epub+zip	EPUB document
 !:mime application/epub+zip
+
+# From: Hajin Jang <jb6804@naver.com>
+# hwpx (OWPML) document format follows OCF specification.
+# Hangul Word Processor 2010+ supports HWPX format.
+# URL: https://www.hancom.com/etc/hwpDownload.do
+#      https://standard.go.kr/KSCI/standardIntro/getStandardSearchView.do?menuId=503&topMenuId=502&ksNo=KSX6101
+#      https://e-ks.kr/streamdocs/view/sd;streamdocsId=72059197557727331
+>>50	string	hwp+zip     Hancom HWP (Hangul Word Processor) file, HWPX
+!:mime application/x-hwp+zip
+!:ext	hwpx
 
 # From:	Joerg Jenderek
 # URL:	http://en.wikipedia.org/wiki/CorelDRAW
@@ -4605,9 +4879,10 @@
 >>>38		regex	[!-OQ-~]+		Zip data (MIME type "%s"?)
 !:mime	application/zip
 
-# Java Jar files
+# Java Jar files (see also APK files above)
 >(26.s+30)	leshort	0xcafe		Java archive data (JAR)
 !:mime	application/java-archive
+!:ext	jar
 
 # iOS App
 >(26.s+30)	leshort	!0xcafe
@@ -4640,16 +4915,116 @@
 >8	belong	x	\b, size %d
 
 # Zoo archiver
-20	lelong		0xfdc4a7dc	Zoo archive data
+# Update: Joerg Jenderek
+# URL:		https://en.wikipedia.org/wiki/Zoo_(file_format)
+#		http://fileformats.archiveteam.org/wiki/Zoo
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/a/ark-zoo-strict.trid.xml
+#		http://distcache.freebsd.org/ports-distfiles/zoo-2.10pl1.tar.gz/zoo.h 
+# Note:		called "ZOO compressed archive (strict)" by TrID and "ZOO Compressed Archive" by DROID via PUID x-fmt/269 
+#		verified by command like `deark -m zoo -l -d2 WHRCGA.ZOO`
+20	lelong		0xfdc4a7dc
+# skip DROID x-fmt-269-signature-id-621.zoo by looking for valid major version to manipulate archive
+>32	byte		>0		Zoo archive data
 !:mime	application/x-zoo
->4	byte		>48		\b, v%c.
->>6	byte		>47		\b%c
->>>7	byte		>47		\b%c
->32	byte		>0		\b, modify: v%d
->>33	byte		x		\b.%d+
->42	lelong		0xfdc4a7dc	\b,
->>70	byte		>0		extract: v%d
->>>71	byte		x		\b.%d+
+# bak is extension of backup-ed zoo
+!:ext	zoo/bak
+# version in text form like: 1.50 2.00 2.10
+>>4	byte		>48		\b, v%c.
+>>>6	byte		>47		\b%c
+>>>>7	byte		>47		\b%c
+# ZOO files typically start with "ZOO ?.?? Archive.", followed by the bytes 0x1a 0x0 0x0; not used by Zoo and they may be anything
+>>8	string		!\040Archive.\032 \b, at 8
+>>>8	string		x		text "%0.10s"
+# major_ver.minor_ver; minimum version needed to manipulate archive like: 1.0 2.0
+>>32	byte		>0		\b, modify: v%d
+>>>33	byte		x		\b.%d+
+# major_ver.minor_ver; minimum version needed to extract after modify like in old versions
+>>(24.l+28)	ubyte	x		\b, extract: v%u
+>>(24.l+29)	ubyte	x		\b.%u+
+# with zoo 2.00 additional fields have been added in the archive header
+>>32	byte		>1
+# type; type of archive header like: 1 2
+>>>34		ubyte	!1		\b, header type %u
+# acmt_pos; position of archive comment like: 6258 30599 61369 149501
+>>>35		lelong	>0		\b, at %d
+# acmt_len; length of archive comment like: 258
+>>>>39			uleshort x	%u bytes comment
+#>>>>(35.l)		ubequad	x	COMMENT=%16.16llx
+# 1st character of comment maybe is CarriageReturn (0x0d)
+>>>>(35.l) 		ubyte	<040
+# 2nd character of comment maybe is LineFeed (0x0a)
+>>>>>(35.l+1) 		ubyte	<040
+# comment string after CRLF like "Anonymous ftp site garbo.uwasa.fi 128.214.87.1 moderated by"
+>>>>>>(35.l+2)		string	x	%s
+# next character of remaining comment maybe is CarriageReturn (0x0d)
+>>>>>>>&0		ubyte	<040
+>>>>>>>>&0		ubyte	<040
+# 2nd comment part like: Timo Salmi ts@chyde.uwasa.fi      PC directories and uploads\015\012Harri Valkama hv@chyde.uwasa.fi   PC, Mac, Unix files, and upload
+>>>>>>>>>&0		string	>037	%s
+# vdata; archive-level versioning byte like: 1 3
+>>>41		ubyte	!1		\b, vdata %#x
+# zoo_start; pointer to 1st entry header 
+>>24	lelong		x		\b; at %u
+# zoo_minus; zoo_start -1 for consistency checking
+#>>28	lelong		x		\b, zoo_minus %#x
+# zoo_tag; tag for check
+#>>(24.l+0) ulelong	!0xfdc4a7dc	\b, zoo_tag=%8.8x
+# type; type of directory entry like: 1 2
+>>(24.l+4)	ubyte	!2		type=%u
+# packing_method; 0~no packing 1~normal LZW 2~lzh
+>>(24.l+5)	ubyte		x	method=
+>>>(24.l+5)	ubyte		0	\bnot-compressed
+>>>(24.l+5)	ubyte		1	\blzd
+>>>(24.l+5)	ubyte		2	\blzh
+# next; position of next directory entry
+>>(24.l+6)	ulelong		x	\b, next entry at %u
+# offset; position of file data for this entry
+#>>(24.l+10) ulelong		x	\b, data at %u
+# file_crc; CRC-16 of file data
+>>(24.l+18)	uleshort	x	\b, CRC %#4.4x
+# comment; zero if none or points to entry comment like ADD9h (WHRCGA.ZOO)
+>>(24.l+32)	lelong		>0	\b, at %#x
+# cmt_size; if not 0 for none then length of entry comment like: 46
+>>>(24.l+36)	uleshort	>0	%u bytes comment
+# entry comment itself like: "CGA .GL file showing menu input from keyboard"
+>>>>(&-6.l)	string		x	"%s"
+# org_size; original size of file
+>>(24.l+20)	ulelong		x	\b, size %u
+# size_now; compressed size of file
+>>(24.l+24)	ulelong		x	(%u compressed)
+# major_ver.minor_ver; minimum version needed to extract already done
+# deleted; will be 1 if deleted, 0 if not
+>>(24.l+30)	ubyte		=1	\b, deleted
+# struc; file structure if any; WHAT IS THAT?
+>>(24.l+31)	ubyte		!0	\b, structured
+# fname[13]; short/DOS file name like 12345678.012
+>>(24.l+38)	string	x		\b, %0.13s
+# for directory entry type 2 with variable part
+>>(24.l+4)	ubyte	=2
+# var_dir_len; length of variable part of dir entry
+>>>(24.l+51)		uleshort >0
+#>>>(24.l+51)		uleshort >0	\b, variable part length %u
+# namlen; length of long filename
+#>>>>(24.l+56)		ubyte	x	\b, namlen %u
+# dirlen; length of directory name
+#>>>>(24.l+57)		ubyte	x	\b, dirlen %u
+# if file length positive then show long file name
+>>>>(24.l+56)		ubyte	>0
+# lfname[256]; long file name \0-terminated
+>>>>>(24.l+58)		string	x	"%s"
+# if directory length positive then jump before file name field and then jump this addtional length plus 2 (\0-terminator + dirlen field) to following directory name
+>>>>(24.l+57)		ubyte	>0
+>>>>>(24.l+55)		ubyte	x
+# dirname[256]; directory name \0-terminated
+>>>>>>&(&0.b+2)		string	x	in "%s"
+# dir_crc; CRC of directory entry
+#>>>(24.l+54)		uleshort x	\b, entry CRC %#4.4x
+# tz; timezone where file was archived; 7Fh~unknown 4~1.00hoursWestOfUTC 12 16 20~5.00hoursWestOfUTC -107~26.75hoursEastOfUTC -4~1.00hoursEastOfUTC
+>>>(24.l+53)		byte	!0x7f	\b, time zone %d/4
+# date; last mod file date in DOS format
+>>>(24.l+14)		lemsdosdate x	\b, modified %s
+# time; last mod file time in DOS format
+>>>(24.l+16)		lemsdostime x	%s
 
 # Shell archives
 10	string		#\ This\ is\ a\ shell\ archive	shell archive text
@@ -4759,9 +5134,14 @@
 # https://en.wikipedia.org/wiki/ZIP_(file_format)#End_of_central_directory_record_(EOCD)
 # by Michal Gorny <mgorny@gentoo.org>
 -2	uleshort	0
->&-22	string	PK\005\006	Zip archive, with extra data prepended
+>&-22	string	PK\005\006
+# without #!
+>>0	string	!#!	Zip archive, with extra data prepended
 !:mime	application/zip
 !:ext zip/cbz
+# with #!
+>>0	string/w	#!\ 	a
+>>>&-1	string/T	x	%s script executable (Zip archive)
 
 # ACE archive (from http://www.wotsit.org/download.asp?f=ace)
 # by Stefan `Sec` Zehl <sec@42.org>
@@ -5007,7 +5387,28 @@
 >3	byte	x	version %d
 
 # LyNX archive
+# Update:	Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/Lynx_archive
+# Reference:	http://ist.uwaterloo.ca/~schepers/formats/LNX.TXT
+#		http://mark0.net/download/triddefs_xml.7z/defs/a/ark-lnx.trid.xml
+# Note:		called "Lynx archive" by TrID and "Commodore C64 BASIC program" with "POKE 53280" by ./c64
+# TODO:		merge and unify with Commodore C64 BASIC program
 56	string	USE\040LYNX\040TO\040DISSOLVE\040THIS\040FILE	 LyNX archive
+# display "Lynx archive" (strength=330) before Commodore C64 BASIC program (strength=50) handled by ./c64
+#!:strength +0
+#!:mime	application/octet-stream
+!:mime	application/x-commodore-lnx
+!:ext	lnx
+# afterwards look for BASIC tokenized GOTO (89h) 10, line terminator \0, end of programm tag \0\0 and CarriageReturn
+>86		search/10	\x8910\0\0\0\r	\b,
+# for DEBUGGING
+#>>&0		string		x	STRING="%s"
+# number in ASCII of directory blocks with spaces on both sides like: 1 2 3 5
+>>&0		regex		[0-9]{1,5}	%s directory blocks
+# signature like: "*LYNX XII BY WILL CORLEY" " LYNX IX  BY WILL CORLEY" "*LYNX BY CBMCONVERT 2.0*"
+>>>&2		regex		[^\r]{1,24}	\b, signature "%s"
+# number of files in ASCII surrounded by spaces and delimited by CR like: 2 3 6 13 69 144 (maximum?)
+>>>>&1		regex		[0-9]{1,3}	\b, %s files
 
 # From: Joerg Jenderek
 # URL: https://www.acronis.com/
@@ -5452,7 +5853,7 @@
 >364	string		>\0		of '%s'
 
 #------------------------------------------------------------------------------
-# $File: audio,v 1.126 2022/10/09 13:40:22 christos Exp $
+# $File: audio,v 1.127 2023/03/05 20:15:49 christos Exp $
 # audio:  file(1) magic for sound formats (see also "iff")
 #
 # Jan Nicolai Langfeldt (janl@ifi.uio.no), Dan Quinlan (quinlan@yggdrasil.com),
@@ -5635,42 +6036,57 @@
 21	string	BMOD2STM	Screamtracker 2 module sound data
 !:mime	audio/x-mod
 #audio/x-screamtracker-module
+
+1080	string	\!PM!		4-channel Protracker module sound data
+!:mime	audio/x-mod
+#audio/x-protracker-module
+>0	string	>\0		Title: "%s"
+
 1080	string	M.K.		4-channel Protracker module sound data
 !:mime	audio/x-mod
 #audio/x-protracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	M!K!		4-channel Protracker module sound data
 !:mime	audio/x-mod
 #audio/x-protracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	FLT4		4-channel Startracker module sound data
 !:mime	audio/x-mod
 #audio/x-startracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	FLT8		8-channel Startracker module sound data
 !:mime	audio/x-mod
 #audio/x-startracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	4CHN		4-channel Fasttracker module sound data
 !:mime	audio/x-mod
 #audio/x-fasttracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	6CHN		6-channel Fasttracker module sound data
 !:mime	audio/x-mod
 #audio/x-fasttracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	8CHN		8-channel Fasttracker module sound data
 !:mime	audio/x-mod
 #audio/x-fasttracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	CD81		8-channel Octalyser module sound data
 !:mime	audio/x-mod
 #audio/x-octalysertracker-module
 >0	string	>\0		Title: "%s"
+
 1080	string	OKTA		8-channel Octalyzer module sound data
 !:mime	audio/x-mod
 #audio/x-octalysertracker-module
 >0	string	>\0		Title: "%s"
+
 # Not good enough.
 #1082	string	CH
 #>1080	string	>/0		%.2s-channel Fasttracker "oktalyzer" module sound data
@@ -7398,7 +7814,7 @@
 0	bequad	0x6685828000000001	Burp project save file
 
 #------------------------------------------------------------
-# $File: bytecode,v 1.3 2022/03/24 15:48:58 christos Exp $
+# $File: bytecode,v 1.5 2023/02/20 16:25:05 christos Exp $
 # magic for various bytecodes
 
 # From: Mikhail Gusarov <dottedmag@dottedmag.net>
@@ -7426,119 +7842,20 @@
 >11	string	4		\b, 32bit
 >11	string	8		\b, 64bit
 >13	regex	.\\..		\b, bytecode v%s
-#------------------------------------------------------------------------------
-# $File: c-lang,v 1.31 2022/12/01 22:04:33 christos Exp $
-# c-lang:  file(1) magic for C and related languages programs
-#
-# The strength is to beat standard HTML
 
-# BCPL
-0	search/8192	"libhdr"	BCPL source text
-!:mime	text/x-bcpl
-0	search/8192	"LIBHDR"	BCPL source text
-!:mime	text/x-bcpl
+# Racket file magic
+# From: Haelwenn (lanodan) Monnier <contact+libmagic@hacktivis.me>
+# https://racket-lang.org/
+# https://github.com/racket/racket/blob/master/racket/src/expander/compile/write-linklet.rkt
+0	string	#~
+>&0	pstring	x
+>>&0	pstring	racket
+>>>0	string	#~	Racket bytecode
+>>>>&0	pstring	x       (version %s)
 
-# C
-# Check for class if include is found, otherwise class is beaten by include because of lowered strength
-0	search/8192	#include
->0	regex	\^#include			C
->>0	regex	\^class[[:space:]]+
->>>&0	regex 	\\{[\.\*]\\}(;)?$			\b++
->>&0	clear	x				source text
-!:strength + 13
-!:mime	text/x-c
-0	search/8192	pragma
->0	regex	\^#[[:space:]]*pragma	C source text
-!:mime	text/x-c
-0	search/8192	endif
->0	regex	\^#[[:space:]]*(if\|ifn)def
->>&0	regex	\^#[[:space:]]*endif$	C source text
-!:mime	text/x-c
-0	search/8192	define
->0	regex	\^#[[:space:]]*(if\|ifn)def
->>&0	regex	\^#[[:space:]]*define	C source text
-!:mime	text/x-c
-0	search/8192	char
->0	regex	\^[[:space:]]*char(\ \\*|\\*)(.+)(=.*)?;[[:space:]]*$			C source text
-!:mime	text/x-c
-0	search/8192	double
->0	regex	\^[[:space:]]*double(\ \\*|\\*)(.+)(=.*)?;[[:space:]]*$			C source text
-!:mime	text/x-c
-0	search/8192	extern
->0	regex	\^[[:space:]]*extern[[:space:]]+		C source text
-!:mime	text/x-c
-0	search/8192	float
->0	regex	\^[[:space:]]*float(\ \\*|\\*)(.+)(=.*)?;[[:space:]]*$			C source text
-!:mime	text/x-c
-0	search/8192	struct
->0	regex	\^struct[[:space:]]+		C source text
-!:mime	text/x-c
-0	search/8192	union
->0	regex	\^union[[:space:]]+		C source text
-!:mime	text/x-c
-0	search/8192	main(
->&0	search/64	String			Java source text
-!:mime	text/x-java
->&0	default		x
->>&0 regex	\\)[[:space:]]*\\{		C source text
-!:mime	text/x-c
-
-# C++
-# The strength of these rules is increased so they beat the C rules above
-0	search/8192	namespace
->0	regex	\^namespace[[:space:]]+[_[:alpha:]]{1,30}[[:space:]]*\\{	C++ source text
-!:strength + 30
-!:mime	text/x-c++
-# using namespace [namespace] or using std::[lib]
-0	search/8192	using
->0	regex	\^using[[:space:]]+(namespace\ )?std(::)?[[:alpha:]]*[[:space:]]*;		C++ source text
-!:strength + 30
-!:mime	text/x-c++
-0	search/8192	template
->0	regex	\^[[:space:]]*template[[:space:]]*<.*>[[:space:]]*$	C++ source text
-!:strength + 30
-!:mime	text/x-c++
-0	search/8192	virtual
->0	regex	\^[[:space:]]*virtual[[:space:]]+.*[};][[:space:]]*$		C++ source text
-!:strength + 30
-!:mime	text/x-c++
-# But class alone is reduced to avoid beating php (Jens Schleusener)
-0	search/8192	class
->0	regex	\^[[:space:]]*class[[:space:]]+[[:digit:][:alpha:]:_]+[[:space:]]*\\{(.*[\n]*)*\\}(;)?$		C++ source text
-!:strength + 13
-!:mime	text/x-c++
-0	search/8192	public
->0	regex	\^[[:space:]]*public:		C++ source text
-!:strength + 30
-!:mime	text/x-c++
-0	search/8192	private
->0	regex	\^[[:space:]]*private:		C++ source text
-!:strength + 30
-!:mime	text/x-c++
-0	search/8192	protected
->0	regex	\^[[:space:]]*protected:	C++ source text
-!:strength + 30
-!:mime	text/x-c++
-
-# Objective-C
-0	search/8192	#import
->0	regex	\^#import[[:space:]]+["<]	Objective-C source text
-!:strength + 25
-!:mime	text/x-objective-c
-
-# From: Mikhail Teterin <mi@aldan.algebra.com>
-0	string		cscope		cscope reference data
->7	string		x		version %.2s
-# We skip the path here, because it is often long (so file will
-# truncate it) and mostly redundant.
-# The inverted index functionality was added some time between
-# versions 11 and 15, so look for -q if version is above 14:
->7	string		>14
->>10	search/100	\ -q\ 		with inverted index
->10	search/100	\ -c\ 		text (non-compressed)
 
 #------------------------------------------------------------------------------
-# $File: c64,v 1.13 2022/11/21 22:25:37 christos Exp $
+# $File: c64,v 1.14 2023/06/16 19:24:06 christos Exp $
 # c64:  file(1) magic for various commodore 64 related files
 #
 # From: Dirk Jagdmann <doj@cubic.org>
@@ -7741,6 +8058,8 @@
 # TODO:		unify Commodore BASIC/program sub routines
 # Note:		"PUCrunch archive data" moved from ./archive and merged with c64-exe
 0	leshort		0x0801
+# display Commodore C64 BASIC program (strength=50) after "Lynx archive" (strength=330) handled by ./archive
+#!:strength +0
 # if first token is not SYS this implies BASIC program in most cases
 >6		ubyte		!0x9e
 # but sELF-ExTRACTING-zIP executable unzp6420.prg contains SYS token at end of second BASIC line (at 0x35)
@@ -8037,36 +8356,52 @@
 # pointer to memory address of beginning of "next" BASIC line
 # greater then previous offset but maximal 100h difference
 >0		uleshort	x	\b, offset %#4.4x
+# offset 0x0000 indicates the end of BASIC program; so bytes afterwards may be some other data
+>0		uleshort	0
+# not line number but first 2 data bytes 
+>>2		ubeshort	x	\b, data %#4.4x
+# not token but next 2 data bytes 
+>>4		ubeshort	x	\b%4.4x
+# not token arguments but next data bytes 
+>>6		ubequad		x 	\b%16.16llx
+>>14		ubequad		x 	\b%16.16llx...
+# like 0x0d20352020204c594e5820495820204259205749 "\r 5   LYNX IX  BY WILL CORLEY" for LyNX archive Darkon.lnx handled by ./archive
+#>>3		string		x 	"%-0.30s"
+>0		uleshort	>0
 # BASIC line number with range from 0 to 65520; practice to increment numbers by some value (5, 10 or 100)
->2		uleshort	x	\b, line %u
+>>2		uleshort	x	\b, line %u
 # https://www.c64-wiki.com/wiki/BASIC_token
 # The "high-bit" bytes from #128-#254 stood for the various BASIC commands and mathematical operators
->4		ubyte		x	\b, token (%#x)
+>>4		ubyte		x	\b, token (%#x)
 # https://www.c64-wiki.com/wiki/REM
->4		string		\x8f	REM
+>>4		string		\x8f	REM
 # remark string like: ** SYNTHESIZER BY RICOCHET **
->>5		string		>\0	%s
-#>>>&1		uleshort	x	\b, NEXT OFFSET %#4.4x
+>>>5		string		>\0	%s
+#>>>>&1		uleshort	x	\b, NEXT OFFSET %#4.4x
 # https://www.c64-wiki.com/wiki/PRINT
->4		string		\x99	PRINT
+>>4		string		\x99	PRINT
 # string like: "Hello world" "\021 \323ELF-E\330TRACTING-\332IP (64 ONLY)\016\231":\2362141
->>5		string		x	%s
-#>>>&0		ubequad		x	AFTER_PRINT=%#16.16llx
+>>>5		string		x	%s
+#>>>>&0		ubequad		x	AFTER_PRINT=%#16.16llx
 # https://www.c64-wiki.com/wiki/POKE
->4		string		\x97	POKE
+>>4		string		\x97	POKE
 # <Memory address>,<number>
->>5		regex		\^[0-9,\040]+	%s
+>>>5		regex		\^[0-9,\040]+	%s
+# BASIC command delimiter colon (:=3Ah)
+>>>>&-2		ubyte		=0x3A
+# after BASIC command delimiter colon remaining (<255) other tokenized BASIC commands
+>>>>>&0		string		x		"%s"
 # https://www.c64-wiki.com/wiki/SYS	0x9e=\236
->4		string		\x9e	SYS
+>>4		string		\x9e	SYS
 # SYS <Address> parameter is a 16-bit unsigned integer; in the range 0 - 65535
->>5		regex		\^[0-9]{1,5}	%s
+>>>5		regex		\^[0-9]{1,5}	%s
 # maybe followed by spaces, "control-characters" or colon (:) followed by next commnds or in victracker.prg
 # (\302(43)\252256\254\302(44)\25236) /T.L.R/
-#>>5		string		x	SYS_STRING="%s"
+#>>>5		string		x	SYS_STRING="%s"
 # https://www.c64-wiki.com/wiki/GOSUB
->4		string		\x8d	GOSUB
+>>4		string		\x8d	GOSUB
 # <line>
->>5		string		>\0	%s
+>>>5		string		>\0	%s
 
 #------------------------------------------------------------------------------
 # $File: cad,v 1.31 2022/12/09 15:36:23 christos Exp $
@@ -8697,6 +9032,116 @@
 0	string		CtrsNU		Citrus locale declaration for LC_NUMERIC
 0	string		CtrsTI		Citrus locale declaration for LC_TIME
 
+#------------------------------------------------------------------------------
+# $File: c-lang,v 1.32 2023/06/16 19:57:19 christos Exp $
+# c-lang:  file(1) magic for C and related languages programs
+#
+# The strength is to beat standard HTML
+
+# BCPL
+0	search/8192	"libhdr"	BCPL source text
+!:mime	text/x-bcpl
+0	search/8192	"LIBHDR"	BCPL source text
+!:mime	text/x-bcpl
+
+# C
+# Check for class if include is found, otherwise class is beaten by include because of lowered strength
+0	search/8192	#include
+>0	regex	\^#include			C
+>>0	regex	\^class[[:space:]]+
+>>>&0	regex 	\\{[\.\*]\\}(;)?$			\b++
+>>&0	clear	x				source text
+!:strength + 15
+!:mime	text/x-c
+0	search/8192	pragma
+>0	regex	\^#[[:space:]]*pragma	C source text
+!:mime	text/x-c
+0	search/8192	endif
+>0	regex	\^#[[:space:]]*(if\|ifn)def
+>>&0	regex	\^#[[:space:]]*endif$	C source text
+!:mime	text/x-c
+0	search/8192	define
+>0	regex	\^#[[:space:]]*(if\|ifn)def
+>>&0	regex	\^#[[:space:]]*define	C source text
+!:mime	text/x-c
+0	search/8192	char
+>0	regex	\^[[:space:]]*char(\ \\*|\\*)(.+)(=.*)?;[[:space:]]*$			C source text
+!:mime	text/x-c
+0	search/8192	double
+>0	regex	\^[[:space:]]*double(\ \\*|\\*)(.+)(=.*)?;[[:space:]]*$			C source text
+!:mime	text/x-c
+0	search/8192	extern
+>0	regex	\^[[:space:]]*extern[[:space:]]+		C source text
+!:mime	text/x-c
+0	search/8192	float
+>0	regex	\^[[:space:]]*float(\ \\*|\\*)(.+)(=.*)?;[[:space:]]*$			C source text
+!:mime	text/x-c
+0	search/8192	struct
+>0	regex	\^struct[[:space:]]+		C source text
+!:mime	text/x-c
+0	search/8192	union
+>0	regex	\^union[[:space:]]+		C source text
+!:mime	text/x-c
+0	search/8192	main(
+>&0	search/64	String			Java source text
+!:mime	text/x-java
+>&0	default		x
+>>&0 regex	\\)[[:space:]]*\\{		C source text
+!:mime	text/x-c
+
+# C++
+# The strength of these rules is increased so they beat the C rules above
+0	search/8192	namespace
+>0	regex	\^namespace[[:space:]]+[_[:alpha:]]{1,30}[[:space:]]*\\{	C++ source text
+!:strength + 30
+!:mime	text/x-c++
+# using namespace [namespace] or using std::[lib]
+0	search/8192	using
+>0	regex	\^using[[:space:]]+(namespace\ )?std(::)?[[:alpha:]]*[[:space:]]*;		C++ source text
+!:strength + 30
+!:mime	text/x-c++
+0	search/8192	template
+>0	regex	\^[[:space:]]*template[[:space:]]*<.*>[[:space:]]*$	C++ source text
+!:strength + 30
+!:mime	text/x-c++
+0	search/8192	virtual
+>0	regex	\^[[:space:]]*virtual[[:space:]]+.*[};][[:space:]]*$		C++ source text
+!:strength + 30
+!:mime	text/x-c++
+# But class alone is reduced to avoid beating php (Jens Schleusener)
+0	search/8192	class
+>0	regex	\^[[:space:]]*class[[:space:]]+[[:digit:][:alpha:]:_]+[[:space:]]*\\{(.*[\n]*)*\\}(;)?$		C++ source text
+!:strength + 13
+!:mime	text/x-c++
+0	search/8192	public
+>0	regex	\^[[:space:]]*public:		C++ source text
+!:strength + 30
+!:mime	text/x-c++
+0	search/8192	private
+>0	regex	\^[[:space:]]*private:		C++ source text
+!:strength + 30
+!:mime	text/x-c++
+0	search/8192	protected
+>0	regex	\^[[:space:]]*protected:	C++ source text
+!:strength + 30
+!:mime	text/x-c++
+
+# Objective-C
+0	search/8192	#import
+>0	regex	\^#import[[:space:]]+["<]	Objective-C source text
+!:strength + 25
+!:mime	text/x-objective-c
+
+# From: Mikhail Teterin <mi@aldan.algebra.com>
+0	string		cscope		cscope reference data
+>7	string		x		version %.2s
+# We skip the path here, because it is often long (so file will
+# truncate it) and mostly redundant.
+# The inverted index functionality was added some time between
+# versions 11 and 15, so look for -q if version is above 14:
+>7	string		>14
+>>10	search/100	\ -q\ 		with inverted index
+>10	search/100	\ -c\ 		text (non-compressed)
 
 #------------------------------------------------------------------------------
 # $File: clarion,v 1.5 2014/04/30 21:41:02 christos Exp $
@@ -9189,7 +9634,7 @@
 0	string		msc		Message Sequence Chart (chart)
 0	string		submsc		Message Sequence Chart (subchart)
 #------------------------------------------------------------------------------
-# $File: compress,v 1.89 2022/12/24 22:47:53 christos Exp $
+# $File: compress,v 1.91 2023/06/16 19:37:47 christos Exp $
 # compress:  file(1) magic for pure-compression formats (no archives)
 #
 # compress, gzip, pack, compact, huf, squeeze, crunch, freeze, yabba, etc.
@@ -9478,10 +9923,10 @@
 
 # https://github.com/ckolivas/lrzip/blob/master/doc/magic.header.txt
 0	string		LRZI			LRZIP compressed data
+!:mime  application/x-lrzip
 >4	byte		x			- version %d
 >5	byte		x			\b.%d
 >22	byte		1			\b, encrypted
-!:mime	application/x-lrzip
 
 # https://fastcompression.blogspot.fi/2013/04/lz4-streaming-format-final.html
 0	lelong		0x184d2204	LZ4 compressed data (v1.4+)
@@ -9640,8 +10085,18 @@
 0	string/b	BZ3v1	bzip3 compressed data
 >5	ulelong		x	\b, blocksize %u
 
+
+# https://support-docs.illumina.com/SW/ORA_Format_Specification/Content/\
+# SW/ORA/ORAFormatSpecification.htm
+# From Guillaume Rizk
+0	short	=0x7C49 DRAGEN ORA file,
+>-261	short	=0x7C49 with metadata:
+>-125	u8	x	NB reads: %llu,
+>-109	u8	x	NB bases: %llu.
+>-219	u4&0x02	2	File contains interleaved paired reads
+
 #------------------------------------------------------------------------------
-# $File: console,v 1.71 2022/12/24 22:31:58 christos Exp $
+# $File: console,v 1.72 2023/06/16 19:24:06 christos Exp $
 # Console game magic
 # Toby Deshane <hac@shoelace.digivill.net>
 
@@ -10338,12 +10793,25 @@
 >6	string		BS93		Lynx homebrew cartridge
 !:mime	application/x-atari-lynx-rom
 >>2	beshort		x		\b, RAM start $%04x
+# Update:	Joerg Jenderek
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/l/lnx.trid.xml
+# Note:		called "Atari Lynx ROM" by TrID
 0	string		LYNX		Lynx cartridge
 !:mime	application/x-atari-lynx-rom
+!:ext	lnx
+# bank 0 page size like: 128 256 512
 >4	leshort/4	>0		\b, bank 0 %dk
 >6	leshort/4	>0		\b, bank 1 %dk
+# 32 bytes cart name like: "jconnort.lyx" "viking~1.lyx" "Eye of the Beholder" "C:\EMU\LYNX\ROMS\ULTCHESS.LYX"
 >10	string		>\0		\b, "%.32s"
+# 16 bytes manufacturer like: "Atari" "NuFX Inc." "Matthias Domin"
 >42	string		>\0		\b, "%.16s"
+# version number
+#>8	leshort		!1		\b, version number %u
+# rotation: 1~left Lexis (NA).lnx 2~right Centipede (Prototype).lnx
+>58	ubyte		>0		\b, rotation %u
+# spare
+#>59	lelong		!0		\b, spare %#x
 
 # Opera file system that is used on the 3DO console
 # From: Serge van den Boom <svdb@stack.nl>
@@ -11028,9 +11496,53 @@
 >12	belong	>0		(%i words)
 
 #------------------------------------------------------------------------------
-# $File: crypto,v 1.2 2021/03/27 20:15:53 christos Exp $
+# $File: crypto,v 1.4 2023/07/17 16:41:48 christos Exp $
 # crypto:  file(1) magic for crypto formats
 #
+# Bitcoin block files
+0		lelong			0xD9B4BEF9	Bitcoin
+>(4.l+40)	lelong			0xD9B4BEF9	reverse block
+>>4		lelong			x		\b, size %u
+# normal block below
+>0		default			x		block
+>>4		lelong			x		\b, size %u
+>>8		lelong&0xE0000000	0x20000000
+>>>8		lelong			x		\b, BIP9 0x%x
+>>8		lelong&0xE0000000	!0x20000000
+>>>8		lelong			x		\b, version 0x%x
+>>76		ledate			x		\b, %s UTC
+# VarInt counter
+>>88		ubyte			<0xfd		\b, txcount %u
+>>88		ubyte			0xfd
+>>>89		leshort			x		\b, txcount %u
+>>88		ubyte			0xfe
+>>>89		lelong			x		\b, txcount %u
+>>88		ubyte			0xff
+>>>89		lequad			x		\b, txcount %llu
+!:ext	dat
+# option to find more blocks in the file
+#>>(4.l+8)	indirect	x			;
+
+# LevelDB
+-8		lequad		0xdb4775248b80fb57	LevelDB table data
+
+# http://www.tarsnap.com/scrypt.html
+# see scryptenc_setup() in lib/scryptenc/scryptenc.c
+0	string		scrypt\0	scrypt encrypted file
+>7	byte		x		\b, N=2**%d
+>8	belong		x		\b, r=%d
+>12	belong		x		\b, p=%d
+
+# https://age-encryption.org/
+# Only the first recipient is printed in detail to prevent repetitive output
+# in extreme cases ("ssh-rsa, ssh-rsa, ssh-rsa, ...").
+0	string		age-encryption.org/v1\n age encrypted file
+>25	regex/128	\^[^\040]+	\b, %s recipient
+>>25	string		scrypt
+>>>&0 regex/64		[0-9]+\$	(N=2**%s)
+>>&0	search/256	\n->\040 	\b, among others
+
+0	string		-----BEGIN\040AGE\040ENCRYPTED\040FILE-----	age encrypted file, ASCII armored
 
 # ----------------------------------------------------------------------------
 # $File: ctags,v 1.6 2009/09/19 16:28:08 christos Exp $
@@ -11137,7 +11649,7 @@
 >15	long		>30		$BS, block size: %i bytes
 
 #------------------------------------------------------------------------------
-# $File: database,v 1.68 2022/09/23 19:54:41 christos Exp $
+# $File: database,v 1.69 2023/01/12 00:14:04 christos Exp $
 # database:  file(1) magic for various databases
 #
 # extracted from header/code files by Graeme Wilford (eep2gw@ee.surrey.ac.uk)
@@ -11524,8 +12036,22 @@
 >>>>>20		ubelong&0xFF01209B	0x00000000
 # dBASE III
 >>>>>>16	ubyte		3
-# dBASE III DBT
->>>>>>>0	use		dbase3-memo-print
+# skip with invalid "low" 1st item "\0\0\0\0" StateRepository-Deployment.srd-shm "\001\010\0\0" gcry_cast5.mod
+>>>>>>>512	ubyte		>040
+# skip with valid 1st item "rintf" keylayouts.mod
+# by looking for valid terminating character Ctrl-Z like in test.dbt
+>>>>>>>>513 search/3308	\032
+# skip GRUB plan9.mod with invalid second terminating character 007
+# by checking second terminating character Ctrl-Z like in test.dbt
+>>>>>>>>>&0 ubyte		032
+# dBASE III DBT with two Ctr-Z terminating characters
+>>>>>>>>>>0	use		dbase3-memo-print
+# second terminating character \0 like in dbase-memo.dbt or GRUB nativedisk.mod
+>>>>>>>>>&0 ubyte		0
+# skip GRUB nativedisk.mod with grub_mod_init\0grub_mod_fini\0grub_fs_autoload_hook\0
+>>>>>>>>>>0x1ad string		!grub_mod_init
+# like dbase-memo.dbt
+>>>>>>>>>>>0	use		dbase3-memo-print
 # dBASE III DBT without version, dBASE IV DBT , FoxPro FPT , or many ZIP , DBF garbage
 >>>>>>16	ubyte		0
 # unusual dBASE III DBT like angest.dbt, dBASE IV DBT with block size 0 , FoxPro FPT ,  or garbage PCX DBF
@@ -11549,8 +12075,23 @@
 >>>>>>>>>>>512	ubyte		>037
 # skip few (14/758) Microsoft Event Trace Logs (boot_BASE+CSWITCH_1.etl DlTel-Merge.etl UpdateUx.006.etl) with invalid "high" 1st item \377\377
 >>>>>>>>>>>>512	ubyte		<0377
-# unusual dBASE III DBT like adressen.dbt biblio.dbt fsadress.dbt
->>>>>>>>>>>>>0	use		dbase3-memo-print
+# skip some Commodore 64 Art Studio (Deep_Strike.aas dragon's_lair_ii.aas), some Atari DEGAS Elite bitmap (ELEPHANT.PC3 ST.PC2)
+# some probably old GRUB modules (part_sun.mod) and virtual-boy-wario-land.vb. 
+# by looking for valid terminating character Ctrl-Z
+>>>>>>>>>>>>>513 search/523	\032
+# Atari DEGAS bitmap ST.PC2 with 0370 as second terminating character
+#>>>>>>>>>>>>>>&0 ubyte		x		2ND_CHAR_IS=%o
+# dBASE III DBT with two Ctr-Z terminating characters like dbase3dbt0_1.dbt dbase_83.dbt
+>>>>>>>>>>>>>>&0 ubyte		032
+>>>>>>>>>>>>>>>0 use		dbase3-memo-print
+# second terminating character \0 like in pcidump.mod or fsadress.dbt umlaut-dbf-cmd.dbt
+>>>>>>>>>>>>>>&0 ubyte		0
+# look for old GRUB module pcidump.mod with specific content "pcidump\0Show raw dump of the PCI configuration space"
+>>>>>>>>>>>>>>>514 search/0x11E	pcidump\0Show
+# dBASE III DBT with Ctr-Z + \0 terminating characters like fsadress.dbt
+>>>>>>>>>>>>>>>514 default	x
+# unusual dBASE III DBT like fsadress.dbt umlaut-dbf-cmd.dbt
+>>>>>>>>>>>>>>>>0 use		dbase3-memo-print
 # dBASE III DBT like angest.dbt, or garbage PCX DBF
 >>>>>>>>8	ubelong		!0
 # skip PCX and some DBF by test for for reserved NULL bytes
@@ -11597,7 +12138,7 @@
 # no positive block length
 #>20	uleshort		=0		\b, block length %u
 >20	uleshort		!0		\b, block length %u
-# dBase III memo field terminated by \032\032
+# dBase III memo field terminated often by \032\032
 # like: "WHAT IS XBASE" test.dbt "Borges, Malte" biblio.dbt "First memo\032\032" T2.DBT
 >512	string			>\0		\b, 1st item "%s"
 # For DEBUGGING
@@ -12055,7 +12596,7 @@
 !:ext	dbpf/package/dat/sc4
 !:mime	application/x-maxis-dbpf
 #------------------------------------------------------------------------------
-# $File: der,v 1.5 2022/07/30 18:07:34 christos Exp $
+# $File: der,v 1.6 2023/01/11 23:59:49 christos Exp $
 # der: file(1) magic for DER encoded files
 #
 
@@ -12193,6 +12734,13 @@
 >>>>&0	der	seq
 >>>>>&0	der     obj_id3=550403
 >>>>>&0	der     utf8_str=x      \b, Subject=%s
+
+# PKCS#7 Signed Data (e.g. JAR Signature Block File)
+# OID 1.2.840.113549.1.7.2 (2a864886f70d010702)
+# Reference: https://www.rfc-editor.org/rfc/rfc2315
+0	der	seq
+>&0	der	obj_id9=2a864886f70d010702	DER Encoded PKCS#7 Signed Data
+!:ext	RSA/DSA/EC
 
 #------------------------------------------------------------------------------
 # $File: diamond,v 1.7 2009/09/19 16:28:08 christos Exp $
@@ -12505,6 +13053,51 @@
 >0	leshort	7		end of medium (for floppy).
 
 #------------------------------------------------------------------------------
+# $File: dwarfs,v 1.2 2023/05/23 13:37:32 christos Exp $
+# dwarfs: file(1) magic for DwarFS File System Image files
+# URL: https://github.com/mhx/dwarfs for details about DwarFS
+# From: Marcus Holland-Moritz <github@mhxnet.de>
+
+#### DwarFS Version Macro
+0			name		dwarfsversion
+>&0			byte		x		\b, version %d
+>&1			byte		x		\b.%d
+
+#### DwarFS Compression Macro
+0			name		dwarfscompression
+>&0			leshort		=0		\b, uncompressed
+>&0			leshort		=1		\b, LZMA compression
+>&0			leshort		=2		\b, ZSTD compression
+>&0			leshort		=3		\b, LZ4 compression
+>&0			leshort		=4		\b, LZ4HC compression
+>&0			leshort		=5		\b, BROTLI compression
+
+#### DwarFS files without header
+## We first check against a DWARFS magic at the start of the file, then
+## validate by checking the block count / section type to be all zeros
+## for the first block. Finally, we check that the *next* block also
+## has the correct DWARFS magic.
+0			string		DWARFS
+>&0x2A			string/b	\0\0\0\0\0\0
+>>&(&0x02.q+0x0A)	string		DWARFS		DwarFS File System Image
+>>>&0			use		dwarfsversion
+>>&0			use		dwarfscompression
+
+#### DwarFS files with header
+## We search for a DWARFS magic in the first 64k of the file (images with
+## headers longer than 64k won't be recognized), then  validate by checking
+## the block count / section type to be all zeros for the first block.
+## Finally, we check that the *next* block also has the correct DWARFS magic.
+## If we find a DWARFS magic that doesn't pass validation, we continue with
+## an indirect match recursively.
+1			search/65536/b	DWARFS
+>&0x2A			string/b	\0\0\0\0\0\0
+>>&(&0x02.q+0x0A)	string		DWARFS		DwarFS File System Image (with header)
+>>>&0			use		dwarfsversion
+>>&0			use		dwarfscompression
+>&-1			indirect	x
+
+#------------------------------------------------------------------------------
 # $File: dyadic,v 1.9 2019/04/19 00:42:27 christos Exp $
 # Dyadic: file(1) magic for Dyalog APL.
 #
@@ -12643,13 +13236,15 @@
 >4	lelong	>2		Universal EFI binary with %d architectures
 
 #------------------------------------------------------------------------------
-# $File: elf,v 1.87 2021/05/25 15:19:51 christos Exp $
+# $File: elf,v 1.88 2023/01/08 17:09:18 christos Exp $
 # elf:  file(1) magic for ELF executables
 #
 # We have to check the byte order flag to see what byte order all the
 # other stuff in the header is in.
 #
 # What're the correct byte orders for the nCUBE and the Fujitsu VPP500?
+#
+# https://www.sco.com/developers/gabi/latest/ch4.eheader.html
 #
 # Created by: unknown
 # Modified by (1): Daniel Quinlan <quinlan@yggdrasil.com>
@@ -12925,6 +13520,12 @@
 >18	leshort		216		Cognitive Smart Memory,
 >18	leshort		217		iCelero CoolEngine,
 >18	leshort		218		Nanoradio Optimized RISC,
+>18	leshort		219		CSR Kalimba architecture family
+>18	leshort		220		Zilog Z80
+>18	leshort		221		Controls and Data Services VISIUMcore processor
+>18	leshort		222		FTDI Chip FT32 high performance 32-bit RISC architecture
+>18	leshort		223		Moxie processor family
+>18	leshort		224		AMD GPU architecture
 >18	leshort		243		UCB RISC-V,
 # only for 32-bit
 >>4	byte		1
@@ -13212,7 +13813,7 @@
 0       string          FCS3.0          Flow Cytometry Standard (FCS) data, version 3.0
 
 #------------------------------------------------------------------------------
-# $File: filesystems,v 1.152 2022/12/10 20:56:50 christos Exp $
+# $File: filesystems,v 1.158 2023/05/21 17:19:08 christos Exp $
 # filesystems:  file(1) magic for different filesystems
 #
 0	name	partid
@@ -15806,7 +16407,7 @@
 >12	use next
 
 # bcachefs
-# From: Thomas Weiï¿½schuh <thomas@t-8ch.de>
+# From: Thomas Weißschuh <thomas@t-8ch.de>
 
 0	name	bcachefs-uuid
 >0	ubelong		x	\b%08x
@@ -15816,19 +16417,25 @@
 >10	ubelong		x	\b-%08x
 >14	ubeshort	x	\b%04x
 
-0x1018		string		\xc6\x85\x73\xf6\x4e\x1a\x45\xca\x82\x65\xf5\x7f\x48\xba\x6d\x81	bcachefs
->0x1068		lequad		8	\b, UUID=
->>0x1038	use		bcachefs-uuid
->>0x1048	string		>0	\b, label "%.32s"
->>0x1010	uleshort	x	\b, version %u
->>0x1012	uleshort	x	\b, min version %u
->>0x107a	byte		x	\b, device %d
+0	name	bcachefs	bcachefs
+>0x68	lequad		8	\b, UUID=
+>>0x38	use		bcachefs-uuid
+>>0x48	string		>0	\b, label "%.32s"
+>>0x10	uleshort	x	\b, version %u
+>>0x12	uleshort	x	\b, min version %u
+>>0x7a	byte		x	\b, device %d
 # assumes the first field is the members field
->>0x12f4	ulelong		0x01	\b/UUID=
->>>0x12f0	default		x
->>>&(0x107a.b*56)	use	bcachefs-uuid
->>0x107b	byte		x	\b, %d devices
->>0x1090	byte		^0x02	\b (unclean)
+>>0x2f4	ulelong		0x01	\b/UUID=
+>>>0x2f0	default		x
+>>>&(0x07a.b*56)	use	bcachefs-uuid
+>>0x07b	byte		x	\b, %d devices
+>>0x090	byte		^0x02	\b (unclean)
+
+0x1018		string		\xc6\x85\x73\xf6\x4e\x1a\x45\xca\x82\x65\xf5\x7f\x48\xba\x6d\x81
+>0x1000		use		bcachefs
+
+0x1018          string          \xc6\x85\x73\xf6\x66\xce\x90\xa9\xd9\x6a\x60\xcf\x80\x3d\xf7\xef
+>0x1000		use		bcachefs
 
 # EROFS
 # https://kernel.googlesource.com/pub/scm/linux/kernel/git/xiang/erofs-utils/\
@@ -15856,6 +16463,50 @@
 >>1104		lelong		&8		DEVICE_TABLE
 >>1104		lelong		&16		ZTAILPACKING
 
+# YAFFS
+# The layout itself is undocumented, determined by the memory layout of the 
+# reference implementation. This signature is derived from the
+# reference implementation code and generated test cases
+# We recognize the start of an object header defined by yaffs_obj_hdr:
+# (Note the values being encoded depending on platform endianess)
+
+# u32 type  /* enum yaffs_obj_type, valid 1-5  */
+# u32 parent_obj_id; /* 1 for root objects we recognize */
+# u16 sum_no_longer_used; /* checksum of name. Not used by YAFFS and memset to 0xFF */
+# YCHAR name[YAFFS_MAX_NAME_LENGTH + 1];
+
+# mkyaffsimage always writes a root directory with empty name, then processing the target directory contents
+# mkyaffs2image directly proceeds to writing entries with the appropriate u32 YAFFS_OBJECT_TYPE (1-5 valid), each with parent id 1
+
+0	name	yaffs
+>0	ulelong	1	\b, type file
+>0	ulelong	2	\b, type symlink
+>0	ulelong	3	\b, type root or directory
+>0	ulelong	4	\b, type hardlink
+>0	ulelong	5	\b, type special
+>0xA	byte	0	\b, v1 root directory
+>0xA	byte	!0	\b, object entry
+>>0xA	string	x	(name: "%s")
+
+# Little Endian: XX 00 00 00 01 00 00 00 FF FF YY
+# XX: 01 - 05 (object type)
+# YY: 00 for version 1 root directory, > 00 for version 2 (name data)
+0x1	string	\x00\x00\x00\x01\x00\x00\x00\xFF\xFF
+>0	ulelong	0
+>0	ulelong	>5
+>0	default	x	YAFFS filesystem root entry (little endian)
+>>0	use	yaffs
+
+# Big Endian: 00 00 00 XX 00 00 00 01 FF FF YY
+# XX: 01 - 05 (object type)
+# YY: 00 for version 1 root directory, > 00 for version 2 (name data)
+0x4	string	\x00\x00\x00\x01\xFF\xFF
+>0	string	\x00\x00\x00
+>>0	ubelong	0
+>>0	ubelong	>5
+>>0	default	x	YAFFS filesystem root entry (big endian)
+>>>0	use	\^yaffs
+
 #------------------------------------------------------------------------------
 # $File: finger,v 1.3 2019/04/19 00:42:27 christos Exp $
 # fingerprint:  file(1) magic for fingerprint data
@@ -15872,7 +16523,7 @@
 >3	beshort	x		\b, driver_id %x
 >5	belong	x		\b, devtype %x
 #------------------------------------------------------------------------------
-# $File: firmware,v 1.3 2022/10/15 15:38:44 christos Exp $
+# $File: firmware,v 1.7 2023/03/11 18:52:03 christos Exp $
 # firmware:  file(1) magic for firmware files
 #
 
@@ -15904,6 +16555,106 @@
 >75             string                  label_HPE-HPB-BMC-ILO5-4096
 >>880           string                  HPIMAGE\x00     HPE iLO5 firmware update image,
 >>944           string                  x               version %s
+
+# IBM POWER Secure Boot Container
+# from https://github.com/open-power/skiboot/blob/master/libstb/container.h
+0	belong	0x17082011	POWER Secure Boot Container,
+>4	beshort	x		version %u
+>6	bequad	x		container size %llu
+# These are always zero
+# >14	bequad	x		target HRMOR %llx
+# >22	bequad  x		stack pointer %llx
+>4096	ustring \xFD7zXZ\x00    XZ compressed
+0	belong	0x1bad1bad	POWER boot firmware
+>256	belong	0x48002030	(PHYP entry point)
+
+# ARM Cortex-M vector table
+# From: Alexandre Iooss <erdnaxe@crans.org>
+# URL: https://developer.arm.com/documentation/100701/0200/Exception-properties
+# Match stack MSB
+3		byte			0x20
+# Function pointers must be in Thumb-mode and before 0x20000000 (4*5 bits match)
+>4		ulelong&0xE0000001	1
+>>8		ulelong&0xE0000001	1
+>>>12		ulelong&0xE0000001	1
+>>>>44		ulelong&0xE0000001	1
+>>>>>56		ulelong&0xE0000001	1
+# Match Cortex-M reserved sections (0x00000000 or 0xFFFFFFFF)
+>>>>>>28	ulelong+1		<2
+>>>>>>>32	ulelong+1		<2
+>>>>>>>>36	ulelong+1		<2
+>>>>>>>>>40	ulelong+1		<2
+>>>>>>>>>>52	ulelong+1		<2	ARM Cortex-M firmware
+>>>>>>>>>>>0	ulelong			>0	\b, initial SP at 0x%08x
+>>>>>>>>>>>4	ulelong^1		x	\b, reset at 0x%08x
+>>>>>>>>>>>8	ulelong^1		x	\b, NMI at 0x%08x
+>>>>>>>>>>>12	ulelong^1		x	\b, HardFault at 0x%08x
+>>>>>>>>>>>44	ulelong^1		x	\b, SVCall at 0x%08x
+>>>>>>>>>>>56	ulelong^1		x	\b, PendSV at 0x%08x
+
+# ESP-IDF partition table entry
+# From: Alexandre Iooss <erdnaxe@crans.org>
+# URL: https://github.com/espressif/esp-idf/blob/v5.0/components/esp_partition/include/esp_partition.h
+0	string		\xAA\x50
+>2	ubyte		<2		ESP-IDF partition table entry
+>>12	string/16	x		\b, label: "%s"
+>>2	ubyte		0
+>>>3	ubyte		0x00		\b, factory app
+>>>3	ubyte		0x10		\b, OTA_0 app
+>>>3	ubyte		0x11		\b, OTA_1 app
+>>>3	ubyte		0x12		\b, OTA_2 app
+>>>3	ubyte		0x13		\b, OTA_3 app
+>>>3	ubyte		0x14		\b, OTA_4 app
+>>>3	ubyte		0x15		\b, OTA_5 app
+>>>3	ubyte		0x16		\b, OTA_6 app
+>>>3	ubyte		0x17		\b, OTA_7 app
+>>>3	ubyte		0x18		\b, OTA_8 app
+>>>3	ubyte		0x19		\b, OTA_9 app
+>>>3	ubyte		0x1A		\b, OTA_10 app
+>>>3	ubyte		0x1B		\b, OTA_11 app
+>>>3	ubyte		0x1C		\b, OTA_12 app
+>>>3	ubyte		0x1D		\b, OTA_13 app
+>>>3	ubyte		0x1E		\b, OTA_14 app
+>>>3	ubyte		0x1F		\b, OTA_15 app
+>>>3	ubyte		0x20		\b, test app
+>>2	ubyte		1
+>>>3	ubyte		0x00		\b, OTA selection data
+>>>3	ubyte		0x01		\b, PHY init data
+>>>3	ubyte		0x02		\b, NVS data
+>>>3	ubyte		0x03		\b, coredump data
+>>>3	ubyte		0x04		\b, NVS keys
+>>>3	ubyte		0x05		\b, emulated eFuse data
+>>>3	ubyte		0x06		\b, undefined data
+>>>3	ubyte		0x80		\b, ESPHTTPD partition
+>>>3	ubyte		0x81		\b, FAT partition
+>>>3	ubyte		0x82		\b, SPIFFS partition
+>>>3	ubyte		0xFF		\b, any data
+>>4	ulelong		x		\b, offset: 0x%X
+>>8	ulelong		x		\b, size: 0x%X
+>>28	ulelong&0x1	1		\b, encrypted
+
+# ESP-IDF application image
+# From: Alexandre Iooss <erdnaxe@crans.org>
+# URL: https://github.com/espressif/esp-idf/blob/v5.0/components/bootloader_support/include/esp_app_format.h
+# Note: Concatenation of esp_image_header_t, esp_image_segment_header_t and esp_app_desc_t
+# 	First segment contains esp_app_desc_t
+0	ubyte		0xE9
+>32	ulelong		0xABCD5432	ESP-IDF application image
+>>12	uleshort	0x0000		for ESP32
+>>12	uleshort	0x0002		for ESP32-S2
+>>12	uleshort	0x0005		for ESP32-C3
+>>12	uleshort	0x0009		for ESP32-S3
+>>12	uleshort	0x000A		for ESP32-H2 Beta1
+>>12	uleshort	0x000C		for ESP32-C2
+>>12	uleshort	0x000D		for ESP32-C6
+>>12	uleshort	0x000E		for ESP32-H2 Beta2
+>>12	uleshort	0x0010		for ESP32-H2
+>>80	string/32	x		\b, project name: "%s"
+>>48	string/32	x		\b, version %s
+>>128	string/16	x		\b, compiled on %s
+>>>112	string/16	x		%s
+>>144	string/32	x		\b, IDF version: %s
+>>4	ulelong		x		\b, entry address: 0x%08X
 
 #------------------------------------------------------------------------------
 # $File: flash,v 1.15 2019/04/19 00:42:27 christos Exp $
@@ -16910,7 +17661,7 @@
 >4	long	x	uncompressed size: %d
 
 #------------------------------------------------------------------------------
-# $File: games,v 1.30 2022/12/24 22:33:20 christos Exp $
+# $File: games,v 1.31 2023/03/29 22:57:27 christos Exp $
 # games:  file(1) for games
 
 # Fabio Bonelli <fabiobonelli@libero.it>
@@ -17093,6 +17844,15 @@
 
 0	string	MComprHD	MAME CHD compressed hard disk image,
 >12	belong	x		version %u
+
+# MAME input recordings
+
+0	string	MAMEINP\0		MAME input recording
+>8	leqdate	x			at %s,
+>16	leshort	x			format version %d.
+>18	leshort	x			\b%d,
+>20	string	x			%s driver,
+>32	string	x			%s
 
 # doom - submitted by Jon Dowland
 
@@ -19477,7 +20237,7 @@
 !:mime	application/x-blorb
 
 #------------------------------------------------------------------------------
-# $File: images,v 1.236 2022/10/31 13:22:26 christos Exp $
+# $File: images,v 1.243 2023/07/17 16:49:09 christos Exp $
 # images:  file(1) magic for image formats (see also "iff", and "c-lang" for
 # XPM bitmaps)
 #
@@ -20085,7 +20845,7 @@
 # GRR: with --keep-going option the line above gives duplicate messages
 0	search/1/ts	#FIG
 >&0	use		image-xfig
-# binary data variant with non ASCII text characters like Control-A or ï¿½C in thermostat.fig
+# binary data variant with non ASCII text characters like Control-A or °C in thermostat.fig
 0	search/1/bs	#FIG
 >&0	use		image-xfig
 #	display XFIG image describing text, mime type, file name extension and version
@@ -21189,6 +21949,19 @@
 #>32058  ubequad		!0		\b, channel delays %16.16llx
 
 # From:		Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/GED
+#		https://recoil.sourceforge.net/formats.html#Atari-8-bit
+# Reference:	https://sourceforge.net/projects/recoil/files/recoil/6.3.4/recoil-6.3.4.tar.gz
+#		recoil-6.3.4/recoil.c
+#		http://mark0.net/download/triddefs_xml.7z/defs/b/bitmap-ged.trid.xml
+# Note:		called "Atari GED bitmap" by TrID; file size 11302
+#		and verified by RECOIL graphic tool
+0	string		\xFF\xFF0SO\x7F		Atari GED bitmap, 160x200
+#!:mime	application/octet-stream
+!:mime	image/x-atari-ged
+!:ext	ged
+
+# From:		Joerg Jenderek
 # URL:		http://fileformats.archiveteam.org/wiki/ImageLab/PrintTechnic
 # Reference:	http://mark0.net/download/triddefs_xml.7z/defs/b/bitmap-b_w.trid.xml
 # Note:		called "ImageLab bitmap" by TrID
@@ -22026,7 +22799,7 @@
 # URL: http://local.wasp.uwa.edu.au/~pbourke/dataformats/pic/
 # Radiance HDR; usually has .pic or .hdr extension.
 0	string	#?RADIANCE\n	Radiance HDR image data
-#!mime	image/vnd.radiance
+!:mime	image/vnd.radiance
 
 # From: Adam Buchbinder <adam.buchbinder@gmail.com>
 # URL: https://www.mpi-inf.mpg.de/resources/pfstools/pfs_format_spec.pdf
@@ -23396,6 +24169,29 @@
 #	display ICC/ICM color profile by ./icc
 #>>>0x154	use		color-profile
 
+# URL:		http://fileformats.archiveteam.org/wiki/CorelDRAW
+#		https://en.wikipedia.org/wiki/CorelDRAW
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/c/cdr-gen.trid.xml
+# Note:		called "CorelDRAW drawing (generic)" by TrID
+#		version til 2 WL-based; from version 3 til 13 handled by ./riff and from 14 zip based handled by ./archive
+0	ubelong&0xFFffF7ff	0x574C6500	Corel Draw Picture
+#!:mime						image/x-coreldraw
+!:mime						application/vnd.corel-draw
+!:ext						cdr
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/c/cdr-corel-10.trid.xml
+# Note:		called "CorelDRAW drawing (v1.0)" by TrID and
+#		"CorelDraw Drawing" with version "1.0" by DROID via PUID fmt/467
+#		only DROID fmt-467-signature-id-726.cdr example
+>2	ubyte			0x65		\b, version 1.0
+#>>4	ubelong			!0x45000000	\b, at 4 %#8.8x
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/c/cdr-corel-20.trid.xml
+# Note:		called "CorelDRAW drawing (v2.0)" by TrID and
+#		"CorelDraw Drawing" with version "2.0" by DROID via PUID fmt/466
+>2	ubyte			0x6D		\b, version 2.0
+# According to DROID 0xed080000 or 0x25050000
+#>>4	ubelong			!0xed080000
+#>>>4	ubelong			!0x25050000	\b, at 4 %#8.8x
+
 # Type: Crunch compressed texture.
 # From: David Korth <gerbilsoft@gerbilsoft.com>
 # References:
@@ -23613,6 +24409,51 @@
 #!:mime	application/octet-stream
 !:mime	image/x-idf
 !:ext	idf
+
+# Type: ColoRIX VGA Paint Image File (.rix/.sci/.scX)
+# From: Eddy Jansson <github.com/eloj>
+# Reference: https://www.fileformat.info/format/rix/spec/
+#
+0	name		rix-header
+>0	uleshort	x	\b, %u x
+>2	uleshort	x	%u
+# palette type:
+# .. if direct color, low bits encode bpp
+>4	ubyte&128	0
+>>4 ubyte&127		x	\b %u bpp (direct color)
+# .. else palette
+>4	ubyte&128	128
+>>4	ubyte&7		0	\b x 2
+>>4	ubyte&7		1	\b x 4
+>>4	ubyte&7		2	\b x 8
+>>4	ubyte&7		3	\b x 16
+>>4	ubyte&7		4	\b x 32
+>>4	ubyte&7		5	\b x 64
+>>4	ubyte&7		6	\b x 128
+>>4	ubyte&7		7	\b x 256
+# storage type
+#>5	ubyte&15	0	\b, Linear
+>5	ubyte&15	1	\b, Planar (0213)
+>5	ubyte&15	2	\b, Planar
+>5	ubyte&15	3	\b, Text
+>5	ubyte&15	4	\b, Planar lines
+>5	ubyte&128	128	\b (compressed)
+>5	ubyte&64	64	\b (extension)
+>5	ubyte&32	32	\b (encrypted)
+
+0	string	RIX3	ColoRIX Image
+>4	use		rix-header
+
+0	string	RIX7	ColoRIX Slideshow
+
+# http://fileformats.archiveteam.org/wiki/PaperPort_(MAX)
+0	string 	ViG	Visioneer PaperPort
+>3	string	Ae	2
+>3	string	Be	2
+>3	string	Cj	3-4
+>3	string	Em	5-7
+>3	string	Fk	8-12
+>3	default	x	MAX
 
 #------------------------------------------------------------------------------
 # $File: inform,v 1.5 2009/09/19 16:28:09 christos Exp $
@@ -24031,7 +24872,7 @@
 #>36	lelong	x	\b, block size %u
 
 #------------------------------------------------------------
-# $File: java,v 1.21 2019/02/18 17:58:50 christos Exp $
+# $File: java,v 1.22 2023/01/11 23:59:49 christos Exp $
 # Java ByteCode and Mach-O binaries (e.g., Mac OS X) use the
 # same magic number, 0xcafebabe, so they are both handled
 # in the entry called "cafebabe".
@@ -24075,22 +24916,79 @@
 >4	leshort	x	\b.%d
 !:mime	application/x-java-image
 
+# JAR Manifest & Signature File
+# Reference: https://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html
+0	string/t	Manifest-Version:\x201.0	JAR Manifest
+!:ext	MF
+0	string/t	Signature-Version:\x201.0	JAR Signature File
+!:ext	SF
+
 #------------------------------------------------------------------------------
-# $File: javascript,v 1.4 2022/09/02 08:08:17 christos Exp $
+# $File: javascript,v 1.5 2023/01/12 00:02:16 christos Exp $
 # javascript:  magic for javascript and node.js scripts.
 #
-0	string/w	#!/bin/node		Node.js script text executable
+0	string/tw	#!/bin/node		Node.js script executable
 !:mime application/javascript
-0	string/w	#!/usr/bin/node		Node.js script text executable
+0	string/tw	#!/usr/bin/node		Node.js script executable
 !:mime application/javascript
-0	string/w	#!/bin/nodejs		Node.js script text executable
+0	string/tw	#!/bin/nodejs		Node.js script executable
 !:mime application/javascript
-0	string/w	#!/usr/bin/nodejs	Node.js script text executable
+0	string/tw	#!/usr/bin/nodejs	Node.js script executable
 !:mime application/javascript
-0	string		#!/usr/bin/env\ node	Node.js script text executable
+0	string/t		#!/usr/bin/env\ node	Node.js script executable
 !:mime application/javascript
-0	string		#!/usr/bin/env\ nodejs	Node.js script text executable
+0	string/t		#!/usr/bin/env\ nodejs	Node.js script executable
 !:mime application/javascript
+
+# JavaScript
+# The strength is increased to beat the C++ & HTML rules
+0	search	"use\x20strict"	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	search	'use\x20strict'	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	module(\\.|\\[["'])exports.*=	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	\^(const|var|let).*=.*require\\(	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	\^export\x20(function|class|default|const|var|let|async)\x20	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	\\((async\x20)?function[(\x20]	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	\^(import|export).*\x20from\x20	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	\^(import|export)\x20["']\\./	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	\^require\\(["']	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+0	regex	typeof.*[!=]==	JavaScript source
+!:strength +30
+!:mime	application/javascript
+!:ext 	js
+
+# React Native minified JavaScript
+0	search/128	__BUNDLE_START_TIME__=	React Native minified JavaScript
+!:strength +30
+!:mime	application/javascript
+!:ext	bundle/jsbundle
+
 # Hermes by Facebook https://hermesengine.dev/
 # https://github.com/facebook/hermes/blob/master/include/hermes/\
 # BCGen/HBC/BytecodeFileFormat.h#L24
@@ -24785,7 +25683,7 @@
 
 
 #------------------------------------------------------------------------------
-# $File: linux,v 1.84 2022/11/29 23:10:29 christos Exp $
+# $File: linux,v 1.85 2023/07/17 14:40:09 christos Exp $
 # linux:  file(1) magic for Linux files
 #
 # Values for Linux/i386 binaries, from Daniel Quinlan <quinlan@yggdrasil.com>
@@ -25165,26 +26063,96 @@
 # Systemd journald files
 # See https://www.freedesktop.org/wiki/Software/systemd/journal-files/.
 # From: Zbigniew Jedrzejewski-Szmek <zbyszek@in.waw.pl>
-
-# check magic
+# Update: 	Joerg Jenderek
+# URL:		https://systemd.io/JOURNAL_FILE_FORMAT/
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/j/journal-sysd.trid.xml
+# Note:		called "systemd journal" by TrID
+#		verified by `journalctl --file=user-1000.journal`
+# check magic signature[8]
 0	string	LPKSHHRH
 # check that state is one of known values
+# STATE_OFFLINE~0 STATE_ONLINE~1 STATE_ARCHIVED~2
 >16		ubyte&252	0
 # check that each half of three unique id128s is non-zero
+# file_id
 >>24		ubequad		>0
 >>>32		ubequad		>0
+# machine_id
 >>>>40		ubequad		>0
 >>>>>48		ubequad		>0
+# boot_id; last writer
 >>>>>>56	ubequad		>0
 >>>>>>>64	ubequad		>0	Journal file
-!:mime application/octet-stream
+#!:mime application/octet-stream
+!:mime application/x-linux-journal
 # provide more info
+# head_entry_realtime; contains a POSIX timestamp stored in microseconds
+>>>>>>>>184	leqdate/1000000	!0	\b, %s
 >>>>>>>>184	leqdate		0	empty
->>>>>>>>16	ubyte		0	\b, offline
->>>>>>>>16	ubyte		1	\b, online
+# If a file is closed after writing the state field should be set to STATE_OFFLINE
+>>>>>>>>16	ubyte		0	\b,
+# for offline and empty only journal~ extension found
+>>>>>>>>>184	leqdate		0	offline
+# https://man7.org/linux/man-pages/man8/systemd-journald.service.8.html
+# GRR: add char ~ inside parse_ext in ../../src/apprentice.c to avoid in file version 5.44 error like:
+# Magdir/linux, 463: Warning: EXTENSION type `		journal~' has bad char '~'
+!:ext		journal~
+# for offline and non empty often *.journal~ but also user-1001.journal
+>>>>>>>>>184	leqdate		!0	offline
+!:ext		journal/journal~
+# if a file is opened for writing the state field should be set to STATE_ONLINE
+>>>>>>>>16	ubyte		1	\b,
+# for online and empty only journal~ extension found
+>>>>>>>>>184	leqdate		0	online
+# system@0005febee06e2ff2-f7ea54d10e4346ff.journal~
+!:ext		journal~
+# for online and non empty only journal extension found
+>>>>>>>>>184	leqdate		!0	online
+# system.journal user-1000.journal
+!:ext		journal
+# after a file has been rotated it should be set to STATE_ARCHIVED
 >>>>>>>>16	ubyte		2	\b, archived
+!:ext		journal
+# no *.journal~ found
+#!:ext		journal/journal~
+# compatible_flags
 >>>>>>>>8	ulelong&1	1	\b, sealed
+# incompatible_flags; COMPRESSED_XZ~1 COMPRESSED_LZ4~2 KEYED_HASH~4 COMPRESSED_ZSTD~8 COMPACT~16
+#>>>>>>>>12	ulelong		x	FLAGS=%#x
 >>>>>>>>12	ulelong&1	1	\b, compressed
+>>>>>>>>12	ulelong&2	!0	\b, compressed lz4
+>>>>>>>>12	ulelong&4	!0	\b, keyed hash siphash24
+>>>>>>>>12	ulelong&8	!0	\b, compressed zstd
+>>>>>>>>12	ulelong&16	!0	\b, compact
+# uint8_t reserved[7]; apparently nil
+#>>17		long		!0	\b, reserved %#8.8x
+# seqnum_id; like: 0 e623691afec94b5aa968ae2d726c49cc f98b2af481924b29 8d6816ca3639edc6
+#>>>>>>>>72	ubequad		x	\b, seqnum_id %#16.16llx
+#>>>>>>>>80	ubequad		x	b%16.16llx
+# header_size like: 100h
+>>>>>>>>88	ulequad		!0x100h	\b, header size %#llx
+# arena_size  like: 0 7fff00h ffff00h 17fff00h
+#>>>>>>>>96	ulequad		>0	\b, arena size %#llx
+# data_hash_table_offset like: 0 15f0h 15f0h
+#>>>>>>>>104	ulequad		>0	\b, hash table offset %#llx
+# data_hash_table_size like: 0 38e380h
+#>>>>>>>>112	ulequad		>0	\b, hash table size %#llx
+# field_hash_table_offset like: 0 110h
+#>>>>>>>>120	ulequad		>0	\b, field hash table offset %#llx
+# field_hash_table_size like: 0 14d0h
+#>>>>>>>>128	ulequad		>0	\b, field hash table size %#llx
+# tail_object_offset like: 0 43edd8h 511278h c68968h d487d0h efaa98h
+#>>>>>>>>136	ulequad		>0	\b, tail object offset %#llx
+# n_objects like: 0 1032h 5a2eh 92bdh a8b5h aa75h 112adh 40c23h 4714eh
+#>>>>>>>>144	ulequad		>0	\b, objects %#llx
+# n_entries like: 0 3aeh 235ah 2dc4h 3125h 16129h 187a1h
+>>>>>>>>152	ulequad		>0	\b, entries %#llx
+# tail_entry_seqnum like: 0 1988h 16249h 24c12h 24c12h 41e64h 9fefdh
+#>>>>>>>>160	ulequad		>0	\b, tail entry seqnum %#llx
+# head_entry_seqnum like: 0 1h 15dbh 6552h 213bfh 213bfh 3e672h 9a28ah
+#>>>>>>>>168	ulequad		>0	\b, head entry seqnum %#llx
+# entry_array_offset like: 0 390058h 3909d8h 3909e0h
+#>>>>>>>>176	ulequad		>0	\b, entry array offset %#llx
 
 # BCache backing and cache devices
 # From: Gabriel de Perthuis <g2p.code@gmail.com>
@@ -25420,7 +26388,7 @@
 !:mime	text/texmacs
 
 #------------------------------------------------------------------------------
-# $File: llvm,v 1.9 2019/04/19 00:42:27 christos Exp $
+# $File: llvm,v 1.10 2023/03/11 17:54:17 christos Exp $
 # llvm:  file(1) magic for LLVM byte-codes
 # URL:  https://llvm.org/docs/BitCodeFormat.html
 # From: Al Stone <ahs3@fc.hp.com>
@@ -25429,6 +26397,7 @@
 0	string	llvc0	LLVM byte-codes, null compression
 0	string	llvc1	LLVM byte-codes, gzip compression
 0	string	llvc2	LLVM byte-codes, bzip2 compression
+0	string	CPCH	LLVM Pre-compiled header file
 
 0	lelong	0x0b17c0de	LLVM bitcode, wrapper
 # Are these Mach-O ABI values?  They appear to be.
@@ -26436,13 +27405,74 @@
 0	string		book\0\0\0\0mark\0\0\0\0	MacOS Alias file
 
 #------------------------------------------------------------------------------
-# $File: magic,v 1.10 2010/11/25 15:00:12 christos Exp $
+# $File: magic,v 1.11 2023/06/27 13:42:49 christos Exp $
 # magic:  file(1) magic for magic files
 #
-0	string/t		#\ Magic	magic text file for file(1) cmd
+# Update:	Joerg Jenderek
+# skip Magicsee_R1.cfg found on retropie starting with # Magicsee R1 one-handed controller
+0	string/t		#\ Magic\ 	magic text file for file(1) cmd
+#!:mime	text/plain
+!:mime	text/x-file
+# no suffix in ../Header
+!:ext	/
+#
+# some samples start with a comment line
+0	ubyte		=0x23
+# many samples start with separator line
+>4	string		--------
+>>0	use		magic-fragment
+# few samples with 1st comment line and without seperator comment line
+>4	default		x
+# few sample with 1st comment line and without seperator comment line and regular expression like: sisu
+>>1	search/112	regex\x09
+>>>0	use		magic-fragment
+>>1	default		x
+# few samples with 1st comment line and without seperator comment line and string value like:
+# blcr bsi selinux ssh (file 3.34) digital gnu wordperfect
+>>>1	search/471	string\x09
+>>>>0	use		magic-fragment
+>>>1	default		x
+# few samples with 1st comment line and without seperator comment line and short value like:
+# (file 3.34) os9 osf1
+>>>>1	search/1716	short\x09
+>>>>>0	use		magic-fragment
+# but many samples start with an empty first line
+0	ubyte		=0x0A
+# many samples sttart with separator comment line
+>4	string		--------
+>>0	use		magic-fragment
+# few samples with 1st empty line and without seperator comment line like: biosig espressif
+>4	default		x
+>>1	search/581	\041:mime
+>>>0	use		magic-fragment
+#	display information (lines) about magic text fragment
+0	name		magic-fragment
+>0	string		x		magic text fragment for file(1) cmd
+!:mime	text/x-file
+# most without suffix but mail.news varied.out varied.script
+!:ext	/news/out/script
+# next lines are mainly for control reasons
+# some (34/339) samples start comment line
+>0	ubyte		!0x0A
+>>0	string		x		\b, 1st line "%s"
+>>>&1	string		x		\b, 2nd line "%s"
+# but most (305/339) samples start with an empty first line
+>0	ubyte		=0x0A
+>>1	string		x		\b, 2nd line "%s"
+>>>&1	string		x		\b, 3rd line "%s"
+#
+# URL:		http://en.wikipedia.org/wiki/File_(command)
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/m/mgc.trid.xml
+# Note:		called "magic compiled data (LE)" by TrID
 0	lelong		0xF11E041C	magic binary file for file(1) cmd
+#!:mime	application/octet-stream
+!:mime application/x-file
+!:ext	mgc
 >4	lelong		x		(version %d) (little endian)
 0	belong		0xF11E041C	magic binary file for file(1) cmd
+#!:mime	application/octet-stream
+!:mime application/x-file
+!:ext	mgc
 >4	belong		x		(version %d) (big endian)
 #------------------------------------------------------------------------------
 # $File: mail.news,v 1.30 2022/10/31 13:22:26 christos Exp $
@@ -26600,7 +27630,7 @@
 
 
 #------------------------------------------------------------------------------
-# $File: map,v 1.9 2021/04/26 15:56:00 christos Exp $
+# $File: map,v 1.10 2023/02/03 20:41:57 christos Exp $
 # map:  file(1) magic for Map data
 #
 
@@ -27005,6 +28035,11 @@
 >>>>5	byte	x		\b%d,
 >>>>6	leshort	x		product ID %04d)
 
+# Garmin firmware:
+# https://www.memotech.franken.de/FileFormats/Garmin_GCD_Format.pdf
+# https://www.gpsrchive.com/GPSMAP/GPSMAP%2066sr/Firmware.html
+0	string		GARMIN
+>6	uleshort	100	GARMIN firmware (version 1.0)
 
 #------------------------------------------------------------------------------
 # $File: maple,v 1.10 2021/08/30 13:31:25 christos Exp $
@@ -27154,49 +28189,60 @@
 0	string	.MCAD\t		Mathcad document
 
 #------------------------------------------------------------------------------
-# $File: mathematica,v 1.15 2022/10/31 13:22:26 christos Exp $
+# $File: mathematica,v 1.17 2023/06/16 19:33:58 christos Exp $
 # mathematica:  file(1) magic for mathematica files
 # "H. Nanosecond" <aldomel@ix.netcom.com>
 # Mathematica a multi-purpose math program
 # versions 2.2 and 3.0
 
+0	name	wolfram
+>0	string	x	Mathematica notebook version 2.x
+!:ext mb
+!:mime application/vnd.wolfram.mathematica
+
 #mathematica .mb
-0	string	\064\024\012\000\035\000\000\000	Mathematica version 2 notebook
-!:ext mb
-0	string	\064\024\011\000\035\000\000\000	Mathematica version 2 notebook
-!:ext mb
+0	string	\064\024\012\000\035\000\000\000
+>0	use	wolfram
+0	string	\064\024\011\000\035\000\000\000
+>0	use	wolfram
+
+# 
+0	search/1000	Content-type:\040application/mathematica	Mathematica notebook version 2.x
+!:ext nb
+!:mime application/mathematica
+
 
 # .ma
 # multiple possibilities:
 
-0	string	(*^\n\n::[\011frontEndVersion\ =\ 	Mathematica notebook
+0	string	(*^\n\n::[\011frontEndVersion\ =
 #>41	string	>\0	%s
-!:ext mb
+>0	use	wolfram
 
-#0	string	(*^\n\n::[\011palette	Mathematica notebook version 2.x
+#0	string	(*^\n\n::[\011palette
 
-#0	string	(*^\n\n::[\011Information	Mathematica notebook version 2.x
+#0	string	(*^\n\n::[\011Information
 #>675	string	>\0	%s #doesn't work well
 
 # there may be 'cr' instead of 'nl' in some does this matter?
 
 # generic:
-0	string	(*^\r\r::[\011	Mathematica notebook version 2.x
-!:ext mb
-0	string	(*^\r\n\r\n::[\011	Mathematica notebook version 2.x
-!:ext mb
-0	string	(*^\015			Mathematica notebook version 2.x
-!:ext mb
-0	string	(*^\n\r\n\r::[\011	Mathematica notebook version 2.x
-!:ext mb
-0	string	(*^\r::[\011	Mathematica notebook version 2.x
-!:ext mb
-0	string	(*^\r\n::[\011	Mathematica notebook version 2.x
-!:ext mb
-0	string	(*^\n\n::[\011	Mathematica notebook version 2.x
-!:ext mb
-0	string	(*^\n::[\011	Mathematica notebook version 2.x
-!:ext mb
+0	string	(*^\r\r::[\011
+>0	use	wolfram
+0	string	(*^\r\n\r\n::[\011
+>0	use	wolfram
+0	string	(*^\015
+>0	use	wolfram
+0	string	(*^\n\r\n\r::[\011
+>0	use	wolfram
+0	string	(*^\r::[\011
+>0	use	wolfram
+0	string	(*^\r\n::[\011
+>0	use	wolfram
+0	string	(*^\n\n::[\011
+>0	use	wolfram
+0	string	(*^\n::[\011
+>0	use	wolfram
 
 
 # Mathematica .mx files
@@ -27288,12 +28334,16 @@
 >>>>>12	ulelong		<2
 # no misidentified little endian MATrix example with "short" matrix name
 >>>>>>16	ulelong		<3
->>>>>>>0	use	\^matlab4
+# skip radeon firmware BONAIRE_sdma.bin HAWAII_sdma.bin KABINI_sdma.bin KAVERI_sdma.bin MULLINS_sdma.bin
+# by check for non zero matrix name length
+>>>>>>>16	ubelong		>0
+>>>>>>>>0	use	\^matlab4
 # little endian MATrix with "long" matrix name or some misidentified samples
 >>>>>>16	ulelong		>2
 # skip TileCacheLogo-*.dat with invalid 2nd character \001 of matrix name with length 96
 >>>>>>>21 ubyte	>0x1F
 >>>>>>>>0 use	\^matlab4
+# Note:		called 	"MATLAB Mat File" with version "Level 4" by DROID via PUID fmt/1550
 #	display information of Matlab v4 mat-file
 0	name	matlab4		Matlab v4 mat-file
 #!:mime	application/octet-stream
@@ -27676,12 +28726,72 @@
 0	long	31415		Mirage Assembler m.out executable
 
 #-----------------------------------------------------------------------------
-# $File: misctools,v 1.20 2021/05/25 15:13:55 christos Exp $
+# $File: misctools,v 1.21 2023/02/03 20:43:48 christos Exp $
 # misctools:  file(1) magic for miscellaneous UNIX tools.
 #
 0	search/1	%%!!			X-Post-It-Note text
-0	string/c	BEGIN:VCALENDAR		vCalendar calendar file
-!:mime	text/calendar
+# URL:		http://fileformats.archiveteam.org/wiki/ICalendar
+#		https://en.wikipedia.org/wiki/ICalendar
+# Update:	Joerg Jenderek
+# Reference:	https://www.rfc-editor.org/rfc/rfc5545
+#		http://mark0.net/download/triddefs_xml.7z/defs/v/vcs.trid.xml
+# Note:		called "iCalendar - vCalendar" by TrID
+0	string/c			BEGIN:vcalendar
+# skip DROID fmt-387-signature-id-572.vcs fmt-388-signature-id-573.ics
+# with invalid separator 0x0 or 0xAB instead of CarriageReturn (0x0D) or LineFeed (0x0A)
+>15	ubyte&0xF8			=0x08
+# look for VERSION keyword often on second line but sometimes later as in holidays_NRW_2014.ics
+>>0	search/188			VERSION
+# after VERSION keword :1.0 or often :2.0 but sometimes also ;VALUE=TEXT:2.0 like in Jewish religious Juish.ics
+# http://www.webcal.guru/de-DE/kalender_herunterladen?calendar_instance_id=217
+# \n\040:2.0 like in import-real-world-2004-11-19.ics found at
+# https://ftp.gnu.org/gnu/emacs/emacs-28.1.tar.xz
+# emacs-28.1/test/lisp/calendar/icalendar-resources/import-real-world-2004-11-19.ics
+#>>>&0		string			x		AFTER_VERSION=%.15s
+# Note:		called "Internet Calendar and Scheduling format" by DROID via PUID fmt/388
+# skip optional verparam=;other-param like ;VALUE=TEXT and look for version 2.0 that implies iCalendar variant
+>>>&0		search/81		:2.0		iCalendar calendar
+# look for Free/Busy component
+>>>>15			search/278	:VFREEBUSY	file, with Free/Busy component
+!:mime							text/calendar
+!:apple							????iFBf
+# no real examples found but only example on Wikipedia page
+!:ext							ifb
+# iCalendar calendar without Free/Busy component
+>>>>15			default		x
+# look for ALARM component
+>>>>>15				search/154 	:VALARM	file, with ALARM component
+!:mime							text/calendar
+!:apple							????iCal
+# found on macOS beneath /Users/$USER/Library/Calendars/ as EventAllDayAlarms.icsalarm or EventTimedAlarms.icsalarm
+# no isc examples found
+!:ext							icsalarm/ics
+# iCalendar calendar without Free/Busy component and ALARM component
+>>>>>15				default		x	file
+!:mime							text/calendar
+!:apple							????iCal
+# no examples found with .ical .icalender suffix
+!:ext							ics
+# if no VERSION 2.0 is found then assume it is VERSION 1.0, that is older vCalendar
+# URL:		http://fileformats.archiveteam.org/wiki/VCalendar
+# Note:		called "VCalendar format" by DROID via fmt/387
+>>>&0		default			x		vCalendar calendar file
+# deprecated
+!:mime							text/x-vcalendar
+!:ext							vcs
+# GRR: without VERSION keyword violates specification but accepted by Thunderbird like
+# https://ftp.gnu.org/gnu/emacs/emacs-28.1.tar.xz
+# emacs-28.1/test/lisp/calendar/icalendar-resources/import-with-timezone.ics
+>>0	default				x		vCalendar calendar file, without VERSION
+!:mime							text/x-vcalendar
+#!:mime							text/calendar
+# no vcs example found
+!:ext							ics/vcs
+# GRR: According to newest specification CarriageReturn (0xD) and LineFeed (0xA) should be used as separator but others accepted by Thunderbird
+# like CRLF,LF in Sport Today.vcs created by calendar plugin of TV-Browser https://enwiki.tvbrowser.org/index.php/Calendar_Export
+# or LF like https://www.schulferien.org/media/ical/deutschland/ferien_nordrhein-westfalen_2023.ics?k=foo
+>>15	ubeshort			!0x0D0A		\b, without CRLF
+
 # updated by Joerg Jenderek at Apr 2015, May 2021
 # https://en.wikipedia.org/wiki/VCard
 # URL: 	http://fileformats.archiveteam.org/wiki/VCard
@@ -27990,7 +29100,7 @@
 #>4	use	zip-dir-entry
 
 #------------------------------------------------------------------------------
-# $File: msdos,v 1.164 2022/12/26 17:23:08 christos Exp $
+# $File: msdos,v 1.169 2023/04/17 16:39:19 christos Exp $
 # msdos:  file(1) magic for MS-DOS files
 #
 
@@ -28276,6 +29386,8 @@
 >>(0x3c.l+4)	leshort		0x5032	RISC-V 32-bit
 >>(0x3c.l+4)	leshort		0x5064	RISC-V 64-bit
 >>(0x3c.l+4)	leshort		0x5128	RISC-V 128-bit
+>>(0x3c.l+4)	leshort		0x6232	LoongArch 32-bit
+>>(0x3c.l+4)	leshort		0x6264	LoongArch 64-bit
 >>(0x3c.l+4)	leshort		0x9041	Mitsubishi M32R
 >>(0x3c.l+4)	leshort		0x8664	x86-64
 >>(0x3c.l+4)	leshort		0xaa64	Aarch64
@@ -28728,14 +29840,18 @@
 0	string	\xffKEYB\ \ \ \0\0\0\0
 >12	string	\0\0\0\0`\004\360	MS-DOS KEYBoard Layout file
 
-# DOS device driver updated by Joerg Jenderek at May 2011,Mar 2017,Aug 2020
+# DOS device driver updated by Joerg Jenderek at May 2011,Mar 2017,Aug 2020,Mar 2023
 # URL:		http://fileformats.archiveteam.org/wiki/DOS_device_driver
 # Reference:	http://www.delorie.com/djgpp/doc/rbinter/it/46/16.html
-# https://amaus.net/static/S100/IBM/software/DOS/DOS%20techref/CHAPTER.009
+# http://www.o3one.org/hwdocs/bios_doc/dosref22.html
 0	ulequad&0x07a0ffffffff		0xffffffff
 # skip OS/2 INI ./os2
 >4  ubelong   !0x14000000
->>0	use				msdos-driver
+#>>10  ubequad   x		MAYBE_DRIVER_NAME=%16.16llx
+# https://bugs.astron.com/view.php?id=434
+# skip OOXML document fragment 0000.dat where driver name is "empty" instead of "ASCII like"
+>>10  ubequad   !0
+>>>0	use				msdos-driver
 0       name    			msdos-driver		DOS executable (
 #!:mime	application/octet-stream
 !:mime	application/x-dosdriver
@@ -28767,8 +29883,8 @@
 >>40	search/7			UPX!
 >>40	default				x
 # leading/trailing nulls, zeros or non ASCII characters in 8-byte name field at offset 10 are skipped
-# 1 space char before device driver name to get phrase like "device driver PROTMAN$"
->>>12		ubyte			>0x2E			\b 
+# 1 space char before device driver name to get phrase like "device driver PROTMAN$" "device driver HP-150II" "device driver PC$MOUSE"
+>>>12		ubyte			>0x23			\b 
 >>>>10		ubyte			>0x20
 >>>>>10		ubyte			!0x2E
 >>>>>>10	ubyte			!0x2A			\b%c
@@ -29473,15 +30589,82 @@
 0	string/b	Nullsoft\ AVS\ Preset\ 	Winamp plug in
 
 # Windows Metafile .WMF
-0	string/b	\327\315\306\232	Windows metafile
-!:mime	image/wmf
-!:ext	wmf
+# URL: 		http://fileformats.archiveteam.org/wiki/Windows_Metafile
+#		http://en.wikipedia.org/wiki/Windows_Metafile
+# Reference:	https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-WMF/%5bMS-WMF%5d.pdf
+#		http://mark0.net/download/triddefs_xml.7z/defs/w/wmf.trid.xml
+# Note:		called "Windows Metafile" by TrID and
+#		verified by ImageMagick `identify -verbose *.wmf` as WMF (Windows Meta File)
+# META_PLACEABLE Record (Aldus Placeable Metafile signature)
+0	string/b	\327\315\306\232
+# Note:		called "Windows Metafile Image with Placeable File Header" by DROID via PUID x-fmt/119
+#		and verified by XnView `nconvert -info abydos.wmf SPA_FLAG.wmf hardcopy-windows-meta.wmf` as "Windows Placeable metafile"
+# skip failed libreoffice-7.3.2.2 ofz35149-1.wmf with invalid version 2020h and exttextout-2.wmf with invalid version 3a02h
+# and x-fmt-119-signature-id-609.wmf without version instead of 0100h=METAVERSION100 or 0300h=METAVERSION300
+>26	uleshort&0xFDff	=0x0100			Windows metafile
+# HWmf; resource handle to the metafile; When the metafile is on disk, this field MUST contain 0
+# seems to be always true but in failed samples 2020h ofz35149-1.wmf 56f8h exttextout-2.wmf
+>>4	uleshort	!0			\b, resource handle %#x
+# BoundingBox; the rectangle in the playback context measured in logical units for displaying
+# sometimes useful like: hardcopy-windows-meta.wmf (0,0 / 1280,1024)
+# but garbage in x-fmt-119-signature-id-609.wmf (-21589,-21589 / -21589,-21589)
+#>>6	ubequad		x			\b, bounding box %#16.16llx
+# Left; x-coordinate of the upper-left corner of the rectangle
+>>6	leshort		x			\b, bounding box (%d
+# Top; y-coordinate upper-left corner
+>>8	leshort		x			\b,%d
+# Right; x-coordinate lower-right corner
+>>10	leshort		x			/ %d
+# Bottom; y-coordinate lower-right corner
+>>12	leshort		x			\b,%d)
+# Inch; number of logical units per inch like: 72 96 575 576 1000 1200 1439 1440 2540
+>>14	uleshort	x			\b, dpi %u
+# Reserved; field is not used and MUST be set to 0; but ababababh in x-fmt-119-signature-id-609.wmf
+>>16	ulelong		!0			\b, reserved %#x
+# Checksum; checksum for the previous 10 words
+>>20	uleshort	x			\b, checksum %#x
+# META_HEADER Record after META_PLACEABLE Record
+>>22	use		wmf-head
+# GRR:		no example for type 2 (DISKMETAFILE) variant found under few thousands WMF
 0	string/b	\002\000\011\000	Windows metafile
+>0	use		wmf-head
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/w/wmf-16.trid.xml
+# Note:		called "Windows Metafile (old Win 3.x format)" by TrID and
+#		"Windows Metafile Image without Placeable File Header" by DROID via PUID x-fmt/119
+#		verified by XnView `nconvert -info *.wmf` as Windows metafile
+# variant with type=1=MEMORYMETAFILE and valid HeaderSize 9
+0	string/b	\001\000\011\000
+# skip DROID x-fmt-119-signature-id-1228.wmf by looking for content after header (18 bytes=2*011)
+>18	ulelong		>0			Windows metafile
+# GRR: in version 5.44 unequal and not endian variant not working!
+#>18	ulelong		!0			THIS_SHOULD_NOT_HAPPEN
+#>18	long		!0			THIS_SHOULD_NOT_HAPPEN
+>>0	use		wmf-head
+#	display information of Windows metafile header (type, size, objects)
+0	name		wmf-head
+# MetafileType: 0001h=MEMORYMETAFILE~Metafile is stored in memory 0002h=DISKMETAFILE~Metafile is stored on disk
+>0	uleshort	!0x0001			\b, type %#x
+# HeaderSize; the number of WORDs in header record; seems to be always 9 (18 bytes)
+>2	uleshort*2	!18			\b, header size %u
+# MetafileVersion: 0100h=METAVERSION100~DIBs (device-independent bitmaps) not supported 0300h=METAVERSION300~DIBs are supported
+# but in failed samples 2020h ofz35149-1.wmf 3a02h exttextout-2.wmf
+>4	uleshort	=0x0100			\b, DIBs not supported 
+>4	uleshort	=0x0300
+#>4	uleshort	=0x0300			\b, DIBs supported
+# this should not happen!
+>4	default		x			\b, version
+>>4	uleshort	x			%#x
+# Size; the number of WORDs in the entire metafile
+>6	ulelong	x				\b, size %u words
+#>6	ulelong*2	x			\b, size %u bytes
 !:mime	image/wmf
 !:ext	wmf
-0	string/b	\001\000\011\000	Windows metafile
-!:mime	image/wmf
-!:ext	wmf
+# NumberOfObjects: the number of graphics objects like: 0 hardcopy-windows-meta.wmf 1 2 3 4 5 6 7 8 9 12 13 14 16 17 20 27 110 PERSGRID.WMF
+>10	uleshort	x			\b, %u objects
+# MaxRecord: the size of the largest record in the metafile in WORDs like: 78h b0h 1f4h 310h 63fh 1e0022h 3fcc21h
+>12	ulelong		x			\b, largest record size %#x
+# NumberOfMembers: It SHOULD be 0x0000, but 5 TestBitBltStretchBlt.wmf 13 TestPalette.wmf and in failed samples 4254 bitcount-1.wmf 8224 ofz5942-1.wmf 56832 exttextout-2.wmf
+>16	uleshort	!0			\b, %u members
 
 #tz3 files whatever that is (MS Works files)
 0	string/b	\003\001\001\004\070\001\000\000	tz3 ms-works file
@@ -29634,8 +30817,6 @@
 1	string		RDC-meg		MegaDots
 >8	byte		>0x2F		version %c
 >9	byte		>0x2F		\b.%c file
-0	lelong		0x4C
->4	lelong		0x00021401	Windows shortcut file
 
 # .PIF files added by Joerg Jenderek from https://smsoft.ru/en/pifdoc.htm
 # only for windows versions equal or greater 3.0
@@ -29670,17 +30851,6 @@
 #>>&06		string	x			\b:%s
 >0x187	search/0xB55	AUTOEXECBAT\ 4.0\0	\b +AUTOEXEC.BAT
 #>>&06		string	x			\b:%s
-
-# DOS EPS Binary File Header
-# From: Ed Sznyter <ews@Black.Market.NET>
-0	belong		0xC5D0D3C6	DOS EPS Binary File
-!:mime	image/x-eps
->4	long		>0		Postscript starts at byte %d
->>8	long		>0		length %d
->>>12	long		>0		Metafile starts at byte %d
->>>>16	long		>0		length %d
->>>20	long		>0		TIFF starts at byte %d
->>>>24	long		>0		length %d
 
 # Norton Guide (.NG , .HLP) files added by Joerg Jenderek from source NG2HTML.C
 # of http://www.davep.org/norton-guides/ng2h-105.tgz
@@ -29894,7 +31064,7 @@
 # URL:		https://en.wikipedia.org/wiki/Microsoft_OneNote#File_format
 #		http://fileformats.archiveteam.org/wiki/OneNote
 # Reference:	https://mark0.net/download/triddefs_xml.7z/defs/o/onepkg.trid.xml
-# 1st member name like: "Class Notes.one" "test-onenote.one" "Open Notebook.onetoc2" "Editor ï¿½ffnen.onetoc2"
+# 1st member name like: "Class Notes.one" "test-onenote.one" "Open Notebook.onetoc2" "Editor Öffnen.onetoc2"
 >>>>>&0	string/c	one		\b, OneNote Package
 !:mime	application/msonenote
 !:ext	onepkg
@@ -30234,7 +31404,7 @@
 #
 
 #------------------------------------------------------------------------------
-# $File: msooxml,v 1.18 2022/08/16 11:16:39 christos Exp $
+# $File: msooxml,v 1.19 2023/03/14 19:46:15 christos Exp $
 # msooxml:  file(1) magic for Microsoft Office XML
 # From: Ralf Brown <ralf.brown@gmail.com>
 
@@ -30289,6 +31459,16 @@
 >>>>>>>>>&26	use		msooxml	
 >>>>>>>>>&26	default		x		Microsoft OOXML
 >>>>>>>&26	default		x		Microsoft OOXML
+>>>>>&26	default		x		Microsoft OOXML
+>>0x1E		regex		\\[trash\\]
+>>>&26		search/6000	PK\003\004
+>>>>&26		search/6000	PK\003\004
+>>>>>&26	use		msooxml	
+>>>>>&26	default		x	
+>>>>>>&26	search/6000	PK\003\004
+>>>>>>>&26	use		msooxml	
+>>>>>>>&26	default		x		Microsoft OOXML
+>>>>>>&26	default		x		Microsoft OOXML
 >>>>>&26	default		x		Microsoft OOXML
 
 #------------------------------------------------------------------------------
@@ -31531,7 +32711,7 @@
 0	string		Octave-1-B	Octave binary data (big endian)
 
 #------------------------------------------------------------------------------
-# $File: ole2compounddocs,v 1.22 2022/12/09 15:56:56 christos Exp $
+# $File: ole2compounddocs,v 1.26 2023/05/15 16:46:12 christos Exp $
 # Microsoft OLE 2 Compound Documents : file(1) magic for Microsoft Structured
 # storage (https://en.wikipedia.org/wiki/Compound_File_Binary_Format)
 # Additional tests for OLE 2 Compound Documents should be under this recipe.
@@ -31793,9 +32973,11 @@
 !:ext	tpl
 #
 # URL:	https://en.wikipedia.org/wiki/Hangul_(word_processor)
+#       https://www.hancom.com/etc/hwpDownload.do
 # Note:	"HWP Document File" signature found in FileHeader
+# Hangul Word Processor WORDIAN, 2002 and later is using HWP 5.0 format.
 # Second directory entry name FileHeader hint for Thinkfree Office document
->>>>128 	lestring16	FileHeader		: Hangul (Korean) 5.0 Word Processor File
+>>>>128 	lestring16	FileHeader		: Hancom HWP (Hangul Word Processor) file, version 5.0
 #!:mime	application/haansofthwp
 !:mime	application/x-hwp
 # https://example-files.online-convert.com/document/hwp/example.hwp
@@ -31851,6 +33033,32 @@
 #	remaining null clsid
 >>>>128 	default		x
 >>>>>0 	use		ole2-unknown
+# look for CLSID where "second" part is 0
+>>>80 	ubequad		!0x0
+#
+# Summary:	Family Tree Maker
+# From:		Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/Family_Tree_Maker
+#		https://en.wikipedia.org/wiki/Family_Tree_Maker
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/f/ftw.trid.xml
+# Note		called "Family Tree Maker Family Tree" by TrID and
+#		"FamilyTree Maker Database" with version "1-4" by DROID via PUID fmt/1352
+#		tested only with version 2.0
+#		verified by Michal Mutl Structured Storage Viewer `SSView.exe my.ftw`
+#		newer versions are SQLite based and handled by ./sql
+# directory names like: IND.DB AUX.DB GENERAL.DB NAME.NDX BIRTH.NDX EXTRA.DB
+>>>>80 	ubequad		0x5702000000000000	: Family Tree Maker Windows database, version 1-4
+# look for "File Format (C) Copyright 1993 Banner Blue Software Inc. - All Rights Reserved" in GENERAL.DB
+#>>>>>0	search/0x5460c/s	F\0i\0l\0e\0\040\0F\0o\0r\0m\0a\0t\0\040\0(\0C\0)\0	\b, VERSION
+# GRR: jump to version value like 2 does not work!
+#>>>>>>&-8	ubyte		x							%u
+#!:mime	application/x-ole-storage
+!:mime	application/x-fmt
+# FBK is used for backup of FTW
+!:ext	ftw/fbk
+#
+>>>>80 	default		x
+>>>>>0 	use		ole2-unknown
 #	look for known clsid GUID
 # - Visio documents
 # URL:	http://fileformats.archiveteam.org/wiki/Visio
@@ -31875,6 +33083,14 @@
 # cub is used for validation module like: Vstalogo.cub XPlogo.cub darice.cub logo.cub mergemod.cub
 #!:mime	application/x-ms-cub
 !:ext	msi/cub
+# From:		Joerg Jenderek
+# URL:		http://en.wikipedia.org/wiki/Windows_Installer
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/m/mst.trid.xml
+#		called "Windows SDK Setup Transform script" by TrID
+>>>80 	ubequad		0x82100c0000000000	: Microsoft Windows Installer transform script
+#!:mime	application/x-ole-storage
+!:mime	application/x-ms-mst
+!:ext	mst
 >>>80 	ubequad		0x86100c0000000000	: Microsoft Windows Installer Patch
 # ??
 !:mime	application/x-wine-extension-msp
@@ -32100,6 +33316,19 @@
 # https://www.macdisk.com/macsigen.php "WPC2" for Wordperfect 2 *.wpd
 !:apple	????WPC9
 !:ext	wpg
+#
+# From:		Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/CorelCAD
+#		https://en.wikipedia.org/wiki/CorelCAD
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/c/ccd-corelcad.trid.xml
+# Note:		called "CorelCAD Drawing" by TrID and CorelCAD
+# directory entry names like Contents ViewInfo CustomViewDescriptions LayerInfo
+>>88 	ubequad		0xbe26db67235e2689	: Corel
+>>>80 	ubequad		0x20f414de1cacce11	\bCAD Drawing or Template
+#!:mime	application/x-ole-storage
+!:mime	application/x-corel-cad
+# CCT for CorelCAD Template 
+!:ext	ccd/cct
 #
 # URL:	http://fileformats.archiveteam.org/wiki/StarOffice_binary_formats
 >>88 	ubequad		0x996104021c007002	: StarOffice
@@ -33178,13 +34407,13 @@
 >0x200	beshort	0x55aa	PCjr Cartridge image
 
 #------------------------------------------------------------------------------
-# $File: pdf,v 1.16 2021/07/30 11:47:07 christos Exp $
+# $File: pdf,v 1.18 2023/07/17 15:57:18 christos Exp $
 # pdf:  file(1) magic for Portable Document Format
 #
 
 0	name	pdf
 >8	search		/Count
->>&0	regex		[0-9]+		\b, %s pages
+>>&0	regex		[0-9]+		\b, %s page(s)
 >8	search/512	/Filter/FlateDecode/	(zip deflate encoded)
 
 0	string		%PDF-		PDF document
@@ -33220,7 +34449,7 @@
 >5      byte            x               \b, version %c
 >7      byte            x               \b.%c
 
-0	search/256	%PDF-		PDF document
+0	search/1024	%PDF-		PDF document
 !:mime	application/pdf
 !:strength +60
 !:ext	pdf
@@ -33270,7 +34499,7 @@
 0	leshort		0431		PDP-11 overlaid separate executable
 >8	leshort		>0		not stripped
 #------------------------------------------------------------------------------
-# $File: perl,v 1.26 2017/02/21 18:34:55 christos Exp $
+# $File: perl,v 1.27 2023/07/17 16:01:36 christos Exp $
 # perl:  file(1) magic for Larry Wall's perl language.
 #
 # The `eval' lines recognizes an outrageously clever hack.
@@ -33305,12 +34534,12 @@
 # by Dmitry V. Levin and Alexey Tourbin
 # check the first line
 0	search/8192	package
->0	regex		\^package[\ \t]+[0-9A-Za-z_:]+\ *;	Perl5 module source text
+>0	regex		\^package[[:space:]]+[0-9A-Za-z_:]+[[:space:]]*([[:space:]]v?[0-9][0-9.]*)?[[:space:]]*;	Perl5 module source text
 !:strength + 40
 # not 'p', check other lines
 0	search/8192	!p
->0	regex		\^package[\ \t]+[0-9A-Za-z_:]+\ *;
->>0	regex		\^1\ *;|\^(use|sub|my)\ .*[(;{=]	Perl5 module source text
+>0	regex		\^package[[:space:]]+[0-9A-Za-z_:]+[[:space:]]*([[:space:]]v?[0-9][0-9.]*)?[[:space:]]*;
+>>0	regex		\^1[[:space:]]*;|\^(use|sub|my)[[:space:]].*[(;{=]	Perl5 module source text
 !:strength + 75
 
 # Perl POD documents
@@ -34568,7 +35797,7 @@
 >8	long	x		version %u
 
 #------------------------------------------------------------------------------
-# $File: printer,v 1.32 2022/12/26 17:25:19 christos Exp $
+# $File: printer,v 1.34 2023/06/16 19:27:12 christos Exp $
 # printer:  file(1) magic for printer-formatted files
 #
 
@@ -34598,13 +35827,42 @@
 
 # DOS EPS Binary File Header
 # From: Ed Sznyter <ews@Black.Market.NET>
-0       belong          0xC5D0D3C6      DOS EPS Binary File
->4      long            >0              Postscript starts at byte %d
->>8     long            >0              length %d
->>>12   long            >0              Metafile starts at byte %d
+# Update:	Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/Encapsulated_PostScript
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/eps-adobe.trid.xml
+# Note:		called "Encapsulated PostScript binary" by TrID and 
+#		verified partly by ImageMagick `identify -verbose *` as EPT (Encapsulated PostScript with TIFF preview)
+0       belong          0xC5D0D3C6
+# skip DROID fmt-122-signature-id-174.eps fmt-123-signature-id-178.eps fmt-124-signature-id-180.eps
+# by looking for content after header
+# GRR: in version 5.44 unequal and not endian variant not working!
+>32	ulelong		>0		DOS EPS Binary File
+!:mime	image/x-eps
+# TODO: check that "long" is false on big endian machines
+# Postscript often (850/857) comes after header; so values like: 30 32 or 2788 10644 43350 71828  
+>>4      long            >0              at byte %d
+# 1 space char after length value to get phrase like "length 263893 PostScript document text"
+>>>8     long            >0              length %d 
+# PostScript document text handled by ./printer
+>>>>(4.l)	indirect		x
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/e/eps-wmf.trid.xml
+# Note:		called "Encapsulated PostScript binary (with WMF preview)" by TrID
+#		verified partly by XnView `nconvert -info *.EP?` as TIFF epsp
+>>>>12   long            >0               at byte %d
+!:ext	eps
+# GRR: in file version 5.44 calling indirect of ./msdos produce phrase like "length 452\012- Windows metafile"
 >>>>16  long            >0              length %d
->>>20   long            >0              TIFF starts at byte %d
->>>>24  long            >0              length %d
+# Windows metafile data handled by ./msdos
+>>>>>(12.l)	indirect		x
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/e/eps-tiff.trid.xml
+# Note:		called "Encapsulated PostScript binary (with TIFF preview)" by TrID
+>>>>20   long            >0              at byte %d
+# For the variant with the TIFF preview image sometimes the file extension ept is used
+!:ext	eps/ept
+# GRR: in file version 5.44 calling indirect of ./images produce phrase like "length 43320\012- TIFF image data,"
+>>>>>24  long            >0              length %d
+# TIFF image data handled by ./images
+>>>>>>(20.l)	indirect		x
 
 # Summary: Adobe's PostScript Printer Description File
 # Extension: .ppd
@@ -34746,9 +36004,13 @@
 0	string	DF;
 >0		use		hpgl
 # http://ftp.funet.fi/index/graphics/packages/hpgl2ps/hpgl2ps.tar.Z/hpgl2ps/test3.hpgl 
-# Select Pen n
+# Select Pen n; If no pen number or 0, the controller performs an end of file command; n in range between -32767 and 32768 like: 6
 0	string	SP
->0		use		hpgl
+# skip text Linux-syscall-note inside qemu sources starting with SPDX-Exception-Identifier: Linux-syscall-note
+# by checking for valid Pen number
+>2	regex	\^([0-9]{1,5})
+#>2	regex	\^([0-9]{1,5})	PEN_NUMBER=%s
+>>0		use		hpgl
 # charsize.hp pages.hp	set the scaling points (P1 and P2) to their default positions
 0	string	IP0
 >0		use		hpgl
@@ -34768,8 +36030,13 @@
 0	string	BP
 >0		use		hpgl
 # miter.hp
+# Plot Absolute x,y{,x,y{...}}; x and y in range between -32767 and 32768 like: PA4000,3000;
 0	string	PA
->0		use		hpgl
+# skip shell scripts test_msa_run_32r5eb.sh test_msa_run_32r5eb.sh with variable PATH_TO_QEMU
+# by checking for valid x coordinate
+>2	regex	\^([-]{0,1}[0-9]{1,5})
+#>2	regex	\^([-]{0,1}[0-9]{1,5})	COORDINATE=%s
+>>0		use		hpgl
 # pw.hpg	number of pens x
 0	string	NP
 >0		use		hpgl
@@ -36292,12 +37559,14 @@
 0	string	\x76\xe8\x04\x60\xc4\x11\xe3\x86	rpmsg Restricted Permission Message
 
 #------------------------------------------------------------------------------
-# $File: rst,v 1.3 2020/04/27 01:50:36 christos Exp $
+# $File: rst,v 1.4 2023/07/27 18:26:32 christos Exp $
 # rst: ReStructuredText http://docutils.sourceforge.net/rst.html
 0	search/256	\=\=
 !:strength + 30
 >&0	regex/256	\^[\=]+$
->>&0	search/512	:Author:	ReStructuredText file
+>>&0	search/512	:Author:		ReStructuredText file
+>>&0	search/512	\012Authors:		ReStructuredText file
+>>&0	search/512	\012Author:		ReStructuredText file
 >>&0	default		x
 >>>&0	regex/512	\^\\.\\.[A-Za-z]	ReStructuredText file
 !:ext	rst
@@ -36504,7 +37773,7 @@
 >2	string		V6,sum=			SCCS v6 archive data
 
 #------------------------------------------------------------------------------
-# $File: scientific,v 1.13 2019/04/19 00:42:27 christos Exp $
+# $File: scientific,v 1.14 2023/04/29 17:28:09 christos Exp $
 # scientific:  file(1) magic for scientific formats
 #
 # From: Joe Krahn <krahn@niehs.nih.gov>
@@ -36566,15 +37835,48 @@
 
 # Type: GEDCOM genealogical (family history) data
 # From: Giuseppe Bilotta
+# Update:	Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/GEDCOM
+#		https://en.wikipedia.org/wiki/GEDCOM
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/g/
+#		ged.trid.xml ged-utf8.trid.xml ged-utf16.trid.xml
+# Note:		called "GEDCOM Family History" by TrID and "Genealogical Data Communication (GEDCOM) Format" by DROID via PUID fmt/851
 0       search/1/c	0\ HEAD         GEDCOM genealogy text
+#!:mime	text/plain
+#!:mime	application/x-gedcom
+# https://www.iana.org/assignments/media-types/text/vnd.familysearch.gedcom
+!:mime	text/vnd.familysearch.gedcom
+!:ext	ged
+# no gedcom sample found and ged suffix also used for other formats
+#!:ext	ged/gedcom
 >&0     search		1\ GEDC
 >>&0    search		2\ VERS         version
+# 4 5.0 5.3 5.4 5.5 5.5.1 5.5.5 5.6 7.0 or no version
 >>>&1   string		>\0		%s
 # From: Phil Endecott <phil05@chezphil.org>
-0	string	\000\060\000\040\000\110\000\105\000\101\000\104		GEDCOM data
-0	string	\060\000\040\000\110\000\105\000\101\000\104\000		GEDCOM data
-0	string	\376\377\000\060\000\040\000\110\000\105\000\101\000\104	GEDCOM data
-0	string	\377\376\060\000\040\000\110\000\105\000\101\000\104\000	GEDCOM data
+# 0\040HEAD as UTF-16 big endian without BOM
+0	string	\000\060\000\040\000\110\000\105\000\101\000\104		GEDCOM genealogy text
+!:mime	text/vnd.familysearch.gedcom
+!:ext	ged
+# look for VERS tag encoded as UTF-16 big endian
+>12		search/0x65	V\0E\0R\0S					version
+# version like: 5.5.1
+>>&2		bestring16	x						%s
+>>0		string		x						\b, UTF-16 (without BOM) big-endian text
+# 0\040HEAD as UTF-16 little endian without BOM
+0	string	\060\000\040\000\110\000\105\000\101\000\104\000		GEDCOM genealogy text
+!:mime	text/vnd.familysearch.gedcom
+!:ext	ged
+# look for VERS tag encoded as UTF-16 lttle endian
+>12		search/0x65	V\0E\0R\0S					version
+# version like: 5.5.1
+>>&3		lestring16	x						%s
+>>2		string		x						\b, UTF-16 (without BOM) little-endian text
+# Note:		UTF-16 with BOM variants already described above by first test as "GEDCOM genealogy text"
+# 0\040HEAD as UTF-16 big endian with BOM
+#0	string	\376\377\000\060\000\040\000\110\000\105\000\101\000\104	GEDCOM data
+# 0\040HEAD as UTF-16 little endian with BOM
+#0	string	\377\376\060\000\040\000\110\000\105\000\101\000\104\000	GEDCOM data
 
 # PDB: Protein Data Bank files
 # Adam Buchbinder <adam.buchbinder@gmail.com>
@@ -36903,7 +38205,7 @@
 8	string	DEEP		Alias Maya Image File
 
 #------------------------------------------------------------------------------
-# $File: sgml,v 1.46 2022/08/16 11:16:39 christos Exp $
+# $File: sgml,v 1.48 2023/01/18 16:10:21 christos Exp $
 # Type:	SVG Vectorial Graphics
 # From:	Noel Torres <tecnico@ejerciciosresueltos.com>
 0	string		\<?xml\ version=
@@ -36952,6 +38254,17 @@
 0	search/4096/cWt	\<!doctype\ html	HTML document text
 !:mime	text/html
 !:strength + 5
+
+# avoid misdetection as JavaScript
+0	string/cWt	\<!doctype\ html	HTML document text
+!:mime	text/html
+0	string/ct	\<html>	HTML document text
+!:mime	text/html
+0	string/ct	\<!--
+>&0	search/4096/cWt	\<!doctype\ html	HTML document text
+!:mime	text/html
+>&0	search/4096/ct	\<html>	HTML document text
+!:mime	text/html
 
 # SVG document
 # https://www.w3.org/TR/SVG/single-page.html
@@ -37782,7 +39095,7 @@
 >>16	string	<:			v%.4s raw result text
 
 #------------------------------------------------------------------------------
-# $File: spectrum,v 1.9 2021/04/26 15:56:00 christos Exp $
+# $File: spectrum,v 1.10 2023/05/08 01:33:36 christos Exp $
 # spectrum:  file(1) magic for Spectrum emulator files.
 #
 # John Elliott <jce@seasip.demon.co.uk>
@@ -37804,21 +39117,125 @@
 #
 # Update: Sanity-check string contents to be printable.
 #  -Adam Buchbinder <adam.buchbinder@gmail.com>
+# Update:	Joerg Jenderek 2023 May
+# URL:		http://fileformats.archiveteam.org/wiki/TAP_(ZX_Spectrum)
+# Reference:	http://web.archive.org/web/20110711141601/http://www.zxmodules.de/fileformats/tapformat.html
+#		http://mark0.net/download/triddefs_xml.7z/defs/t/tap-zx.trid.xml
+# Note:		called "ZX Spectrum Tape image" by TrID and "TAP (ZX Spectrum)" by DROID via PUID fmt/801
+#		verified by fuse-emulator-utils `tzxlist EXAMPLES.TAP`
 #
+# headers length 19=023 and flag byte 0 indicating a standard ROM loading header 
 0       string          \023\000\000
 >4      string          >\0
->>4     string          <\177           Spectrum .TAP data "%-10.10s"
->>>3    byte            0               - BASIC program
->>>3    byte            1               - number array
->>>3    byte            2               - character array
->>>3    byte            3               - memory block
->>>>14  belong          0x001B0040      (screen)
+# skip {85CEE8D6-0F90-4492-B484-98E38862B28D}.2.ver0x0000000000000004.db {DDF571F2-BE98-426D-8288-1A9A39C3FDA2}.2.ver0x0000000000000001.db
+# inside c:\ProgramData\Microsoft\Windows\Caches according to TrID and DROID
+>>23	ubyte		=0xFF
+# skip DROID fmt-801-signature-id-1166.tap with invalid name \253\253\253\253\253\253\253\253\253\253
+# which looks like: "TF COPY II" "screen    " "\023\001TF" "  1943    "
+>>>4     string          <\177           Spectrum .TAP data "%-10.10s"
+#!:mime	application/octet-stream
+!:mime	application/x-spectrum-tap
+!:ext	tap
+>>>>3	byte		0	- BASIC program
+# autostart line; 0..9999 are valid; 32768 means "no auto-loading"
+>>>>>16	uleshort	x	\b, autostart line %u
+# program length; length of BASIC program
+>>>>>18	uleshort	x	\b, program length %u
+>>>>3	byte		1	- number array
+>>>>3	byte		2	- character array
+>>>>3	byte		3	- memory block
+# length of the following data 1B00h=6912 and start address 4000h=16384 in case of a SCREEN$ header
+>>>>>14 belong          0x001B0040      (screen)
+# unused 32768=8000h 
+>>>>>18	uleshort	!32768	\b, unused %u
+# zxlength; length of the following data after the header
+>>>>14	uleshort	x	\b, data length %u
+#>>14	uleshort	x	\b, data length %#x
+# checksum byte; simply all bytes (including flag byte) XORed 
+#>>>>20	ubyte		x	\b, checksum %#x
 
 # The following three blocks are from pak21-spectrum@srcf.ucam.org
 # TZX tape images
+# Update:	Joerg Jenderek 2023 May
+# URL:		http://fileformats.archiveteam.org/wiki/TZX
+# Reference:	https://worldofspectrum.net/TZXformat.html
+#		http://mark0.net/download/triddefs_xml.7z/defs/t/tzx.trid.xml
+# Note:		called "ZX Spectrum Tape image" by TrID and "TZX Format" by DROID via PUID fmt/1000
 0      string          ZXTape!\x1a     Spectrum .TZX data
+#!:mime	application/octet-stream
+!:mime	application/x-spectrum-tzx
+# CDT is used for Amstrad tapes
+!:ext	tzx/cdt
 >8     byte            x               version %d
 >9     byte            x               \b.%d
+# ID of first block
+>10	ubyte		x		\b; ID %#x
+# turbo speed data block
+>10	ubyte		=0x11		(turbo)
+# length of PILOT tone (number of pulses) 
+>>21	uleshort	x		\b, %u pilot pulses
+# length of PILOT pulse
+>>11	uleshort	x		with %u tstates
+# length of SYNC first pulse
+>>13	uleshort	x		\b, %u and
+# length of SYNC second pulse
+>>15	uleshort	x		%u sync tstates
+# length of ZERO bit pulse
+>>17	uleshort	x		\b, %u zero tstates
+# length of ONE bit pulse
+>>19	uleshort	x		\b, %u one tstates
+# used bits in the last byte
+>>23	ubyte		x		\b, use %u bit
+# plural s
+>>23	ubyte		>1		\bs
+# pause after this block in milliseconds
+>>24	uleshort	x		\b, %u ms pause
+# BYTE[3]; length of data that follow
+>>26	ulelong&0x00FFffFF x		\b, %u data bytes 
+>10	ubyte		=0x20		(pause)
+# pause duration in milliseconds
+>>11	uleshort	x		%u ms
+# text description
+>10	ubyte		=0x30		(text)
+# length of the text description
+#>>11	ubyte		x		L=%u
+>>11	pstring		x		"%s"
+# archive text description in ASCII format
+>10	ubyte		=0x32		(archive info)
+# length of archive text
+>>11	uleshort	x		\b, %#x bytes
+# number of text strings
+>>13	ubyte		x		with %u (type) text parts
+# text type identification byte: 0~title 1~publisher 2~author 3~year 4~language 5~type 6~price 7~protection 8~origin ff~comment
+>>14	byte		<9		(%d)
+>>>14	byte		>-2
+# length of text string
+#>>>>15	ubyte		x		L=%u
+>>>>15	pstring		x		%s
+# 2nd possible text description
+>>>>>&0	byte		<9		(%d)
+>>>>>>&-1	byte	>-2
+>>>>>>>&0	pstring	x		%s
+# 3rd possible text description
+>>>>>>>>&0	byte	<9		(%d)
+>>>>>>>>>&-1	byte	>-2
+>>>>>>>>>>&0	pstring	x		%s
+# 4th possible text description
+>>>>>>>>>>>&0	byte	<9		(%d)
+>>>>>>>>>>>>&-1	byte	>-2
+>>>>>>>>>>>>>&0	pstring	x		%s
+# 5th possible text description
+>>>>>>>>>>>>>>&0	byte	<9	(%d)
+>>>>>>>>>>>>>>>&-1	byte	>-2
+>>>>>>>>>>>>>>>>&0	pstring	x	%s
+# 6th possible text description
+>>>>>>>>>>>>>>>>>&0	byte	<9	(%d)
+>>>>>>>>>>>>>>>>>>&-1	byte	>-2
+>>>>>>>>>>>>>>>>>>>&0	pstring	x	%s
+# 7th possible text description
+>>>>>>>>>>>>>>>>>>>>&0	byte	<9	(%d)
+>>>>>>>>>>>>>>>>>>>>>&-1 byte	>-2
+>>>>>>>>>>>>>>>>>>>>>>&0 pstring x	%s
 
 # RZX input recording files
 0      string          RZX!            Spectrum .RZX data
@@ -37862,7 +39279,7 @@
 >>>7   byte		1	       (alternate timings)
 
 #------------------------------------------------------------------------------
-# $File: sql,v 1.24 2022/07/17 15:32:48 christos Exp $
+# $File: sql,v 1.26 2023/04/29 17:26:58 christos Exp $
 # sql:  file(1) magic for SQL files
 #
 # From: "Marty Leisner" <mleisner@eng.mc.xerox.com>
@@ -37950,8 +39367,14 @@
 # Version 1 used GDBM internally; its files cannot be distinguished
 # from other GDBM files.
 #
+# Update:	Joerg Jenderek
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/s/sqlite-2x.trid.xml
+# Note:		called "SQLite 2.x database" by TrID and "SQLite Database File Format" version 2 by DROID via PUID fmt/1135
 # Version 2 used this format:
 0	string	**\ This\ file\ contains\ an\ SQLite  SQLite 2.x database
+!:mime	application/x-sqlite2
+# FileAttributesStore.db test.sqlite2
+!:ext	sqlite/sqlite2/db
 
 # URL:		https://en.wikipedia.org/wiki/SQLite
 # Reference:	https://www.sqlite.org/fileformat.html
@@ -38063,6 +39486,63 @@
 0	belong&0xfffffffe	0x377f0682	SQLite Write-Ahead Log,
 !:ext sqlite-wal/db-wal
 >4	belong	x	version %d
+# Summary:	SQLite Write-Ahead-Log index (shared memory)
+# From: 	Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/SQLite
+# Reference:	http://www.sqlite.org/draft/walformat.html#walidxfmt
+# iVersion; WAL-index format version number; always 3007000=2DE218h
+0	ulelong		0x002DE218
+>0	use	shm-le
+# big endian variant not tested
+0	ubelong		0x002DE218
+>0	use	\^shm-le
+# show information about SQLite Write-Ahead-Log shared memory
+0	name	shm-le
+>0	ulelong		x		SQLite Write-Ahead Log shared memory
+#!:mime	application/octet-stream
+!:mime	application/vnd.sqlite3
+# db3-shm	Acronis	BackupAndRecovery			F4CEEE47-042C-4828-95A0-DE44EC267A28.db3-shm
+# dbx-shm	probably Dropbox				filecache.dbx-shm
+# aup3-shm	Audacity project				tada.aup3-shm
+# srd-shm	Microsoft Windows StateRepository service	StateRepository-Deployment.srd-shm StateRepository-Machine.srd-shm:
+!:ext	sqlite-shm/db-shm/db3-shm/dbx-shm/aup3-shm/srd-shm 
+# unused padding space; must be zero
+>4	ulelong		!0		\b, unused %x
+# iChange; unsigned integer counter, incremented with each transaction
+>8	ulelong		x		\b, counter %u
+# isInit; the "isInit" flag; 1 when the shm file has been initialized
+>12	ubyte		!1		\b, not initialized %u
+# bigEndCksum; true if the WAL file uses big-ending checksums; 0 if the WAL uses little-endian checksums
+>13	ubyte		!0		\b, checksum type %u
+# szPage; database page size in bytes, or 1 if the page size is 65536
+>14	uleshort	!1		\b, page size %u
+>14	uleshort	=1		\b, page size 65536
+# mxFrame; number of valid and committed frames in the WAL file
+>16	ulelong		x		\b, %u frames
+# nPage; size of the database file in pages
+>20	ulelong		x		\b, %u pages
+# aFrameCksum; checksum of the last frame in the WAL file
+>24	ulelong		x		\b, frame checksum %#x
+# aSalt; two salt value copied from the WAL file header in the byte-order of the WAL file; might be different from machine byte-order
+>32	ulequad		x		\b, salt %#llx
+# aCksum; checksum over bytes 0 through 39 of this header
+>40	ulelong		x		\b, header checksum %#x
+# a copy of bytes 0 through 47 of header
+>48	ulelong		!3007000	\b, iversion %u
+# nBackfill; number of WAL frames that have already been backfilled into the database by prior checkpoints
+>96	ulelong		!0		\b, %u backfilled
+# nBackfillAttempted; number of WAL frames that have attempted to be backfilled
+>>128	ulelong		x		(%u attempts)
+# read-mark[0..4]; five "read marks"; each read mark is a 32-bit unsigned integer
+>100	ulelong		!0		\b, read-mark[0] %#x
+>104	ulelong		x		\b, read-mark[1] %#x
+>108	ulelong		!0xffffffff	\b, read-mark[2] %#x
+>112	ulelong		!0xffffffff	\b, read-mark[3] %#x
+>116	ulelong		!0xffffffff	\b, read-mark[4] %#x
+# unused space set aside for 8 file locks
+>120	ulequad		!0		\b, space %#llx
+# unused space reserved for further expansion
+>132	ulelong		!0		\b, reserved %#x
 
 # SQLite Rollback Journal
 # https://www.sqlite.org/fileformat.html#rollbackjournal
@@ -38088,12 +39568,15 @@
 # Type:	OpenSSH key files
 # From:	Nicolas Collignon <tsointsoin@gmail.com>
 
-0	string	SSH\ PRIVATE\ KEY	OpenSSH RSA1 private key,
+0	string	SSH\040PRIVATE\040KEY	OpenSSH RSA1 private key,
 >28	string	>\0			version %s
-0	string	-----BEGIN\ OPENSSH\ PRIVATE\ KEY-----	OpenSSH private key
+0	string	-----BEGIN\040OPENSSH\040PRIVATE\040KEY-----	OpenSSH private key
+# https://www.rfc-editor.org/rfc/rfc5958
+0	string	-----BEGIN\040PRIVATE\040KEY-----	OpenSSH private key (no password)
+0	string	-----BEGIN\040ENCRYPTED\040PRIVATE\040KEY-----	OpenSSH private key (with password)
 
-0	string	ssh-dss\ 		OpenSSH DSA public key
-0	string	ssh-rsa\ 		OpenSSH RSA public key
+0	string	ssh-dss\040		OpenSSH DSA public key
+0	string	ssh-rsa\040		OpenSSH RSA public key
 0	string	ecdsa-sha2-nistp256	OpenSSH ECDSA public key
 0	string	ecdsa-sha2-nistp384	OpenSSH ECDSA public key
 0	string	ecdsa-sha2-nistp521	OpenSSH ECDSA public key
@@ -38368,6 +39851,11 @@
 # New format for Sun/Cobalt boot ROMs is annoying, it stores the version code
 # at the very end where file(1) can't get it.
 0       string CRfs     COBALT boot rom data (Flat boot rom or file system)
+# $File: svf,v 1.2 2023/05/23 13:37:32 christos Exp $
+# 
+# file(1) magic(5) data for SmartVersion files with the .svf extension.
+
+0	string	DFS\ File\x0D\x0Ahttp://www.difstream.com\x0D\x0A	SmartVersion binary patch file
 
 #------------------------------------------------------------------------------
 # $File: sylk,v 1.1 2020/04/05 22:18:34 christos Exp $
@@ -39404,26 +40892,33 @@
 0	string	\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\6\0	old timezone data
 
 #------------------------------------------------------------------------------
-# $File: tplink,v 1.7 2021/04/26 15:56:00 christos Exp $
+# $File: tplink,v 1.8 2023/05/15 16:41:02 christos Exp $
 # tplink: File magic for openwrt firmware files
 
 # URL: https://wiki.openwrt.org/doc/techref/header
 # Reference: https://git.openwrt.org/?p=openwrt.git;a=blob;f=tools/firmware-utils/src/mktplinkfw.c
+#		http://mark0.net/download/triddefs_xml.7z/defs/b/bin-tplink-v1.trid.xml
+# Note:		called "TP-Link router firmware (v1)" by TrID
 # From: Joerg Jenderek
 # check for valid header version 1 or 2
 0		ulelong		<3
 >0		ulelong		!0
 # test for header padding with nulls
 >>0x100		long		0
-# skip Norton Commander Cleanup Utility NCCLEAN.INI by looking for valid vendor
+# skip Norton Commander Cleanup Utility NCCLEAN.INI by looking for valid vendor name
 >>>4		ubelong		>0x1F000000
 # skip user.dbt by looking for positive hardware id
 >>>>0x40	ubeshort	>0
->>>>>0		use		firmware-tplink
+# skip cversions.1.db cversions.2.db cversions.3.db inside
+# c:\ProgramData\Microsoft\Windows\Caches
+# with invalid vendor names \240\0\0\0 \140\0\0\0 \040\0\0\0 
+>>>>>5		short		!0
+>>>>>>0		use		firmware-tplink
 
 0		name		firmware-tplink
 >0		ubyte		x		firmware
 !:mime application/x-tplink-bin
+# like: TL-WR1043ND-V1-FW0.0.3-stripped.bin gluon-ffrefugee-0.9.2-tp-link-archer-c5-v1-sysupgrade.bin
 !:ext	bin
 # hardware id like 10430001 07410001 09410004 09410006
 >0x40		ubeshort	x		%x
@@ -39492,25 +40987,31 @@
 #>0x120		ubequad		!0		\b, other padding %#llx
 
 #------------------------------------------------------------------------------
-# $File: troff,v 1.13 2020/05/30 23:12:34 christos Exp $
+# $File: troff,v 1.14 2023/06/01 16:00:46 christos Exp $
 # troff:  file(1) magic for *roff
 #
 # updated by Daniel Quinlan (quinlan@yggdrasil.com)
 
 # troff input
 0	search/1	.\\"		troff or preprocessor input text
+!:strength +12
 !:mime	text/troff
 0	search/1	'\\"		troff or preprocessor input text
+!:strength +12
 !:mime	text/troff
 0	search/1	'.\\"		troff or preprocessor input text
+!:strength +12
 !:mime	text/troff
 0	search/1	\\"		troff or preprocessor input text
+!:strength +12
 !:mime	text/troff
 #0	search/1	'''		troff or preprocessor input text
 #!:mime	text/troff
 0	regex/20l	\^\\.[A-Za-z][A-Za-z0-9][\ \t]	troff or preprocessor input text
+!:strength +12
 !:mime	text/troff
 0	regex/20l	\^\\.[A-Za-z][A-Za-z0-9]$	troff or preprocessor input text
+!:strength +12
 !:mime	text/troff
 
 # ditroff intermediate output text
@@ -40536,7 +42037,7 @@
 >4	lelong	>1	version %#x
 
 #------------------------------------------------------------------------------
-# $File: windows,v 1.50 2022/11/30 20:24:43 christos Exp $
+# $File: windows,v 1.63 2023/07/17 16:56:13 christos Exp $
 # windows:  file(1) magic for Microsoft Windows
 #
 # This file is mainly reserved for files where programs
@@ -40631,24 +42132,156 @@
 >>40	lestring16	x		"%s"
 
 # Summary: Windows crash dump
-# Extension: .dmp
 # Created by: Andreas Schuster (https://computer.forensikblog.de/)
-# Reference (1): https://computer.forensikblog.de/en/2008/02/64bit_magic.html
+#		https://web.archive.org/web/20101125060849/https://computer.forensikblog.de/en/2008/02/64bit_magic.html
 # Modified by (1): Abel Cheung (Avoid match with first 4 bytes only)
+# Modified by (2): Joerg Jenderek (addtional fields, extension, URL)
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/d/dmp.trid.xml
+#		https://gitlab.com/qemu-project/qemu/-/blob/master/include/qemu/win_dump_defs.h
+# Note:		called "Windows memory dump" by TrID
+#		and verified by like Windows Kit `Dumpchk.exe 043022-18703-01.dmp`
+#		and partly by NirSoft `BlueScreenView.exe 043022-18703-01.dmp`
+# char Signature[4]
 0	string		PAGE
+# char ValidDump[4]
 >4	string		DUMP		MS Windows 32bit crash dump
+#!:mime	application/octet-stream
+!:mime	application/x-ms-dmp
+# like: Mini111013-01.dmp
+!:ext	dmp
+# major version like: 15
+>>8	ulelong		x		\b, version %u
+# minor version like: 2600
+>>12	ulelong		x		\b.%u
+# DirectoryTableBase like: 709000
+#>>16	ulelong		x		\b, DirectoryTableBase %#x
+# PfnDatabase like: 805620c8
+#>>20	ulelong		x		\b, PfnDatabase %#x
+# PsLoadedModuleList like: 8055d720
+#>>24	ulelong		x		\b, PsLoadedModuleList %#x
+# PsActiveProcessHead like:805638b8 
+#>>28	ulelong		x		\b, PsActiveProcessHead %#x
+# MachineImageType like: 14c (intel x86)
+>>32	ulelong		!0x14c		\b, MachineImageType %#x
+# NumberProcessors like: 2
+>>36	ulelong		x		\b, %u processors
+# BugcheckCode like: e2
+#>>40	ulelong		x		\b, BugcheckCode %#x
+# BugcheckParameter1 like: 0
+#>>44	ulelong		x		\b, BugcheckParameter1 %#x
+# BugcheckParameter2 like: 0
+#>>48	ulelong		x		\b, BugcheckParameter2 %#x
+# BugcheckParameter3 like: 0
+#>>52	ulelong		x		\b, BugcheckParameter3 %#x
+# BugcheckParameter4 like: 0
+#>>56	ulelong		x		\b, BugcheckParameter4 %#x
+# VersionUser[32]; like  "PAGEPAGEPAGEPAGEPAGEPAGEPAGEPAGE" ""
+#>>60	string		x		\b, VersionUser "%.32s"
+# uint32_t reserved0 like: 45474101
+#>>92	ulelong		x		\b, reserved0 %#x
 >>0x05c	byte            0		\b, no PAE
 >>0x05c	byte            1		\b, PAE
+# KdDebuggerDataBlock like: 8054d2e0
+#>>96	ulelong		x		\b, KdDebuggerDataBlock %#x
+# uint8_t PhysicalMemoryBlockBuffer[700]
+# WinDumpPhyMemDesc32 NumberOfRuns like: 45474150
+#>>100	ulelong		x		\b, NumberOfRuns %#x
+# WinDumpPhyMemDesc32 uint32_t NumberOfPages like: 1162297680
+#>>104	ulelong		x		\b, NumberOfPages %#x
+# WinDumpPhyMemRun32 Run[86]; 688 bytes
+#>>108	ulelong		x		\b, BasePage %#x
+#>>112	ulelong		x		\b, PageCount %#x
+# uint8_t reserved1[3200]
+#>>800	string		x		\b, reserved "%s"
+#>>4000	ulelong		x		\b, RequiredDumpSpace %#x
+# uint8_t reserved2[92];
+#>>4004	string		x		\b, reserved2 "%s"
 >>0xf88	lelong		1		\b, full dump
 >>0xf88	lelong		2		\b, kernel dump
 >>0xf88	lelong		3		\b, small dump
+# like: 4
+>>0xf88	lelong		>3		\b, dump type (%#x)
+# WinDumpPhyMemDesc32 uint32_t NumberOfPages like: 1162297680
+# GRR: IS THIS TRUE? VALUE IS SOMETIMES VERY HIGH!
+#>>104	ulelong		x		\b, NumberOfPages %#x
 >>0x068	lelong		x		\b, %d pages
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/d/dmp-64.trid.xml113o
+# Note:		called "Windows 64bit Memory Dump" by TrID
+# char ValidDump[4]
 >4	string		DU64		MS Windows 64bit crash dump
->>0xf98	lelong		1		\b, full dump
->>0xf98	lelong		2		\b, kernel dump
->>0xf98	lelong		3		\b, small dump
+#!:mime	application/octet-stream
+!:mime	application/x-ms-dmp
+# like: c:\Windows\Minidump\020322-18890-01.dmp c:\Windows\MEMORY.DMP
+!:ext	dmp
+# major version like: 15
+>>8	ulelong		x		\b, version %u
+# minor version like: 9600 19041 22621
+>>12	ulelong		x		\b.%u
+# DirectoryTableBase like: 001ab000
+#>>16	ulequad		x		\b, DirectoryTableBase %#llx
+# PfnDatabase like: fffffa8000000000
+#>>24	ulequad		x		\b, PfnDatabase %#llx
+# PsLoadedModuleList like: fffff800c553f650
+#>>32	ulequad		x		\b, PsLoadedModuleList %#llx
+# PsActiveProcessHead like: fffff800c5525400
+#>>40	ulequad		x		\b, PsActiveProcessHead %#llx
+# MachineImageType like: 00008664
+>>48	ulelong		!0x8664		\b, MachineImageType %#x
+# NumberProcessors like: 2 4
+>>52	ulelong		x		\b, %u processors
+# BugcheckCode like: 1000007e
+#>>56	ulelong		x		\b, BugcheckCode %#x
+# unused0
+#>>60	ulelong		x		\b, unused0 %#x
+# BugcheckParameter1 like: ffffffffc0000005
+#>>64	ulequad		x		\b, BugcheckParameter1 %#llx
+# BugcheckParameter2 like: fffff801abb2158f
+#>>72	ulequad		x		\b, BugcheckParameter2 %#llx
+# BugcheckParameter3 like: ffffd000290d4288
+#>>80	ulequad		x		\b, BugcheckParameter3 %#llx
+# BugcheckParameter4 like: ffffd000290d3aa0
+#>>88	ulequad		x		\b, BugcheckParameter4 %#llx
+# VersionUser[32]; like "" "PAGEPAGEPAGEPAGEPAGEPAGEPAGEPAGE" ""
+#>>96	string		x		\b, VersionUser "%.32s"
+# KdDebuggerDataBlock like: fffff800c550c530
+#>>128	ulequad		x		\b, KdDebuggerDataBlock %#llx
+# uint8_t PhysicalMemoryBlockBuffer[704]
+# WinDumpPhyMemDesc64 NumberOfRuns like: 6 7 0x45474150
+#>>136	ulelong		x		\b, NumberOfRuns %#x
+# WinDumpPhyMemDesc64 unused like: 0 0x45474150
+#>>140	ulelong		x		\b, unused %#x
+# WinDumpPhyMemRun64 Run[43] BasePage like: 1
+#>>152	ulequad		x		\b, BasePage %#llx
+# WinDumpPhyMemRun64 Run[43] PageCount like: 57h
+#>>160	ulequad		x		\b, PageCount %#llx
+# uint8_t ContextBuffer[3000] like: "" "\001" "\0207J\266\001\340\377\377&8\007\312"
+#>>840	string		x		\b, ContextBuffer "%s"
+# WinDumpExceptionRecord ExceptionCode
+#>>3840	ulelong		x		\b, ExceptionCode %#x
+# WinDumpExceptionRecord ExceptionFlags
+#>>3844	ulelong		x		\b, ExceptionFlags %#x
+# WinDumpExceptionRecord ExceptionRecord
+#>>3848	ulequad		x		\b, ExceptionRecord %#llx
+# WinDumpExceptionRecord ExceptionAddress
+#>>3856	ulequad		x		\b, ExceptionAddress %#llx
+# WinDumpExceptionRecord NumberParameters
+#>>3864	ulelong		x		\b, NumberParameters %#x
+# WinDumpExceptionRecord unused
+#>>3868	ulelong		x		\b, unsed %#x
+# WinDumpExceptionRecord ExceptionInformation[15]
+#>>3872	ulequad		x		\b, ExceptionInformation[0] %#llx
+# https://learn.microsoft.com/en-us/troubleshoot/windows-server/performance/memory-dump-file-options
+# but DumpType like: 4~small 5~full (MEMORY.DMP) 6~kernel (MEMORY.DMP)
+>>0xf98 ulelong	x		\b,
+>>>0xf98	lelong		5		full dump
+>>>0xf98	lelong		6		kernel dump
+>>>0xf98	lelong		4		small dump
+# This probably never occur
+>>>0xf98	default		x		DumpType
+>>>>0xf98 	ulelong		x		(%#x)
+# WinDumpPhyMemDesc64 uint64_t NumberOfPages like: 3142425 8341923 8366500 1162297680 4992030524978970960
+# GRR: IS THIS TRUE? VALUE IS SOMETIMES VERY HIGH!
 >>0x090	lequad		x		\b, %lld pages
-
 
 # Summary: Vista Event Log
 # Created by: Andreas Schuster (https://computer.forensikblog.de/)
@@ -41015,62 +42648,248 @@
 >16	string		>\0			for "%s"
 
 # Summary: Hyper terminal
-# Extension: .ht
 # Created by: unknown
+# Update:	Joerg Jenderek
+# URL:		https://en.wikipedia.org/wiki/HyperACCESS
+#		https://www.hilgraeve.com/hyperterminal/
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/h/ht.trid.xml
+# Note:		called "HyperTerminal data file" by TrID and "HyperTerminal File" on English Windows
 0	string		HyperTerminal\040
->15	string		1.0\ --\ HyperTerminal\ data\ file	MS Windows HyperTerminal profile
+>14	string		1.0\ --\ HyperTerminal\ data\ file	MS Windows HyperTerminal profile
+#!:mime	application/octet-stream
+!:mime	application/x-ms-ht
+!:ext	ht
 
 # https://ithreats.files.wordpress.com/2009/05/\040
 # lnk_the_windows_shortcut_file_format.pdf
 # Summary: Windows shortcut
-# Extension: .lnk
 # Created by: unknown
+# Update:	Joerg Jenderek
+# URL:		http://fileformats.archiveteam.org/wiki/Windows_Shortcut
+#		https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-shllink/
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/l/lnk-shortcut.trid.xml
+#		https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-SHLLINK/%5bMS-SHLLINK%5d.pdf
+# Note:		called "Windows Shortcut" by TrID, "Microsoft Windows Shortcut" by DROID via PUID x-fmt/428 and "Windows shortcut file" by ./msdos (v 1.158)
+# 		partly verified by command like `lnkinfo AOL.lnk`
 # 'L' + GUUID
+# HeaderSize + LinkCLSID 00021401-0000-0000-C000-000000000046
 0	string		\114\0\0\0\001\024\002\0\0\0\0\0\300\0\0\0\0\0\0\106	MS Windows shortcut
 !:mime	application/x-ms-shortcut
 !:ext	lnk
+# LinkFlags
+# HasLinkTargetIDList; if set a LinkTargetIDList structure MUST follow the ShellLinkHeader; If is not set, structure MUST NOT be present
 >20	lelong&1	1	\b, Item id list present
+# HasLinkInfo; if set a LinkInfo structure MUST follow the ShellLinkHeader or LinkTargetIDList; If is not set, structure MUST NOT be present
 >20	lelong&2	2	\b, Points to a file or directory
 >20	lelong&4	4	\b, Has Description string
 >20	lelong&8	8	\b, Has Relative path
 >20	lelong&16	16	\b, Has Working directory
 >20	lelong&32	32	\b, Has command line arguments
 >20	lelong&64	64	\b, Icon
+# IconIndex
 >>56	lelong		x	\b number=%d
+# IsUnicode; If set then StringData section contains Unicode-encoded strings
+>20	lelong&128	128	\b, Unicoded
+# ForceNoLinkInfo; LinkInfo structure is ignored
+>20	lelong&256	256	\b, NoLinkInfo
+# HasExpString; with an EnvironmentVariableDataBlock
+>20	lelong&512	512	\b, HasEnvironment
+# look for BlockSize 314h and EnvironmentVariableDataBlock BlockSignature A0000001h
+>>76	search/1972		\x14\x03\x00\x00\x01\x00\x00\xa0
+# TargetAnsi (260 bytes); NULL-terminated path to environment variable encoded with system default code page
+#>>>&0	string		x	'%s'
+# TargetUnicode (520 bytes): optional NULL-terminated path to same environment variable Unicode encoded
+# like: "%windir%\system32\calc.exe"
+>>>&260	lestring16	x	"%s"
+# RunInSeparateProcess; run in a separate virtual machine when launching a 16-bit application; no examples found
+>20	lelong&1024	1024	\b, RunInSeparateProcess
+# Unused1; undefined and MUST be ignored
+#>20	lelong&2048	2048	\b, Unused1
+# HasDarwinID; with a DarwinDataBlock
+>20	lelong&4096	4096	\b, HasDarwinID
+# look for BlockSize 314h and DarwinDataBlock BlockSignature A0000006h
+>>76	search/1972		\x14\x03\x00\x00\x06\x00\x00\xa0
+# DarwinDataAnsi (260 bytes); NULL-terminated application identifier encoded with system default code page; SHOULD be ignored
+#>>>&0	string		x	'%s'
+# DarwinDataUnicode (520 bytes); NULL-terminated application identifier Unicode encoded
+>>>&260	lestring16	x	"%s"
+# RunAsUser; target application is run as a different user
+>20	lelong&8192	8192	\b, RunAsUser
+# HasExpIcon; with an IconEnvironmentDataBlock
+>20	lelong&16384	16384	\b, HasExpIcon
+# look for BlockSize 314h and IconEnvironmentDataBlock BlockSignature A0000007h
+>>76	search/1972		\x14\x03\x00\x00\x07\x00\x00\xa0
+# TargetAnsi (260 bytes); NULL-terminated path to environment icon variable encoded with system default code page
+#>>>&0	string		x	'%s'
+# TargetUnicode (520 bytes); optional NULL-terminated path to same icon environment variable Unicode encoded
+# like: "%SystemDrive%\Program Files\YaCy\addon\YaCy.ico"
+>>>&260	lestring16	x	"%s"
+# NoPidlAlias; represented in the shell namespace; no examples found
+>20	lelong&32768	32768	\b, NoPidlAlias
+# Unused2; undefined and MUST be ignored
+#>20	lelong&65536	65536	\b, Unused2
+# RunWithShimLayer; with a ShimDataBlock; no examples found
+>20	lelong&131072	131072	\b, RunWithShimLayer
+# ForceNoLinkTrack; TrackerDataBlock is ignored; no examples found
+>20	lelong&262144	262144	\b, ForceNoLinkTrack
+>20	lelong&262144	0
+# look for BlockSize 60h, TrackerDataBlock BlockSignature A0000003h, it length 58h and Version 0
+>>76	search/1972		\x60\x00\x00\x00\x03\x00\x00\xa0\x58\x00\x00\x00\0\0\0\0
+# MachineID (16 bytes); a NULL-terminated NetBIOS name encoded with system default code page of the machine
+>>>&0	string		x			\b, MachineID %0.16s
+# Droid (32 bytes)
+#
+# DroidBirth (32 bytes)
+#
+# EnableTargetMetadata; collect target properties and store in PropertyStoreDataBlock
+>20	lelong&524288	524288	\b, EnableTargetMetadata
+# look for BlockSize >= Ch, PropertyStoreDataBlock BlockSignature A0000009h
+#>>76	search/1972		\x00\x00\x09\x00\x00\xa0
+# PropertyStore (variable)
+#
+# DisableLinkPathTracking; EnvironmentVariableDataBlock is ignored; no examples found
+>20	lelong&1048576	1048576	\b, DisableLinkPathTracking
+# DisableKnownFolderTracking; SpecialFolderDataBlock and KnownFolderDataBlock are ignored and not saved
+>20	lelong&2097152	2097152	\b, DisableKnownFolderTracking
+>20	lelong&2097152	0
+# look for BlockSize 1Ch and KnownFolderDataBlock BlockSignature A000000Bh
+>>76	search/1972		\x1c\x00\x00\x00\x0B\x00\x00\xa0
+# https://learn.microsoft.com/en-us/dotnet/desktop/winforms/controls/known-folder-guids-for-file-dialog-custom-places
+# KnownFolderID specifies the folder GUID ID
+# ProgramFiles				905E63B6-C1BF-494E-B29C-65B732D3D21A
+# ProgramFilesX86			7C5A40EF-A0FB-4BFC-874A-C0F2E0B9FA8E
+>>>&0	guid	x			KnownFolderID %s
+# DisableKnownFolderAlias; unaliased form of the known folder IDList SHOULD be used; no examples found
+>20	lelong&4194304	4194304	\b, DisableKnownFolderAlias
+# AllowLinkToLink; link that references another link is enabled; no examples found
+>20	lelong&8388608	8388608	\b, AllowLinkToLink
+# UnaliasOnSave; unaliased form of that known folder or the target IDList SHOULD be used; no examples found
+>20	lelong&16777216 16777216	\b, UnaliasOnSave
+# PreferEnvironmentPath; path specified in the EnvironmentVariableDataBlock SHOULD be used
+>20	lelong&33554432	33554432	\b, PreferEnvironmentPath
+# KeepLocalIDListForUNCTarget; UNC name SHOULD be stored in local path IDList in PropertyStoreDataBlock; no examples found
+>20	lelong&67108864	67108864	\b, KeepLocalIDListForUNCTarget
+# FileAttributes
 >24	lelong&1	1	\b, Read-Only
 >24	lelong&2	2	\b, Hidden
 >24	lelong&4	4	\b, System
->24	lelong&8	8	\b, Volume Label
+# Reserved1; MUST be zero
+>24	lelong&8	8	\b, Reserved1
 >24	lelong&16	16	\b, Directory
 >24	lelong&32	32	\b, Archive
->24	lelong&64	64	\b, Encrypted
+# Reserved2; MUST be zero
+>24	lelong&64	64	\b, Reserved2
 >24	lelong&128	128	\b, Normal
 >24	lelong&256	256	\b, Temporary
+# no examples found
 >24	lelong&512	512	\b, Sparse
+# no examples found
 >24	lelong&1024	1024	\b, Reparse point
 >24	lelong&2048	2048	\b, Compressed
 >24	lelong&4096	4096	\b, Offline
->28	leqwdate	x	\b, ctime=%s
->36	leqwdate	x	\b, mtime=%s
->44	leqwdate	x	\b, atime=%s
+# FILE_ATTRIBUTE_NOT_CONTENT_INDEXED; contents need to be indexed
+>24	lelong&8192	8192	\b, NeedIndexed
+# FILE_ATTRIBUTE_ENCRYPTED; file or directory is encrypted
+>24	lelong&16384	16384	\b, Encrypted
+# value zero means there is no time set on the target
+>28	leqwdate	!0	\b, ctime=%s
+# Access time of target in UTC
+>36	leqwdate	!0	\b, atime=%s
+# write time of target in UTC
+>44	leqwdate	!0	\b, mtime=%s
+# FileSize; 32 bit size of target in bytes
 >52	lelong		x	\b, length=%u, window=
->60	lelong&1	1	\bhide
->60	lelong&2	2	\bnormal
->60	lelong&4	4	\bshowminimized
->60	lelong&8	8	\bshowmaximized
->60	lelong&16	16	\bshownoactivate
->60	lelong&32	32	\bminimize
->60	lelong&64	64	\bshowminnoactive
->60	lelong&128	128	\bshowna
->60	lelong&256	256	\brestore
->60	lelong&512	512	\bshowdefault
-#>20	lelong&1	0
-#>>20	lelong&2	2
-#>>>(72.l-64)	pstring/h	x	\b [%s]
-#>20	lelong&1	1
-#>>20	lelong&2	2
-#>>>(72.s)	leshort	x
-#>>>&75	pstring/h	x	\b [%s]
+# ShowCommand; 1~SW_SHOWNORMAL 3~SW_SHOWMAXIMIZED HerzlichMEDION.lnk 7~SW_SHOWMINNOACTIVE YaCy.lnk Privoxy.lnk; All other values like 2 MUST be treated as SW_SHOWNORMAL
+#>60	lelong		x	ShowCommand=%#x
+>60	lelong		x
+>>60	lelong		3	\bshowmaximized
+>>60	lelong		7	\bshowminnoactive
+>>60	default		x	\bnormal
+# Hotkey
+>64	uleshort	>0	\b, hot key
+# 41h~A 42h~B ...
+>>64	ubyte		x	%c
+# modifier keys: 0x01~HOTKEYF_SHIFT 0x02~HOTKEYF_CONTROL 0x04~HOTKEYF_ALT
+>>65	ubyte&1		1	\b+SHIFT
+>>65	ubyte&2		2	\b+CONTROL
+>>65	ubyte&4		4	\b+ALT
+# Reserved; MUST be zero
+#>66	uleshort	!0	\b, reserved %#x
+# Reserved2; MUST be zero
+#>68	ulelong		!0	\b, reserved2 %#x
+# Reserved3; MUST be zero
+#>72	ulelong		!0	\b, reserved3 %#x
+# optional LINKTARGET_IDLIST if LinkFlags bit HasLinkTargetIDList is set
+>20	lelong&1	1
+# IDListSize; size of IDList
+>>76	uleshort	x	\b, IDListSize %#4.4x
+# 1st item
+>>78	use		lnk-item
+# 2nd possible item
+>>(78.s+78)	uleshort	>0
+>>>(78.s+78)	use			lnk-item
+# 3rd possible item
+>>>&(&-2.s-2)	uleshort	>0
+>>>>&-2		use			lnk-item
+# 4th possible item
+>>>>&(&-2.s-2)	uleshort	>0
+>>>>>&-2	use			lnk-item
+# Because HasLinkInfo is set, a LinkInfo structure follows
+>20	lelong&2	2
+# if no LINKTARGET_IDLIST (no HasLinkTargetIDList) then direct after header; no example found
+>>20	lelong&1	=0
+>>>76	use			lnk-info
+# if LINKTARGET_IDLIST (HasLinkTargetIDList) then after LINKTARGET_IDLIST by addtional IDListSize bytes 
+>>20	lelong&1	=1
+>>>76	uleshort	>0
+#>>>>(76.s+78)	use		lnk-info
+>>>>(76.s+78)	ubelong	x
+# move pointer to beginnig of LinkInfo structure
+>>>>>&-8	ubelong	x
+#>>>>>>&16	ulelong	x	\b, LocalBasePathOffset=%#8.8x
+>>>>>>&(&16.l) string	x	\b, LocalBasePath "%s"
+# check and then display link item (size,data)
+0	name		lnk-item
+# size value 0x0000 means TerminalID; indicates the end of the item IDs list
+>0	uleshort	>0
+#>>0	uleshort	x	\b, ItemIDSize %#4.4x
+# item Data
+#>>2	ubequad		x	\b, Item data=%#16.16llx
+#>>2	ubyte		x	\b, Item type=%#x
+>>2	ubyte		=0x1f	\b, Root folder
+# like:	"26EE0668-A00A-44D7-9371-BEB064C98683"	Control Panel
+#	"20D04FE0-3AEA-1069-A2D8-08002B30309D"	My Computer
+#	"871C5380-42A0-1069-A2EA-08002B30309D"	Internet Explorer
+>>>4	guid		x	"%s"
+>>2	ubyte		=0x2f	\b, Volume
+# like: "C:\" "D:\"
+>>>3	string		x	"%s"
+# Control panel category
+#>>2	ubyte		foo	\b, Control panel category
+# display LinkInfo structure (size,flags,offsets)
+0	name		lnk-info
+# LinkInfoSize; size of the LinkInfo structure
+>0	ulelong		x	\b, LinkInfoSize %#x
+# LinkInfoHeaderSize; if 1C no optional fields; >=24 optional fields are specified
+>4	ulelong		x	\b, LinkInfoHeaderSize %#x
+# LinkInfoFlags; 
+#>8	ulelong	 	x	\b, LinkInfoFlags=%#x
+>8	ulelong&1 	1	\b, VolumeIDAndLocalBasePath
+# VolumeIDOffset; location of the VolumeID field (VolumeIDSize DriveType DriveSerialNumber VolumeLabelOffset ... ) inside LinkInfo structure
+>>12	ulelong	  	x	\b, VolumeIDOffset %#x
+# LocalBasePathOffset; location of LocalBasePath field like "C:\test\a.txt" inside LinkInfo structure
+>>16	ulelong		x	\b, LocalBasePathOffset %#x
+# LocalBasePathOffsetUnicode; location of the LocalBasePathUnicode field inside LinkInfo structure
+>>4	ulelong		>23
+>>>28	ulelong		x	\b, LocalBasePathOffsetUnicode %#x
+>8	ulelong&2 	2	\b, CommonNetworkRelativeLinkAndPathSuffix
+# CommonNetworkRelativeLinkOffset; location of the CommonNetworkRelativeLink field inside LinkInfo structure
+>>20	ulelong		x	\b, CommonNetworkRelativeLinkOffset %#x
+# CommonPathSuffixOffset; location of CommonPathSuffix field
+>24	ulelong		x	\b, CommonPathSuffixOffset %#x
+# CommonPathSuffixOffsetUnicode; location of CommonPathSuffixUnicode field inside LinkInfo structure
+>4	ulelong		>23
+>>32	ulelong		x	\b, CommonPathSuffixOffsetUnicode %#x
 
 # Summary: Outlook Personal Folders
 # Created by: unknown
@@ -41366,6 +43185,23 @@
 !:mime	text/x-ms-tag
 # like: DATA.TAG
 !:ext	tag
+# URL:		https://en.wikipedia.org/wiki/Flatpak
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/f/flatpakref.trid.xml
+# Note:		called "Flatpack Reference" by TrID
+>>&0	string		Flatpak\ Ref]					Flatpak repository reference
+#!:mime	text/plain
+# https://reposcope.com/mimetype/application/vnd.flatpak.ref
+!:mime	application/vnd.flatpak.ref
+!:ext	flatpakref
+# From:		Joerg Jenderek
+# URL:		https://en.wikipedia.org/wiki/CloneCD
+# Reference:	https://en.wikipedia.org/wiki/CloneCD_Control_File
+#		http://mark0.net/download/triddefs_xml.7z/defs/c/cdimage-clonecd-cue.trid.xml
+# Note:		called "CloneCD CDImage (description)" by TrID and "CloneCD Control File" by DROID via PUID fmt/1760
+>>&0	string		CloneCD]					CloneCD CD-image Description
+#!:mime	text/plain
+!:mime	text/x-ccd
+!:ext	ccd
 # unknown keyword after opening bracket
 >>&0	default				x
 #>>>&0	string/c			x	UNKNOWN [%s
@@ -41375,6 +43211,12 @@
 >>>>&0	string/c			version				Windows setup INFormation
 !:mime application/x-setupscript
 !:ext	inf
+# From:		Joerg Jenderek
+# URL:		https://cdrtfe.sourceforge.io/
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/c/cfp-cdrtfe.trid.xml
+>>>>&0	string				FileExplorer]			cdrtfe Project
+!:mime	text/x-cfp
+!:ext	cfp
 # https://en.wikipedia.org/wiki/Initialization_file	Windows Initialization File or other
 >>>>&0	default				x
 >>>>>&0	ubyte				x
@@ -41386,6 +43228,10 @@
 !:mime	application/x-wine-extension-ini
 #!:mime	text/plain
 !:ext	ini/inf
+# samples with only 1 and unknown section name
+# XXX: matches a file containing '[1] 2'
+#>>>&0	default				x				Generic INItialization configuration
+#>>>>0	string				x				\b, 1st line "%s"
 # UTF-16 BOM
 0	ubeshort		=0xFFFE
 # look for phrase of Windows policy ADMinistrative template (UTF-16 by adm-uni.trid.xml)
@@ -41971,6 +43817,47 @@
 >0		ubelong		x	...
 #
 
+# Summary:	Microsoft Remote Desktop Protocol connection
+# From:		Joerg Jenderek
+# URL:		https://learn.microsoft.com/en-us/windows-server/remote/remote-desktop-services/clients/rdp-files
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/r/rdp.trid.xml
+# Note:		called "Remote Desktop Connection Settings" by TrID
+0	string		screen\040mode\040id:i:	Remote Desktop Protocol connection
+#!:mime	text/plain
+!:mime	text/x-ms-rdp
+!:ext	rdp
+# Screen mode: 1~session appear in a window 2~session appear full screen
+>17	string		1			\b, window mode
+>17	string		2			\b, full screen mode
+
+0	guid	7B5C52E4-D88C-4DA7-AEB1-5378D02996D3	Microsoft OneNote
+!:ext one
+!:mime	application/onenote
+0	guid	43FF2FA1-EFD9-4C76-9EE2-10EA5722765F	Microsoft OneNote Revision Store File
+
+# Microsoft XAML Binary Format
+# From: Alexandre Iooss <erdnaxe@crans.org>
+# URL: https://github.com/WalkingCat/XbfDump/blob/8832d2ffcaa738434d803fefa2ba99d3af37ed29/xbf_data.h
+0	string	XBF\0
+>12	ulelong	<0xFF
+>>16	ulelong	<0xFF	Microsoft XAML Binary Format
+!:ext xbf
+>>>12	ulelong	x	%d
+>>>16	ulelong	x	\b.%d
+>>>4	ulelong	x	\b, metadata size: %d bytes
+>>>8	ulelong	x	\b, node size: %d bytes
+
+# Metaswitch MetaView Service Assurance Server exports
+0	string	MetaView\x20Service\x20Assurance\x20Export\x20File	MetaView SAS export
+>39     string  Version\x20
+>>47    byte    x                                                       \b, version %c
+
+# Active Directory Group Policy Registry Policy File Format
+# From: Yuuta Liang <yuuta@yuuta.moe>
+# URL: https://learn.microsoft.com/en-us/previous-versions/windows/desktop/policy/registry-policy-file-format
+0	string	PReg
+>4	lelong	x	Group Policy Registry Policy, Version=%d
+
 #------------------------------------------------------------------------------
 # $File: wireless,v 1.2 2009/09/19 16:28:13 christos Exp $
 # wireless-regdb:        file(1) magic for CRDA wireless-regdb file format
@@ -41979,7 +43866,7 @@
 >4	belong	19	(Version 1)
 
 #------------------------------------------------------------------------------
-# $File: wordprocessors,v 1.32 2022/10/31 13:22:26 christos Exp $
+# $File: wordprocessors,v 1.34 2023/01/24 20:13:40 christos Exp $
 # wordprocessors:  file(1) magic fo word processors.
 #
 ####### PWP file format used on Smith Corona Personal Word Processors:
@@ -42267,7 +44154,65 @@
 >>9	default	x
 >>>9	byte	x	Corel WordPerfect Office: Unknown filetype %d
 # Corel DrawPerfect
+# URL:		http://fileformats.archiveteam.org/wiki/Corel_Presentations
+# Update:	Joerg Jenderek
 >8	byte	15
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/s/shw-wp-2.trid.xml
+# Note:		called "WordPerfect Presentations (v2)" by TrID and
+#		"Corel Presentation" with version "7-8-9" by DROID via PUID fmt/877
+>>9	byte	10	WordPerfect Presentation
+#!:mime		application/octet-stream
+#!:mime		application/vnd.wordperfect
+!:mime		application/x-drawperfect-shw
+# like: BENEFITS.SHW chartbar.shw chartbul.shw chartgal.shw chartorg.shw fig-demo.shw figurgal.shw mastrgal.shw scuba.shw tutorial.shw
+!:ext		shw
+# pointer to document area like: 10h
+>>>4	ulelong	!0x10	\b, at %#x document area
+# according to TrID this is nil
+>>>12	ulelong	!0	\b, at 0xC %#x
+# search for embedded WP file like in tutorial.shw
+#>>>16	search/638/sb	\xffWPC	WPC_MAGIC_FOUND
+# GRR: indirect call leads to recursion! WHY?
+#>>>>&0	indirect	x	\b; contains
+# Reference:	http://mark0.net/download/triddefs_xml.7z/defs/s/shw-wp-3.trid.xml
+# Note:		called "WordPerfect/Corel Presentations (v3)" by TrID and
+#		"Corel Presentation" with version "3" by DROID via PUID fmt/878
+>>9	byte	15	Corel Presentation
+#!:mime		application/octet-stream
+#!:mime		application/vnd.wordperfect
+!:mime		application/x-drawperfect-shw
+# like: FIG_ANIM.SHW presenta.shw
+!:ext		shw
+# pointer to document area like: 1ah
+>>>4	ulelong	!0x1a	\b, at %#x document area
+# according to TrID this is nil
+>>>12	ulelong	!0	\b, at 0xC %#x
+# reserved like: 3
+>>>16	ulelong	!0x3	\b, at 0x10 %#x
+# file size, not including pad characters at EOF
+>>>0x14	ulelong x	\b, %u bytes
+# search for embedded WP file like in foo
+#>>>24	search/638/sb	\xffWPC	WPC_MAGIC_FOUND
+# GRR: indirect call leads to recursion! WHY?
+#>>>>&0	indirect	x	\b; contains
+# embedded inside Compound Document variant handled by ./ole2compounddocs
+>>9	byte	16	Corel Presentation (embeded)
+#!:mime		application/octet-stream
+#!:mime		application/vnd.wordperfect
+!:mime		application/x-corelpresentations
+# like: PerfectOffice_MAIN
+!:ext		/
+# pointer to document area like: 1ah
+>>>4	ulelong	!0x1a	\b, at %#x document area
+>>>12	ulelong	!0	\b, at 0xC %#x
+# reserved like: 3
+>>>16	ulelong	!0x3	\b, at 0x10 %#x
+# file size, not including pad characters at EOF
+>>>0x14	ulelong x	\b, %u bytes
+# search for embedded WP file
+#>>>24	search/638/sb	\xffWPC	WPC_MAGIC_FOUND
+# GRR: indirect call leads to recursion! WHY?
+#>>>>&0	indirect	x	\b; contains
 >>9	default	x
 >>>9	byte	x	Corel DrawPerfect: Unknown filetype %d
 # Corel LetterPerfect
@@ -42357,11 +44302,17 @@
 >>8	byte	x	Unknown Corel/Wordperfect product %d,
 >>>9	byte	x	file type %d
 >10	byte	0	\b, v5.
+# version of WP file; 2.1~WP 8.0
+# major version of WP file like: 1 2
 >10	byte	!0	\b, v%d.
+# minor version of WP file like: 0 1
 >11	byte	x	\b%d
 
-# Hangul (Korean) Word Processor File
-0	string	HWP\ Document\ File	Hangul (Korean) Word Processor File 3.0
+# Hancom HWP (Hangul Word Processor)
+# Hangul Word Processor 3.0 through 97 used HWP 3.0 format.
+# URL: https://www.hancom.com/etc/hwpDownload.do
+0	string	HWP\ Document\ File     Hancom HWP (Hangul Word Processor) file, version 3.0
+!:ext	hwp
 
 # CosmicBook, from Benoit Rouits
 0       string  CSBK    Ted Neslson's CosmicBook hypertext file
