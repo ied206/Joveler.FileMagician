@@ -2,7 +2,7 @@
 
 ## Initialization
 
-`Joveler.FileMagician` requires explicit loading of a libmagic library.
+`Joveler.FileMagician` requires explicit loading of the libmagic library.
 
 You must call `Magic.GlobalInit()` before using `Joveler.FileMagician`.
 
@@ -10,37 +10,9 @@ You must call `Magic.GlobalInit()` before using `Joveler.FileMagician`.
 
 Please put this code snippet in your application init code:
 
-#### On .NET Framework
+**WARNING**: The caller process and callee library must have the same architecture!
 
-```cs
-public static void InitNativeLibrary()
-{
-    string arch = null;
-    switch (RuntimeInformation.ProcessArchitecture)
-    {
-        case Architecture.X86:
-            arch = "x86";
-            break;
-        case Architecture.X64:
-            arch = "x64";
-            break;
-        case Architecture.Arm:
-            arch = "armhf";
-            break;
-        case Architecture.Arm64:
-            arch = "arm64";
-            break;
-    }
-    string libPath = Path.Combine(arch, "libmagic-1.dll");
-
-    if (!File.Exists(libPath))
-        throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
-
-    Magic.GlobalInit(libPath);
-}
-```
-
-#### On .NET Standard, .NET Core
+#### On .NET/.NET Core
 
 ```cs
 public static void InitNativeLibrary()
@@ -89,29 +61,58 @@ public static void InitNativeLibrary()
 }
 ```
 
-**WARNING**: The caller process and callee library must have the same architecture!
+#### On .NET Framework
+
+```cs
+public static void InitNativeLibrary()
+{
+    string arch = null;
+    switch (RuntimeInformation.ProcessArchitecture)
+    {
+        case Architecture.X86:
+            arch = "x86";
+            break;
+        case Architecture.X64:
+            arch = "x64";
+            break;
+        case Architecture.Arm:
+            arch = "armhf";
+            break;
+        case Architecture.Arm64:
+            arch = "arm64";
+            break;
+    }
+    string libPath = Path.Combine(arch, "libmagic-1.dll");
+
+    if (!File.Exists(libPath))
+        throw new PlatformNotSupportedException($"Unable to find native library [{libPath}].");
+
+    Magic.GlobalInit(libPath);
+}
+```
 
 ### Embedded binaries
 
-`Joveler.FileMagician` comes with sets of binaries of `libmagic 5.44` and its file signature database. They will be copied into the build directory at build time.
+`Joveler.FileMagician` comes with sets of binaries of `libmagic 5.45` and its file signature database. They will be copied into the build directory at build time.
 
 File signature database is copied to `$(OutDir)\magic.mgc` (compiled), and `$(OutDir)\magic.src` (source). Set up the `Copy to output directory` property of those files to `PreserveNewest` or `None` following your need.
 
 #### For .NET Framework
 
-| Platform         | Binary                         | License                                    | C Runtime     |
-|------------------|--------------------------------|--------------------------------------------|---------------|
-| Windows x86      | `$(OutDir)\x86\libmagic-1.dll` | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
-| Windows x64      | `$(OutDir)\x64\libmagic-1.dll` | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
+| Platform         | Binary                           | License                                    | C Runtime     |
+|------------------|----------------------------------|--------------------------------------------|---------------|
+| Windows x86      | `$(OutDir)\x86\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
+| Windows x64      | `$(OutDir)\x64\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
+| Windows arm64    | `$(OutDir)\arm64\libmagic-1.dll` | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
 
-- Bundled Windows binaries now target [Universal CRT](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170) for better interopability with MSVC.
+- Bundled Windows binaries targets [Universal CRT](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170) for better interopability with MSVC.
     - UCRT is installed on Windows 10 by default, so no action is required.
     - Windows Vista, 7 or 8.1 users may require [manual installation](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170) of UCRT.
 - Create an empty file named `Joveler.FileMagician.Lib.Exclude` in the project directory to prevent copying of the package-embedded binary.
 - Create an empty file named `Joveler.FileMagician.Mgc.Exclude` in the project directory to prevent copying of the package-embedded file signature database.
 - libmagic depends on libgnurx (included) on Windows, which is covered by LGPLv2.1.
 
-#### On .NET Standard & .NET Core
+#### On .NET/.NET Core & .NET Standard
 
 | Platform           | Binary                                        | License                                    | C Runtime     |
 |--------------------|-----------------------------------------------|--------------------------------------------|---------------|
@@ -119,14 +120,14 @@ File signature database is copied to `$(OutDir)\magic.mgc` (compiled), and `$(Ou
 | Windows x64        | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
 | Windows arm64      | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
 | Ubuntu 20.04 x64   | `$(OutDir)\runtimes\linux-x64\libmagic.so`    | 2-Clause BSD                               | glibc         | 
-| Debian 11 armhf    | `$(OutDir)\runtimes\linux-arm\libmagic.so`    | 2-Clause BSD                               | glibc         |
-| Debian 11 arm64    | `$(OutDir)\runtimes\linux-arm64\libmagic.so`  | 2-Clause BSD                               | glibc         |
+| Debian 12 armhf    | `$(OutDir)\runtimes\linux-arm\libmagic.so`    | 2-Clause BSD                               | glibc         |
+| Debian 12 arm64    | `$(OutDir)\runtimes\linux-arm64\libmagic.so`  | 2-Clause BSD                               | glibc         |
 | macOS Big Sur x64  | `$(OutDir)\runtimes\osx-x64\libmagic.dylib`   | 2-Clause BSD                               | libSystem     |
 | macOS Ventura x64  | `$(OutDir)\runtimes\osx-arm64\libmagic.dylib` | 2-Clause BSD                               | libSystem     |
 
 - If you call `Magic.GlobalInit()` without `libPath` parameter on Linux or macOS, it will search for system-installed libmagic.
 - libmagic was built without any compression support (e.g. `--disable-zlib`, `--disable-xzlib`, etc).
-- Bundled Windows binaires now target [Universal CRT](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170) for better interopability with MSVC.
+- Bundled Windows binaires targets [Universal CRT](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170) for better interopability with MSVC.
     - .NET Core/.NET 5+ runs on UCRT, so no action is required in most cases.
     - If you encounter a dependency issue on Windows Vista, 7 or 8.1, try [installing UCRT manually](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment?view=msvc-170).
 - libmagic depends on libgnurx (included) on Windows, which is covered by LGPLv2.1.
@@ -182,6 +183,8 @@ You can also set `MagicFlags` automatically with these overloads.
 static Magic Open(MagicFlags flags);
 static Magic Open(string magicFile, MagicFlags flags);
 ```
+
+**NOTE**: `Magic` instances are not thread-safe!
 
 ### Load magic database
 

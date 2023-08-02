@@ -65,9 +65,9 @@ namespace Joveler.FileMagician.Tests
             ["UTF8_KR_wBOM.txt"] = new TypeInfo("Unicode text, UTF-8 (with BOM) text, with no line terminators", "text/plain", "utf-8"),
             ["UTF8_KR_woBOM.txt"] = new TypeInfo("Unicode text, UTF-8 text, with no line terminators", "text/plain", "utf-8"),
             // Hancom Office
-            ["HWP97.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 3.0", "application/octet-stream", "binary"),
-            ["HWP2016.hwp"] = new TypeInfo("Hangul (Korean) Word Processor File 5.x", "application/x-hwp", "binary", "hwp"),
-            ["HWP2016.hwpx"] = new TypeInfo("Zip data (MIME type \"application/hwp+zip\"?)", "application/zip", "binary"),
+            ["HWP97.hwp"] = new TypeInfo("Hancom HWP (Hangul Word Processor) file, version 3.0", "application/octet-stream", "binary", "hwp"),
+            ["HWP2016.hwp"] = new TypeInfo("Hancom HWP (Hangul Word Processor) file, version 5.0", "application/x-hwp", "binary", "hwp"),
+            ["HWP2016.hwpx"] = new TypeInfo("Hancom HWP (Hangul Word Processor) file, HWPX", "application/x-hwp+zip", "binary", "hwpx"),
             ["Hancell2016.cell"] = new TypeInfo("Microsoft Excel 2007+", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "binary", "xlsx"),
             ["Hanshow2016.show"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary", "pptx"),
             // LibreOffice 6.0.7.3
@@ -75,9 +75,13 @@ namespace Joveler.FileMagician.Tests
             ["LibreImpress6.odp"] = new TypeInfo("OpenDocument Presentation", "application/vnd.oasis.opendocument.presentation", "binary", "odp"),
             ["LibreWriter6.odt"] = new TypeInfo("OpenDocument Text", "application/vnd.oasis.opendocument.text", "binary", "odt"),
             // Micorsoft Office 2003
-            //["Office2003.doc"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Author: Joveler Jang, Template: Normal.dotm, Last Saved By: Jang Joveler, Revision Number: 2, Name of Creating Application: Microsoft Office Word, Create Time/Date: Mon Jan 23 06:26:00 2023, Last Saved Time/Date: Mon Jan 23 06:26:00 2023, Number of Pages: 1, Number of Words: 7, Number of Characters: 40, Security: 0", "application/msword", "binary", "doc/dot/"),
-            //["Office2003.ppt"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Title: Microsoft Office Powerpoint 2019, Author: Jang Joveler, Last Saved By: Jang Joveler, Revision Number: 2, Name of Creating Application: Microsoft Office PowerPoint, Total Editing Time: 08:07, Create Time/Date: Sat Apr 20 04:54:43 2019, Last Saved Time/Date: *Bad* 0x38ec24c063cdaa29, Number of Words: 8", "application/vnd.ms-powerpoint", "binary", "ppt/pps/pot"),
-            //["Office2003.xls"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Name of Creating Application: Microsoft Excel, Create Time/Date: Fri Jun  5 18:19:34 2015, Last Saved Time/Date: Mon Jan 23 06:27:21 2023, Security: 0", "application/vnd.ms-excel", "binary", "xls/xlt"),
+            // Those files are somtimes detected differently across platforms.
+            // doc -> Fail in linux-armhf
+            // ppt -> Fail in linux-x64
+            // xls -> Fail in linux-armhf
+            // ["Office2003.doc"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Author: Joveler Jang, Template: Normal.dotm, Last Saved By: Jang Joveler, Revision Number: 2, Name of Creating Application: Microsoft Office Word, Create Time/Date: Mon Jan 23 06:26:00 2023, Last Saved Time/Date: Mon Jan 23 06:26:00 2023, Number of Pages: 1, Number of Words: 7, Number of Characters: 40, Security: 0", "application/msword", "binary", "doc/dot/"),
+            // ["Office2003.ppt"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Title: Microsoft Office Powerpoint 2019, Author: Jang Joveler, Last Saved By: Jang Joveler, Revision Number: 2, Name of Creating Application: Microsoft Office PowerPoint, Total Editing Time: 08:07, Create Time/Date: Sat Apr 20 04:54:43 2019, Last Saved Time/Date: *Bad* 0x38ec24c063cdaa29, Number of Words: 8", "application/vnd.ms-powerpoint", "binary", "ppt/pps/pot"),
+            // ["Office2003.xls"] = new TypeInfo("Composite Document File V2 Document, Little Endian, Os: Windows, Version 10.0, Code page: 949, Name of Creating Application: Microsoft Excel, Create Time/Date: Fri Jun  5 18:19:34 2015, Last Saved Time/Date: Mon Jan 23 06:27:21 2023, Security: 0", "application/vnd.ms-excel", "binary", "xls/xlt"),
             // Microsoft Office 2019
             ["Office2019.docx"] = new TypeInfo("Microsoft Word 2007+", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "binary", "docx"),
             ["Office2019.pptx"] = new TypeInfo("Microsoft PowerPoint 2007+", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "binary", "pptx"),

@@ -27,12 +27,15 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Joveler.FileMagician.Tests
 {
     [TestClass]
     public class VersionTest
     {
+        #region Version
         [TestMethod]
         public void Version()
         {
@@ -42,5 +45,17 @@ namespace Joveler.FileMagician.Tests
             Version ver = Magic.Version;
             Console.WriteLine($"Magic.Version()    = {ver}");
         }
+        #endregion
+
+        #region LogEnvironment
+        [TestMethod]
+        public void LogEnvironment()
+        {
+            StringBuilder b = new StringBuilder();
+            b.AppendLine($"OS = {RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture}");
+            b.AppendLine($"Dotnet Runtime = {RuntimeInformation.FrameworkDescription} {RuntimeInformation.ProcessArchitecture}");
+            Console.WriteLine(b.ToString());
+        }
+        #endregion
     }
 }

@@ -1,0 +1,28 @@
+diff --git a/src/file.h b/src/file.h
+index 2e0494d..a811d8d 100644
+--- a/src/file.h
++++ b/src/file.h
+@@ -107,11 +107,18 @@
+ 
+ #define file_private static
+ 
+-#if HAVE_VISIBILITY && !defined(WIN32)
+-#define file_public  __attribute__ ((__visibility__("default")))
+-#ifndef file_protected
+-#define file_protected __attribute__ ((__visibility__("hidden")))
+-#endif
++#if HAVE_VISIBILITY
++	#if defined(WIN32)
++		#define file_public  __declspec(dllexport)
++		#ifndef file_protected
++		#define file_protected
++		#endif
++	#else
++		#define file_public  __attribute__ ((__visibility__("default")))
++		#ifndef file_protected
++		#define file_protected __attribute__ ((__visibility__("hidden")))
++		#endif
++	#endif
+ #else
+ #define file_public
+ #ifndef file_protected

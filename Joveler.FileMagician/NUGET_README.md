@@ -31,12 +31,12 @@ Refer to the [project webpage](https://github.com/ied206/Joveler.FileMagician).
 
 #### Tested Linux distributions
 
-| Architecture | Distribution | Note |
-|--------------|--------------|------|
-| x64          | Ubuntu 20.04 | Tested on AppVeyor CI         |
-| armhf        | Debian 11    | Emulated on QEMU's virt board |
-| arm64        | Debian 11    | Emulated on QEMU's virt board |
+| Architecture | Distribution |
+|--------------|--------------|
+| x64          | Ubuntu 20.04 | 
+| armhf        | Debian 12    | 
+| arm64        | Debian 12    |
 
 ### Tested libmagic version
 
-- 5.44 (Included)
+- 5.45 (Included)
