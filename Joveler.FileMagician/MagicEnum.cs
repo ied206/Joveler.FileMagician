@@ -141,48 +141,72 @@ namespace Joveler.FileMagician
         /// </summary>
         NoCheckJson = 0x0400000,
         /// <summary>
+        /// Don't check for SIMH tape files
+        /// </summary>
+        NoCheckSimh = 0x0800000,
+        /// <summary>
         /// No built-in tests; only consult the magic file
         /// </summary>
         NoCheckBuiltin = NoCheckCompress | NoCheckTar | NoCheckAppType |
                          NoCheckElf | NoCheckText | NoCheckCdf | NoCheckCsv |
-                         NoCheckTokens | NoCheckEncoding | NoCheckJson,
+                         NoCheckTokens | NoCheckEncoding | NoCheckJson | NoCheckSimh,
     }
 
+    /*
+    [Default Values: win-x64]
+    IndirMax     : 50
+    NameMax      : 50
+    ElfPhNumMax  : 2048
+    ElfShNumMax  : 32768
+    ElfNotesMax  : 256
+    RegexMax     : 8192
+    BytesMax     : 7340032
+    EncodingMax  : 65536
+    ElfShSizeMax : 134217728
+    */
     public enum MagicParam
     {
         /// <summary>
-        /// Get and set uint16_t (ushort) integer value.
+        /// Controls recursion limit for indirect magic.
         /// </summary>
+        [Obsolete($"Use [{nameof(IndirMax)}] instead.")]
         InDirMax = 0,
         /// <summary>
-        /// Controls the maximum number of calls for name/use.
-        /// Get and set uint16_t (ushort) integer value.
+        /// Controls recursion limit for indirect magic.
+        /// </summary>
+        IndirMax = 0,
+        /// <summary>
+        /// Controls the maximum number of calls for name/use calls.
         /// </summary>
         NameMax = 1,
         /// <summary>
         /// Controls how many ELF program sections will be processed.
-        /// Get and set uint16_t (ushort) integer value.
         /// </summary>
         ElfPhNumMax = 2,
         /// <summary>
         /// Controls how many ELF sections will be processed.
-        /// Get and set uint16_t (ushort) integer value.
         /// </summary>
         ElfShNumMax = 3,
         /// <summary>
         /// Controls how many ELF sections will be processed.
-        /// Get and set uint16_t (ushort) integer value.
         /// </summary>
         ElfNotesMax = 4,
         /// <summary>
-        /// Get and set uint16_t (ushort) integer value.
+        /// Controls length limit for regex searches.
         /// </summary>
         RegexMax = 5,
         /// <summary>
-        /// Number of bytes to read from file.
-        /// Get and set size_t (ulong) integer value.
+        /// Controls number of bytes to read from file.
         /// </summary>
         BytesMax = 6,
+        /// <summary>
+        /// Controls max number of bytes to determine encoding.
+        /// </summary>
+        EncodingMax = 7,
+        /// <summary>
+        /// Controls max ELF section size to process.
+        /// </summary>
+        ElfShSizeMax = 8,
     }
     #endregion
 }

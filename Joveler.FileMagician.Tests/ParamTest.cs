@@ -30,65 +30,127 @@ using System;
 
 namespace Joveler.FileMagician.Tests
 {
+    public class ParamSnapshot
+    {
+        /// <summary>
+        /// libmagic: 15, file: 50
+        /// </summary>
+        public ulong IndirMax { get; set; }
+        /// <summary>
+        /// libmagic: 30, file: 50
+        /// </summary>
+        public ulong NameMax { get; set; }
+        /// <summary>
+        /// libmagic: 128, file: 2KB
+        /// </summary>
+        public ulong ElfPhNumMax { get; set; } = 0;
+        /// <summary>
+        /// libmagic: 32KB, file: 32KB
+        /// </summary>
+        public ulong ElfShNumMax { get; set; } = 0;
+        /// <summary>
+        /// libmagic: 256, file: 256
+        /// </summary>
+        public ulong ElfNotesMax { get; set; } = 0;
+        /// <summary>
+        /// libmagic: 8KB, file: 8KB
+        /// </summary>
+        public ulong RegexMax { get; set; } = 0;
+        /// <summary>
+        /// libmagic: 1MB, file: 1MB
+        /// </summary>
+        public ulong BytesMax { get; set; } = 0;
+        /// <summary>
+        /// libmagic: ?, file: 65KB
+        /// </summary>
+        public ulong EncodingMax { get; set; } = 0;
+        /// <summary>
+        /// libmagic: ?, file: 128MB
+        /// </summary>
+        public ulong ElfShSizeMax { get; set; } = 0;
+
+        public void PrintParams()
+        {
+            Console.WriteLine($"{nameof(MagicParam.IndirMax)}     : {IndirMax}");
+            Console.WriteLine($"{nameof(MagicParam.NameMax)}      : {NameMax}");
+            Console.WriteLine($"{nameof(MagicParam.ElfPhNumMax)}  : {ElfPhNumMax}");
+            Console.WriteLine($"{nameof(MagicParam.ElfShNumMax)}  : {ElfShNumMax}");
+            Console.WriteLine($"{nameof(MagicParam.ElfNotesMax)}  : {ElfNotesMax}");
+            Console.WriteLine($"{nameof(MagicParam.RegexMax)}     : {RegexMax}");
+            Console.WriteLine($"{nameof(MagicParam.BytesMax)}     : {BytesMax}");
+            Console.WriteLine($"{nameof(MagicParam.EncodingMax)}  : {EncodingMax}"); 
+            Console.WriteLine($"{nameof(MagicParam.ElfShSizeMax)} : {ElfShSizeMax}");
+            Console.WriteLine();
+        }
+
+        public static ParamSnapshot CaptureSnapshot(Magic magic)
+        {
+            ParamSnapshot snapshot = new ParamSnapshot
+            {
+                IndirMax = magic.GetParam(MagicParam.IndirMax),
+                NameMax = magic.GetParam(MagicParam.NameMax),
+                ElfPhNumMax = magic.GetParam(MagicParam.ElfPhNumMax),
+                ElfShNumMax = magic.GetParam(MagicParam.ElfShNumMax),
+                ElfNotesMax = magic.GetParam(MagicParam.ElfNotesMax),
+                RegexMax = magic.GetParam(MagicParam.RegexMax),
+                BytesMax = magic.GetParam(MagicParam.BytesMax),
+                EncodingMax = magic.GetParam(MagicParam.EncodingMax),
+                ElfShSizeMax = magic.GetParam(MagicParam.ElfShSizeMax)
+            };
+            return snapshot;
+        }
+
+        public void RestoreSnapshot(Magic magic)
+        {
+            magic.SetParam(MagicParam.IndirMax, IndirMax);
+            magic.SetParam(MagicParam.NameMax, NameMax);
+            magic.SetParam(MagicParam.ElfPhNumMax, ElfPhNumMax);
+            magic.SetParam(MagicParam.ElfShNumMax, ElfShNumMax);
+            magic.SetParam(MagicParam.ElfNotesMax, ElfNotesMax);
+            magic.SetParam(MagicParam.RegexMax, RegexMax);
+            magic.SetParam(MagicParam.BytesMax, BytesMax);
+            magic.SetParam(MagicParam.EncodingMax, EncodingMax);
+            magic.SetParam(MagicParam.ElfShSizeMax, ElfShSizeMax);
+        }
+    }
+
     [TestClass]
     public class ParamTest
     {
         [TestMethod]
-        public void Param()
+        public void ParamTests()
         {
-            ushort inDirMax;
-            ushort nameMax;
-            ushort elfPhNumMax;
-            ushort elfShNumMax;
-            ushort elfNotesMax;
-            ushort regexMax;
-            ulong bytesMax;
-
-            void ReadParams(Magic magic)
-            {
-                inDirMax = (ushort)magic.GetParam(MagicParam.InDirMax);
-                nameMax = (ushort)magic.GetParam(MagicParam.NameMax);
-                elfPhNumMax = (ushort)magic.GetParam(MagicParam.ElfPhNumMax);
-                elfShNumMax = (ushort)magic.GetParam(MagicParam.ElfShNumMax);
-                elfNotesMax = (ushort)magic.GetParam(MagicParam.ElfNotesMax);
-                regexMax = (ushort)magic.GetParam(MagicParam.RegexMax);
-                bytesMax = magic.GetParam(MagicParam.BytesMax);
-            }
-
-            void PrintParams()
-            {
-                Console.WriteLine($"{nameof(MagicParam.InDirMax)}    : {inDirMax}");
-                Console.WriteLine($"{nameof(MagicParam.NameMax)}     : {nameMax}");
-                Console.WriteLine($"{nameof(MagicParam.ElfPhNumMax)} : {elfPhNumMax}");
-                Console.WriteLine($"{nameof(MagicParam.ElfShNumMax)} : {elfShNumMax}");
-                Console.WriteLine($"{nameof(MagicParam.ElfNotesMax)} : {elfNotesMax}");
-                Console.WriteLine($"{nameof(MagicParam.RegexMax)}    : {regexMax}");
-                Console.WriteLine($"{nameof(MagicParam.BytesMax)}    : {bytesMax}");
-            }
-
             using (Magic magic = Magic.Open(TestSetup.MagicCompiledFile))
             {
                 Console.WriteLine("[Default Values]");
-                ReadParams(magic);
-                PrintParams();
+                ParamSnapshot backup = ParamSnapshot.CaptureSnapshot(magic);
+                backup.PrintParams();
 
-                Console.WriteLine("[Set New Values]");
-                magic.SetParam(MagicParam.InDirMax, ushort.MaxValue);
+                Console.WriteLine("[Set & Check New Values]");
+                magic.SetParam(MagicParam.IndirMax, ushort.MaxValue);
                 magic.SetParam(MagicParam.NameMax, ushort.MaxValue);
                 magic.SetParam(MagicParam.ElfPhNumMax, ushort.MaxValue);
                 magic.SetParam(MagicParam.ElfShNumMax, ushort.MaxValue);
                 magic.SetParam(MagicParam.ElfNotesMax, ushort.MaxValue);
                 magic.SetParam(MagicParam.RegexMax, ushort.MaxValue);
-                magic.SetParam(MagicParam.BytesMax, 16 * ushort.MaxValue);
-                ReadParams(magic);
-                PrintParams();
-                Assert.AreEqual((ulong)ushort.MaxValue, inDirMax);
-                Assert.AreEqual((ulong)ushort.MaxValue, nameMax);
-                Assert.AreEqual((ulong)ushort.MaxValue, elfPhNumMax);
-                Assert.AreEqual((ulong)ushort.MaxValue, elfShNumMax);
-                Assert.AreEqual((ulong)ushort.MaxValue, elfNotesMax);
-                Assert.AreEqual((ulong)ushort.MaxValue, regexMax);
-                Assert.AreEqual((ulong)(16 * ushort.MaxValue), bytesMax);
+                magic.SetParam(MagicParam.BytesMax, 1024 * 1024);
+                magic.SetParam(MagicParam.EncodingMax, 2 * ushort.MaxValue);
+                magic.SetParam(MagicParam.ElfShSizeMax, 64 * 1024 * 1024);
+                ParamSnapshot modified = ParamSnapshot.CaptureSnapshot(magic);
+                modified.PrintParams();
+
+                Assert.AreEqual((ulong)ushort.MaxValue, modified.IndirMax);
+                Assert.AreEqual((ulong)ushort.MaxValue, modified.NameMax);
+                Assert.AreEqual((ulong)ushort.MaxValue, modified.ElfPhNumMax);
+                Assert.AreEqual((ulong)ushort.MaxValue, modified.ElfShNumMax);
+                Assert.AreEqual((ulong)ushort.MaxValue, modified.ElfNotesMax);
+                Assert.AreEqual((ulong)ushort.MaxValue, modified.RegexMax);
+                Assert.AreEqual((ulong)(1024 * 1024), modified.BytesMax);
+                Assert.AreEqual((ulong)(2 * ushort.MaxValue), modified.EncodingMax);
+                Assert.AreEqual((ulong)(64 * 1024 * 1024), modified.ElfShSizeMax);
+
+                // Restore backup
+                backup.RestoreSnapshot(magic);
             }
         }
     }
