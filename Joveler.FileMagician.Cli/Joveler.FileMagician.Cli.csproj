@@ -7,7 +7,7 @@
         <IsTrimmable>true</IsTrimmable>
 
         <Title>Joveler.FileMagician.Cli</Title>
-        <Version>2.3.0</Version>
+        <Version>2.3.1</Version>
         <Authors>Hajin Jang</Authors>
         <Company>Joveler</Company>
         <Description>.NET CLI of libmagic</Description>

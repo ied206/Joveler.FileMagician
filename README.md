@@ -50,11 +50,11 @@ Joveler.FileMagician can be installed via [nuget](https://www.nuget.org/packages
 
 #### Tested Linux distributions
 
-| Architecture | Distribution | Note |
-|--------------|--------------|------|
-| x64          | Ubuntu 20.04 | Tested on AppVeyor CI         |
-| armhf        | Debian 11    | Emulated on QEMU's virt board |
-| arm64        | Debian 11    | Emulated on QEMU's virt board |
+| Architecture | Distribution |
+|--------------|--------------|
+| x64          | Ubuntu 20.04 |
+| armhf        | Debian 12    |
+| arm64        | Debian 12    |
 
 ### Supported libmagic version
 
