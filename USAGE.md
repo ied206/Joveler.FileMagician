@@ -114,16 +114,16 @@ File signature database is copied to `$(OutDir)\magic.mgc` (compiled), and `$(Ou
 
 #### On .NET/.NET Core & .NET Standard
 
-| Platform           | Binary                                        | License                                    | C Runtime     |
-|--------------------|-----------------------------------------------|--------------------------------------------|---------------|
-| Windows x86        | `$(OutDir)\runtimes\win-x86\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
-| Windows x64        | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
-| Windows arm64      | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
-| Ubuntu 20.04 x64   | `$(OutDir)\runtimes\linux-x64\libmagic.so`    | 2-Clause BSD                               | glibc         | 
-| Debian 12 armhf    | `$(OutDir)\runtimes\linux-arm\libmagic.so`    | 2-Clause BSD                               | glibc         |
-| Debian 12 arm64    | `$(OutDir)\runtimes\linux-arm64\libmagic.so`  | 2-Clause BSD                               | glibc         |
-| macOS Big Sur x64  | `$(OutDir)\runtimes\osx-x64\libmagic.dylib`   | 2-Clause BSD                               | libSystem     |
-| macOS Ventura x64  | `$(OutDir)\runtimes\osx-arm64\libmagic.dylib` | 2-Clause BSD                               | libSystem     |
+| Platform             | Binary                                        | License                                    | C Runtime     |
+|----------------------|-----------------------------------------------|--------------------------------------------|---------------|
+| Windows x86          | `$(OutDir)\runtimes\win-x86\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
+| Windows x64          | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
+| Windows arm64        | `$(OutDir)\runtimes\win-x64\libmagic-1.dll`   | 2-Clause BSD (w LGPLv2.1 `libgnurx-0.dll`) | Universal CRT |
+| Ubuntu 20.04 x64     | `$(OutDir)\runtimes\linux-x64\libmagic.so`    | 2-Clause BSD                               | glibc         | 
+| Debian 12 armhf      | `$(OutDir)\runtimes\linux-arm\libmagic.so`    | 2-Clause BSD                               | glibc         |
+| Debian 12 arm64      | `$(OutDir)\runtimes\linux-arm64\libmagic.so`  | 2-Clause BSD                               | glibc         |
+| macOS Big Sur x64    | `$(OutDir)\runtimes\osx-x64\libmagic.dylib`   | 2-Clause BSD                               | libSystem     |
+| macOS Monterey arm64 | `$(OutDir)\runtimes\osx-arm64\libmagic.dylib` | 2-Clause BSD                               | libSystem     |
 
 - If you call `Magic.GlobalInit()` without `libPath` parameter on Linux or macOS, it will search for system-installed libmagic.
 - libmagic was built without any compression support (e.g. `--disable-zlib`, `--disable-xzlib`, etc).

@@ -102,9 +102,9 @@ pushd "${SRC_DIR}" > /dev/null
 for BUILD_MODE in "${BUILD_MODES[@]}"; do
     CONFIGURE_ARGS=""
     if [ "$BUILD_MODE" = "lib" ]; then
-        CONFIGURE_ARGS="--enable-shared"
+        CONFIGURE_ARGS="--enable-static=no --enable-shared=yes"
     elif [ "$BUILD_MODE" = "exe" ]; then
-        CONFIGURE_ARGS="--disable-shared"
+        CONFIGURE_ARGS="--enable-static=yes --enable-shared=no"
     fi
 
 # CFLAGS="-I${GNURX_DIR} -Os -fvisibility=default" \
