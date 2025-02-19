@@ -107,10 +107,11 @@ for BUILD_MODE in "${BUILD_MODES[@]}"; do
         CONFIGURE_ARGS="--enable-static=yes --enable-shared=no"
     fi
 
-# CFLAGS="-I${GNURX_DIR} -Os -fvisibility=default" \
+    # --libdir=${SRC_DIR} required for cross-compiling .exe
+    # If not, libtool automatically include `-L/ucrt64/lib`, causing x86_64 libmsvcrt.a/libmingw32.a to be always linked and cause an error.
     make clean
     autoreconf -f -i # Required to use own libgnurx
-    ./configure --host=${TARGET_TRIPLE} \
+    ./configure --host=${TARGET_TRIPLE} --libdir=${SRC_DIR} \
         --disable-zlib \
         --disable-bzlib \
         --disable-xzlib \
@@ -130,7 +131,7 @@ fi
         cat magic/Magdir/* > "${DEST_DIR}/magic.src"
         cp COPYING "${DEST_DIR}"
     elif [ "$BUILD_MODE" = "exe" ]; then
-        cp "src/${DEST_EXE}" "${DEST_DIR}"
+        cp "src/.libs/${DEST_EXE}" "${DEST_DIR}"
         cp magic/magic.mgc "${DEST_DIR}"
     fi    
 done 
@@ -154,5 +155,6 @@ popd > /dev/null
 
 # [*] Print dependency of binaries
 pushd "${DEST_DIR}" > /dev/null
+file "${GNURX_LIB}" "${DEST_LIB}" "${DEST_EXE}"
 ${CHECKDEP} "${GNURX_LIB}" "${DEST_LIB}" "${DEST_EXE}"
 popd > /dev/null
