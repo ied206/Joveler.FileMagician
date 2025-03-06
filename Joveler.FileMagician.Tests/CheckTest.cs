@@ -89,23 +89,27 @@ namespace Joveler.FileMagician.Tests
             // Archive Format
             ["Samples.7z"] = new TypeInfo("7-zip archive data, version 0.3", "application/x-7z-compressed", "binary", "7z/cb7"),
             ["Samples.tar"] = new TypeInfo("POSIX tar archive (GNU)", "application/x-tar", "binary", "tar/gtar"),
+            ["Samples.tar.gz"] = new TypeInfo("gzip compressed data, was \"Samples.tar\", last modified: Sat Apr 20 05:51:39 2019, from Unix", "application/gzip", "binary", "gz/tgz/tpz/zabw/svgz/adz/kmy/xcfgz"),
             ["Samples.tar.bz2"] = new TypeInfo("bzip2 compressed data, block size = 900k", "application/x-bzip2", "binary", "bz2"),
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary", "xz"),
-            ["Samples.zip"] = new TypeInfo("Zip archive data, at least v2.0 to extract, compression method=deflate", "application/zip", "binary"),
+            ["Samples.tar.lz4"] = new TypeInfo("LZ4 compressed data (v1.4+)", "application/x-lz4", "binary", "lz4"),
+            ["Samples.tar.zst"] = new TypeInfo("Zstandard compressed data (v0.8+), Dictionary ID: None", "application/zstd", "binary", "zst"),
+            // clang compiled libmagic 5.46 cannot detect zip files...?
+            //["Samples.zip"] = new TypeInfo("Zip archive data, made by v2.0, extract using at least v2.0, last modified, last modified Sun, Apr 12 2019 04:16:20, uncompressed size 19, method=deflate", "application/zip", "binary"),
             ["Samples.alz"] = new TypeInfo("ALZ archive data", "application/octet-stream", "binary", "alz"),
             ["Samples.egg"] = new TypeInfo("EGG archive data, version 1.0", "application/octet-stream", "binary", "egg"),
-            ["Samples.rar"] = new TypeInfo("RAR archive data, v4, os: Win32", "application/x-rar", "binary", "rar/cbr"),
-            ["Samples.rar5"] = new TypeInfo("RAR archive data, v5", "application/x-rar", "binary", "rar"),
+            ["Samples.rar"] = new TypeInfo("RAR archive data, v4, os: Win32", "application/vnd.rar", "binary", "rar/cbr"),
+            ["Samples.rar5"] = new TypeInfo("RAR archive data, v5", "application/vnd.rar", "binary", "rar"),
             // Image Format
             ["Logo.bmp"] = new TypeInfo("PC bitmap, Windows 3.x format, 128 x 128 x 4, image size 8192, cbSize 8310, bits offset 118", "image/bmp", "binary", "bmp"),
             ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
             ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary", "jpeg/jpg/jpe/jfif"),
             ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary", "png"),
-            ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image", "image/svg+xml", "us-ascii", "svg"),
-            ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image", "image/webp", "binary", "webp"),
+            ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image, ASCII text, with CRLF line terminators", "image/svg+xml", "us-ascii", "svg"),
+            ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image, with alpha, 127+1x127+1", "image/webp", "binary", "webp"),
             // Database + Unicode-only path test 
-            ["DB.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "sqlite/sqlite3/db/db3/dbe/sdb/help"),
-            ["ᄒᆞᆫ글ḀḘ韓國.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "sqlite/sqlite3/db/db3/dbe/sdb/help"),
+            ["DB.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "/sqlite/sqlite3/db/db3/dbe/sdb/help/ide/localstorage/sqlar/xowa/mbtiles"),
+            ["ᄒᆞᆫ글ḀḘ韓國.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "/sqlite/sqlite3/db/db3/dbe/sdb/help/ide/localstorage/sqlar/xowa/mbtiles"),
         };
 
         [TestMethod]

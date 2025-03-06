@@ -252,7 +252,7 @@ namespace Joveler.FileMagician.Samples
         // ReSharper enable CommentTypo
         #endregion
 
-        public struct BinInfo
+        public class BinInfo
         {
             public readonly string TypeStr;
             public readonly BinFlags BinFlags;
@@ -273,11 +273,13 @@ namespace Joveler.FileMagician.Samples
             if (_magic == null)
                 throw new InvalidOperationException($"{nameof(_magic)} is null");
 
-            string typeStr;
+            string? typeStr;
             lock (_magicLock)
             {
                 typeStr = _magic.CheckFile(binFilePath);
             }
+            if (typeStr == null)
+                throw new InvalidOperationException($"Failed to check file [{binFilePath}]");
 
             BinFlags binFlags = ParseBinFlags(typeStr);
             BinArch binArch = ParseBinArch(typeStr, binFlags);

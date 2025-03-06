@@ -115,37 +115,37 @@ namespace Joveler.FileMagician
         #region Open and Close
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate IntPtr magic_open(MagicFlags flags);
-        internal magic_open MagicOpen;
+        internal magic_open? MagicOpen;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate void magic_close(IntPtr ptr);
-        internal magic_close MagicClose;
+        internal magic_close? MagicClose;
         #endregion
 
         #region Operations
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate IntPtr magic_getpath(IntPtr magicfile, int action);
-        internal magic_getpath MagicGetPath;
+        internal magic_getpath? MagicGetPath;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal unsafe delegate IntPtr magic_buffer(IntPtr ms, byte* buf, UIntPtr nb);
-        internal magic_buffer MagicBuffer;
+        internal unsafe delegate IntPtr magic_buffer(IntPtr ms, byte* buf, nint nb);
+        internal magic_buffer? MagicBuffer;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate IntPtr magic_error(IntPtr ms);
-        internal magic_error MagicError;
+        internal magic_error? MagicError;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate MagicFlags magic_getflags(IntPtr ms);
-        internal magic_getflags MagicGetFlags;
+        internal magic_getflags? MagicGetFlags;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_setflags(IntPtr ms, MagicFlags flags);
-        internal magic_setflags MagicSetFlags;
+        internal magic_setflags? MagicSetFlags;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_version();
-        internal magic_version MagicVersion;
+        internal magic_version? MagicVersion;
 
         /// <summary>
         /// Load a magic file.
@@ -154,8 +154,8 @@ namespace Joveler.FileMagician
         /// <param name="magicFile"></param>
         /// <returns></returns>
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal delegate int magic_load(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string magicFile);
-        internal magic_load MagicLoad;
+        internal delegate int magic_load(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string? magicFile);
+        internal magic_load? MagicLoad;
 
         /// <summary>
         /// Install a set of compiled magic buffers.
@@ -174,33 +174,33 @@ namespace Joveler.FileMagician
         internal unsafe delegate int magic_load_buffers(
             IntPtr ms,
             [MarshalAs(UnmanagedType.LPArray)] IntPtr[] buf, // void**
-            [MarshalAs(UnmanagedType.LPArray)] UIntPtr[] sizes, // size_t*
-            UIntPtr nbufs); // size_t 
-        internal magic_load_buffers MagicLoadBuffers;
+            [MarshalAs(UnmanagedType.LPArray)] nint[] sizes, // size_t*
+            nint nbufs); // size_t 
+        internal magic_load_buffers? MagicLoadBuffers;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_compile(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string magicfile);
-        internal magic_compile MagicCompile;
+        internal magic_compile? MagicCompile;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_check(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string magicfile);
-        internal magic_check MagicCheck;
+        internal magic_check? MagicCheck;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_list(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string magicfile);
-        internal magic_list MagicList;
+        internal magic_list? MagicList;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate int magic_errno(IntPtr ms);
-        internal magic_errno MagicErrno;
+        internal magic_errno? MagicErrno;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal unsafe delegate int magic_setparam(IntPtr ms, MagicParam param, UIntPtr* val);
-        internal magic_setparam MagicSetParam;
+        internal unsafe delegate int magic_setparam(IntPtr ms, MagicParam param, nint* val);
+        internal magic_setparam? MagicSetParam;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        internal unsafe delegate int magic_getparam(IntPtr ms, MagicParam param, UIntPtr* val);
-        internal magic_getparam MagicGetParam;
+        internal unsafe delegate int magic_getparam(IntPtr ms, MagicParam param, nint* val);
+        internal magic_getparam? MagicGetParam;
         #endregion
         #endregion
     }

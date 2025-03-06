@@ -1,3 +1,15 @@
+# Magic data for file(1) command.
+# Format is described in magic(files), where:
+# files is 5 on V7 and BSD, 4 on SV, and ?? on SVID.
+# Don't edit this file, edit /etc/magic or send your magic improvements
+# to the maintainers, at file@astron.com
+
+#------------------------------------------------------------------------------
+# Localstuff:  file(1) magic for locally observed files
+#
+# $File: Localstuff,v 1.5 2007/01/12 17:38:27 christos Exp $
+# Add any locally observed files here.  Remember:
+# text if readable, executable if runnable binary, data if unreadable.
 
 #------------------------------------------------------------------------------
 # $File: acorn,v 1.9 2024/08/30 17:29:28 christos Exp $

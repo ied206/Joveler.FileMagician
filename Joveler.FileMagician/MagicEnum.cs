@@ -163,18 +163,19 @@ namespace Joveler.FileMagician
     BytesMax     : 7340032
     EncodingMax  : 65536
     ElfShSizeMax : 134217728
+    MagwarnMax   : 64
     */
     public enum MagicParam
     {
         /// <summary>
         /// Controls recursion limit for indirect magic.
         /// </summary>
-        [Obsolete($"Use [{nameof(IndirMax)}] instead.")]
-        InDirMax = 0,
+        IndirMax = 0,
         /// <summary>
         /// Controls recursion limit for indirect magic.
         /// </summary>
-        IndirMax = 0,
+        [Obsolete($"Use [{nameof(IndirMax)}] instead.")]
+        InDirMax = 0,
         /// <summary>
         /// Controls the maximum number of calls for name/use calls.
         /// </summary>
@@ -207,6 +208,10 @@ namespace Joveler.FileMagician
         /// Controls max ELF section size to process.
         /// </summary>
         ElfShSizeMax = 8,
+        /// <summary>
+        /// Controls the maximum number of warnings to tolerate in a magic file.
+        /// </summary>
+        MagwarnMax = 9
     }
     #endregion
 }

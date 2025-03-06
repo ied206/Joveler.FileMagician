@@ -202,7 +202,7 @@ namespace Joveler.FileMagician.Samples
                 magicFlags |= MagicFlags.MimeEncoding;
 
             // Process target files
-            List<MagicEntry> targetFiles = new List<MagicEntry>();
+            List<MagicEntry> targetFiles = [];
             string[] rawTargetFiles = opts.TargetFiles.ToArray();
             if (rawTargetFiles.Length == 0)
             {
@@ -210,7 +210,7 @@ namespace Joveler.FileMagician.Samples
                 Environment.Exit(1);
             }
             
-            char[] wildcardAnyOf = new char[] { '*', '?' };
+            char[] wildcardAnyOf = ['*', '?'];
             foreach (string rawTargetFile in rawTargetFiles)
             {
                 if (rawTargetFile.IndexOfAny(wildcardAnyOf) != -1)
@@ -251,7 +251,7 @@ namespace Joveler.FileMagician.Samples
             {
                 foreach (MagicEntry entry in targetFiles)
                 {
-                    string output;
+                    string? output;
                     try
                     {
                         if (Directory.Exists(entry.Target))
@@ -265,7 +265,7 @@ namespace Joveler.FileMagician.Samples
                     {
                         output = $"Cannot open [{entry.DisplayName}]: {e.Message}";
                     }
-                    entry.Output = output;
+                    entry.Output = output ?? "null";
                 }
             }
 
