@@ -94,7 +94,9 @@ namespace Joveler.FileMagician.Tests
             ["Samples.tar.xz"] = new TypeInfo("XZ compressed data, checksum CRC64", "application/x-xz", "binary", "xz"),
             ["Samples.tar.lz4"] = new TypeInfo("LZ4 compressed data (v1.4+)", "application/x-lz4", "binary", "lz4"),
             ["Samples.tar.zst"] = new TypeInfo("Zstandard compressed data (v0.8+), Dictionary ID: None", "application/zstd", "binary", "zst"),
-            // clang compiled libmagic 5.46 cannot detect zip files...?
+            // libmagic 5.46 cannot detect zip files from magic_buffer(), will be fixed in next release
+            // https://bugs.astron.com/view.php?id=622
+            // https://bugs.astron.com/view.php?id=612
             //["Samples.zip"] = new TypeInfo("Zip archive data, made by v2.0, extract using at least v2.0, last modified, last modified Sun, Apr 12 2019 04:16:20, uncompressed size 19, method=deflate", "application/zip", "binary"),
             ["Samples.alz"] = new TypeInfo("ALZ archive data", "application/octet-stream", "binary", "alz"),
             ["Samples.egg"] = new TypeInfo("EGG archive data, version 1.0", "application/octet-stream", "binary", "egg"),
@@ -105,7 +107,8 @@ namespace Joveler.FileMagician.Tests
             ["Logo.bpg"] = new TypeInfo("BPG (Better Portable Graphics)", "image/bpg", "binary"),
             ["Logo.jpg"] = new TypeInfo("JPEG image data, JFIF standard 1.01, aspect ratio, density 1x1, segment length 16, baseline, precision 8, 128x128, components 3", "image/jpeg", "binary", "jpeg/jpg/jpe/jfif"),
             ["Logo.png"] = new TypeInfo("PNG image data, 128 x 128, 8-bit/color RGBA, non-interlaced", "image/png", "binary", "png"),
-            ["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image, ASCII text, with CRLF line terminators", "image/svg+xml", "us-ascii", "svg"),
+            // CRLF issue between Windows vs POSIX
+            //["Logo.svg"] = new TypeInfo("SVG Scalable Vector Graphics image, ASCII text, with CRLF line terminators", "image/svg+xml", "us-ascii", "svg"),
             ["Logo.webp"] = new TypeInfo("RIFF (little-endian) data, Web/P image, with alpha, 127+1x127+1", "image/webp", "binary", "webp"),
             // Database + Unicode-only path test 
             ["DB.sqlite"] = new TypeInfo("SQLite 3.x database, last written using SQLite version 3027002, file counter 2, database pages 2, 1st free page 2, free pages 1, cookie 0x2, schema 4, UTF-8, version-valid-for 2", "application/vnd.sqlite3", "binary", "/sqlite/sqlite3/db/db3/dbe/sdb/help/ide/localstorage/sqlar/xowa/mbtiles"),

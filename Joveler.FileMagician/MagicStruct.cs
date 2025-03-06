@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -328,19 +329,28 @@ namespace Joveler.FileMagician
 
         #region Check Type
         /// <summary>
-        /// Check type of a given file by inspecting first 256KB.
+        /// Check type of a given file by inspecting first 1MB.
         /// </summary>
         /// <param name="inName">File to check its type.</param>
         public string? CheckFile(string inName)
         {
-            int bytesRead;
-            byte[] magicBuffer = new byte[256 * 1024]; // `file` command use 256KB buffer by default
-            using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
-            {
-                bytesRead = fs.Read(magicBuffer, 0, magicBuffer.Length);
-            }
+            const int defaultBufferSize = 1024 * 1024;
 
-            return CheckBuffer(magicBuffer, 0, bytesRead);
+            byte[] magicBuffer = ArrayPool<byte>.Shared.Rent(defaultBufferSize);
+            try 
+            {
+                int bytesRead;
+                using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
+                {
+                    bytesRead = fs.Read(magicBuffer, 0, defaultBufferSize);
+                }
+
+                return CheckBuffer(magicBuffer, 0, bytesRead);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(magicBuffer);
+            }
         }
 
         /// <summary>
@@ -349,8 +359,16 @@ namespace Joveler.FileMagician
         /// <param name="inName">File to check its type.</param>
         /// <param name="checkSize">How many bytes to check?</param>
         /// <returns></returns>
-        public string? CheckFile(string inName, int checkSize)
+        public unsafe string? CheckFile(string inName, int checkSize)
         {
+            /*
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            IntPtr strPtr = Lib.MagicFile!(_magicPtr, inName);
+            return Marshal.PtrToStringAnsi(strPtr);
+            */
+            
             int bytesRead;
             byte[] magicBuffer = new byte[checkSize];
             using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))

@@ -61,6 +61,7 @@ namespace Joveler.FileMagician
 
             #region Operations
             MagicGetPath = GetFuncPtr<magic_getpath>(nameof(magic_getpath));
+            MagicFile = GetFuncPtr<magic_file>(nameof(magic_file));
             MagicBuffer = GetFuncPtr<magic_buffer>(nameof(magic_buffer));
 
             MagicError = GetFuncPtr<magic_error>(nameof(magic_error));
@@ -90,6 +91,7 @@ namespace Joveler.FileMagician
 
             #region Operations
             MagicGetPath = null;
+            MagicFile = null;
             MagicBuffer = null;
 
             MagicError = null;
@@ -126,6 +128,10 @@ namespace Joveler.FileMagician
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal delegate IntPtr magic_getpath(IntPtr magicfile, int action);
         internal magic_getpath? MagicGetPath;
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        internal unsafe delegate IntPtr magic_file(IntPtr ms, [MarshalAs(UnmanagedType.LPStr)] string inName);
+        internal magic_file? MagicFile;
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         internal unsafe delegate IntPtr magic_buffer(IntPtr ms, byte* buf, nint nb);

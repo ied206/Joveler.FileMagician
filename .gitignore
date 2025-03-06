@@ -1,6 +1,8 @@
 # Joveler-specific Resoures
 res/
 native/posix/build/
+native/posix/build-*/
+native/windows/build/
 native/windows/build-*/
 *.db
 
