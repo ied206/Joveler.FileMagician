@@ -171,7 +171,9 @@ for BUILD_MODE in "${BUILD_MODES[@]}"; do
         --disable-zstdlib \
         --disable-lzlib \
         --disable-lrziplib \
-        CFALGS="-Os" \
+        CPPFLAGS="${CPPFLAGS}" \
+        CFLAGS="${CFLAGS} -Os" \
+        LDFLAGS="${LDFLAGS} -Os" \
         ${CONFIGURE_ARGS}
     make "-j${CORES}"
 
