@@ -15,18 +15,29 @@
 # Solution 2) Patch libmagic to use dllexport on Windows.
 
 # Check script arguments
-while getopts "a:t:" opt; do
+function print_help() {
+    echo "Usage: $0 <-a i686|x86_64|aarch64> [-t TOOLCHAIN_DIR] [-r RADARE2_DIR] <SRCDIR>" >&2
+}
+
+while getopts "a:t:r:h" opt; do
   case $opt in
     a) # architecture
-      ARCH=$OPTARG
-      ;;
+        ARCH=$OPTARG
+        ;;
     t) # toolchain, required for aarch64
-      TOOLCHAIN_DIR=$OPTARG
-      ;;
+        TOOLCHAIN_DIR=$OPTARG
+        ;;
+    r) # radare2, optional
+        RADARE2_DIR=$OPTARG
+        ;;
+    h)
+        print_help
+        exit 1
+        ;;
     :)
-      echo "Usage: $0 <-a i686|x86_64|aarch64> [-t TOOLCHAIN_DIR] <FILE_SRCDIR>" >&2
-      exit 1
-      ;;
+        print_help
+        exit 1
+        ;;
   esac
 done
 # Parse <FILE_SRCDIR>
@@ -45,13 +56,37 @@ BASE_DIR=$(dirname "${BASE_ABS_PATH}")
 GNURX_DIR="${BASE_DIR}/libgnurx-2.5.1"
 DEST_DIR=${BASE_DIR}/build-${ARCH}
 CORES=$(grep -c ^processor /proc/cpuinfo)
+HOST_ARCH=$(uname -m)
 
 # [*] Set library paths
 GNURX_LIB="libgnurx-0.dll"
 DEST_LIB="libmagic-1.dll"
 DEST_EXE="file.exe"
-STRIP="strip"
+STRIP="${TARGET_TRIPLE}-strip"
 CHECKDEP="ldd"
+if ! command -v "${STRIP}" &> /dev/null
+then
+    STRIP="strip"
+fi
+
+# [*] If radare2 is available, use rabin2 instead of ldd.
+# Win32 ldd is not that correct when checking cross-compiled binaries.
+if [[ ! -z "${RADARE2_DIR}" ]]; then # -r not set
+    RABIN2="${RADARE2_DIR}/bin/rabin2.exe"
+    which "${RABIN2}" > /dev/null
+    if [[ $? -ne 0 ]]; then # rabin2 does not exist
+        RABIN2=
+    fi
+fi
+if [[ -z "${RABIN2}" ]]; then
+    which rabin2 > /dev/null
+    if [[ $? -eq 0 ]]; then # rabin is callable
+        RABIN2=rabin2
+    fi
+fi
+if [[ ! -z "${RABIN2}" ]]; then # rabin2 command was found
+    CHECKDEP="${RABIN2} -Al"
+fi
 
 # [*] Set target triple
 if [ "${ARCH}" = i686 ]; then
@@ -82,7 +117,7 @@ fi
 pushd "${GNURX_DIR}" > /dev/null
 make clean
 ./configure --host=${TARGET_TRIPLE} CFLAGS="-Os"
-if [[ $? -ne 0 ]]; then # Unable to find nasm
+if [[ $? -ne 0 ]]; then
     echo "[libgnurx] configure has failed." >&2
     exit 1
 fi
@@ -97,41 +132,45 @@ popd > /dev/null
 # [*] Compile libmagic
 # If a target arch is not compatible with host arch, magic.mgc creation will fail, but it is ignorable.
 # If you want to really prevent this, run make with 'FILE_COMPILE={PATH_TO_RUNNABLE_FILE_SAME_VER}'.
-BUILD_MODES=( "exe" "lib" )
+BUILD_MODES=( "lib" "exe" )
 pushd "${SRC_DIR}" > /dev/null
 for BUILD_MODE in "${BUILD_MODES[@]}"; do
     CONFIGURE_ARGS=""
     if [ "$BUILD_MODE" = "lib" ]; then
-        CONFIGURE_ARGS="--enable-static=no --enable-shared=yes"
+        CONFIGURE_ARGS="--disable-static --enable-shared"
     elif [ "$BUILD_MODE" = "exe" ]; then
-        CONFIGURE_ARGS="--enable-static=yes --enable-shared=no"
+        CONFIGURE_ARGS="--enable-static --disable-shared"
     fi
 
-# CFLAGS="-I${GNURX_DIR} -Os -fvisibility=default" \
+    # --libdir=${SRC_DIR} required for cross-compiling .exe
+    # If not, libtool automatically include `-L/ucrt64/lib`, causing x86_64 libmsvcrt.a/libmingw32.a to be always linked and cause an error.
     make clean
     autoreconf -f -i # Required to use own libgnurx
-    ./configure --host=${TARGET_TRIPLE} \
+    ./configure --host=${TARGET_TRIPLE} --libdir=${SRC_DIR} \
         --disable-zlib \
         --disable-bzlib \
         --disable-xzlib \
         --disable-zstdlib \
         --disable-lzlib \
+        --disable-lrziplib \
         CFLAGS="-I${GNURX_DIR} -Os" \
         LDFLAGS="-L${GNURX_DIR} " \
-        "${CONFIGURE_ARGS}"
-    if [[ $? -ne 0 ]]; then # Unable to find nasm
-    echo "[file] configure has failed." >&2
-    exit 1
-fi
+        ${CONFIGURE_ARGS}
+    if [[ $? -ne 0 ]]; then # configure failed
+        echo "[file] configure has failed, please check 'config.log'." >&2
+        exit 1
+    fi
     make "-j${CORES}"
 
     if [ "$BUILD_MODE" = "lib" ]; then
         cp "src/.libs/${DEST_LIB}" "${DEST_DIR}"
-        cat magic/Magdir/* > "${DEST_DIR}/magic.src"
+        cat magic/Header magic/Localstuff magic/Magdir/* > "${DEST_DIR}/magic.src"
         cp COPYING "${DEST_DIR}"
     elif [ "$BUILD_MODE" = "exe" ]; then
         cp "src/${DEST_EXE}" "${DEST_DIR}"
-        cp magic/magic.mgc "${DEST_DIR}"
+        if [[ "${HOST_ARCH}" == "${ARCH}" ]]; then
+            cp magic/magic.mgc "${DEST_DIR}"
+        fi
     fi    
 done 
 popd > /dev/null
@@ -147,6 +186,8 @@ rm -f "${SRC_DIR}/src/${GNURX_LIB}"
 
 # [*] Strip binaries
 pushd "${DEST_DIR}" > /dev/null
+echo
+echo "[*] Stripping [${DEST_LIB}]" 
 ls -lh *.dll *.exe
 ${STRIP} "${GNURX_LIB}" "${DEST_LIB}" "${DEST_EXE}" 
 ls -lh *.dll *.exe
@@ -154,5 +195,14 @@ popd > /dev/null
 
 # [*] Print dependency of binaries
 pushd "${DEST_DIR}" > /dev/null
-${CHECKDEP} "${GNURX_LIB}" "${DEST_LIB}" "${DEST_EXE}"
+file "${GNURX_LIB}" "${DEST_LIB}" "${DEST_EXE}" 
+echo
+echo "[*] Linked libraries of [${GNURX_LIB}]" 
+${CHECKDEP} "${GNURX_LIB}"
+echo
+echo "[*] Linked libraries of [${DEST_LIB}]" 
+${CHECKDEP} "${DEST_LIB}"
+echo
+echo "[*] Linked libraries of [${DEST_EXE}]" 
+${CHECKDEP} "${DEST_EXE}"
 popd > /dev/null

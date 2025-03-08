@@ -27,6 +27,7 @@
 */
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -34,11 +35,11 @@ using System.Runtime.InteropServices;
 
 namespace Joveler.FileMagician
 {
-    public class Magic : IDisposable
+    public sealed class Magic : IDisposable
     {
         #region LoadManager
         internal static MagicLoadManager Manager = new MagicLoadManager();
-        internal static MagicLoader Lib => Manager.Lib;
+        internal static MagicLoader? Lib => Manager.Lib;
         #endregion
 
         #region (static) GlobalInit, GlobalCleanup
@@ -55,7 +56,7 @@ namespace Joveler.FileMagician
         /// <summary>
         /// For LoadBuffer
         /// </summary>
-        private readonly List<Tuple<IntPtr, UIntPtr>> _magicBuffers; // Ptr, Size
+        private readonly List<Tuple<IntPtr, nint>> _magicBuffers; // Ptr, Size
         #endregion
 
         #region Constructor (private)
@@ -64,7 +65,7 @@ namespace Joveler.FileMagician
             Manager.EnsureLoaded();
 
             _magicPtr = ptr;
-            _magicBuffers = new List<Tuple<IntPtr, UIntPtr>>();
+            _magicBuffers = new List<Tuple<IntPtr, nint>>();
         }
         #endregion
 
@@ -80,15 +81,17 @@ namespace Joveler.FileMagician
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private void Dispose(bool disposing)
         {
             if (!disposing)
                 return;
             if (_magicPtr == IntPtr.Zero)
                 return;
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
 
             // Close magic_t instance.
-            Lib.MagicClose(_magicPtr);
+            Lib.MagicClose!(_magicPtr);
             _magicPtr = IntPtr.Zero;
 
             // Free database buffer if it has been allocated.
@@ -103,8 +106,11 @@ namespace Joveler.FileMagician
         {
             Manager.EnsureLoaded();
 
-            IntPtr ptr = Lib.MagicOpen(flags);
-            if (ptr == null)
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            IntPtr ptr = Lib.MagicOpen!(flags);
+            if (ptr == IntPtr.Zero)
                 throw new InvalidOperationException("Cannot create magic");
 
             return new Magic(ptr);
@@ -116,8 +122,11 @@ namespace Joveler.FileMagician
         {
             Manager.EnsureLoaded();
 
-            IntPtr ptr = Lib.MagicOpen(flags);
-            if (ptr == null)
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            IntPtr ptr = Lib.MagicOpen!(flags);
+            if (ptr == IntPtr.Zero)
                 throw new InvalidOperationException("Cannot create magic");
 
             Magic magic = new Magic(ptr);
@@ -131,9 +140,12 @@ namespace Joveler.FileMagician
         /// Get default path of magicFile.
         /// NOTE: This function does not support Unicode on Windows.
         /// </summary>
-        public static string GetDefaultMagicFilePath()
+        public static string? GetDefaultMagicFilePath()
         {
-            IntPtr strPtr = Lib.MagicGetPath(IntPtr.Zero, 0);
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            IntPtr strPtr = Lib.MagicGetPath!(IntPtr.Zero, 0);
             return Marshal.PtrToStringAnsi(strPtr);
         }
         #endregion
@@ -142,11 +154,14 @@ namespace Joveler.FileMagician
         /// <summary>
         /// Load a magic file.
         /// </summary>
-        public void LoadMagicFile(string magicFile)
+        public void LoadMagicFile(string? magicFile)
         {
-            void InternalLoadMagicFile(string filepath)
+            void InternalLoadMagicFile(string? filepath)
             {
-                int ret = Lib.MagicLoad(_magicPtr, filepath);
+                if (Lib == null)
+                    throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+                int ret = Lib.MagicLoad!(_magicPtr, filepath);
                 CheckMagicError(ret);
             }
 
@@ -210,13 +225,16 @@ namespace Joveler.FileMagician
         /// </summary>
         public unsafe void LoadMagicBuffer(ReadOnlySpan<byte> magicSpan)
         {
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
             // Free and re-alloc magic buffers.
             FreeMagicBuffers();
             AllocMagicBuffer(magicSpan);
 
             // Call magic_load_buffers()
-            GetMagicBufferPtrs(out IntPtr[] buffers, out UIntPtr[] sizes, out UIntPtr nbufs);
-            int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
+            GetMagicBufferPtrs(out IntPtr[] buffers, out nint[] sizes, out nint nbufs);
+            int ret = Lib.MagicLoadBuffers!(_magicPtr, buffers, sizes, nbufs);
             CheckMagicError(ret);
         }
 
@@ -225,14 +243,17 @@ namespace Joveler.FileMagician
         /// </summary>
         public void LoadMagicBuffers(IEnumerable<byte[]> magicBufs)
         {
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
             // Free and re-alloc magic buffers.
             FreeMagicBuffers();
             foreach (byte[] magicBuf in magicBufs)
                 AllocMagicBuffer(magicBuf);
 
             // Call magic_load_buffers()
-            GetMagicBufferPtrs(out IntPtr[] buffers, out UIntPtr[] sizes, out UIntPtr nbufs);
-            int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
+            GetMagicBufferPtrs(out IntPtr[] buffers, out nint[] sizes, out nint nbufs);
+            int ret = Lib.MagicLoadBuffers!(_magicPtr, buffers, sizes, nbufs);
             CheckMagicError(ret);
         }
 
@@ -241,14 +262,17 @@ namespace Joveler.FileMagician
         /// </summary>
         public void LoadMagicBuffers(IEnumerable<ArraySegment<byte>> magicBufs)
         {
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
             // Free and re-alloc magic buffers.
             FreeMagicBuffers();
             foreach (ArraySegment<byte> magicBufSeg in magicBufs)
                 AllocMagicBuffer(magicBufSeg);
 
             // Call magic_load_buffers()
-            GetMagicBufferPtrs(out IntPtr[] buffers, out UIntPtr[] sizes, out UIntPtr nbufs);
-            int ret = Lib.MagicLoadBuffers(_magicPtr, buffers, sizes, nbufs);
+            GetMagicBufferPtrs(out IntPtr[] buffers, out nint[] sizes, out nint nbufs);
+            int ret = Lib.MagicLoadBuffers!(_magicPtr, buffers, sizes, nbufs);
             CheckMagicError(ret);
         }
         #endregion
@@ -268,14 +292,14 @@ namespace Joveler.FileMagician
                 butPtr[i] = magicSpan[i];
 
             // Add the new heap into the heap list
-            _magicBuffers.Add(new Tuple<IntPtr, UIntPtr>(magicBufPtr, (UIntPtr)magicSpan.Length));
+            _magicBuffers.Add(new Tuple<IntPtr, nint>(magicBufPtr, magicSpan.Length));
         }
 
-        private void GetMagicBufferPtrs(out IntPtr[] buffers, out UIntPtr[] sizes, out UIntPtr nbufs)
+        private void GetMagicBufferPtrs(out IntPtr[] buffers, out nint[] sizes, out nint nbufs)
         {
             buffers = new IntPtr[_magicBuffers.Count];
-            sizes = new UIntPtr[_magicBuffers.Count];
-            nbufs = (UIntPtr)_magicBuffers.Count;
+            sizes = new nint[_magicBuffers.Count];
+            nbufs = _magicBuffers.Count;
 
             for (int i = 0; i < _magicBuffers.Count; i++)
             {
@@ -305,19 +329,28 @@ namespace Joveler.FileMagician
 
         #region Check Type
         /// <summary>
-        /// Check type of a given file by inspecting first 256KB.
+        /// Check type of a given file by inspecting first 1MB.
         /// </summary>
         /// <param name="inName">File to check its type.</param>
-        public string CheckFile(string inName)
+        public string? CheckFile(string inName)
         {
-            int bytesRead;
-            byte[] magicBuffer = new byte[256 * 1024]; // `file` command use 256KB buffer by default
-            using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
-            {
-                bytesRead = fs.Read(magicBuffer, 0, magicBuffer.Length);
-            }
+            const int defaultBufferSize = 1024 * 1024;
 
-            return CheckBuffer(magicBuffer, 0, bytesRead);
+            byte[] magicBuffer = ArrayPool<byte>.Shared.Rent(defaultBufferSize);
+            try 
+            {
+                int bytesRead;
+                using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
+                {
+                    bytesRead = fs.Read(magicBuffer, 0, defaultBufferSize);
+                }
+
+                return CheckBuffer(magicBuffer, 0, bytesRead);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(magicBuffer);
+            }
         }
 
         /// <summary>
@@ -326,8 +359,16 @@ namespace Joveler.FileMagician
         /// <param name="inName">File to check its type.</param>
         /// <param name="checkSize">How many bytes to check?</param>
         /// <returns></returns>
-        public string CheckFile(string inName, int checkSize)
+        public unsafe string? CheckFile(string inName, int checkSize)
         {
+            /*
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            IntPtr strPtr = Lib.MagicFile!(_magicPtr, inName);
+            return Marshal.PtrToStringAnsi(strPtr);
+            */
+            
             int bytesRead;
             byte[] magicBuffer = new byte[checkSize];
             using (FileStream fs = new FileStream(inName, FileMode.Open, FileAccess.Read))
@@ -341,7 +382,7 @@ namespace Joveler.FileMagician
         /// <summary>
         /// Check type of a given buffer.
         /// </summary>
-        public string CheckBuffer(byte[] buffer, int offset, int count)
+        public string? CheckBuffer(byte[] buffer, int offset, int count)
         {
             CheckReadWriteArgs(buffer, offset, count);
 
@@ -352,12 +393,15 @@ namespace Joveler.FileMagician
         /// <summary>
         /// Check type of a given buffer.
         /// </summary>
-        public unsafe string CheckBuffer(ReadOnlySpan<byte> span)
+        public unsafe string? CheckBuffer(ReadOnlySpan<byte> span)
         {
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
             IntPtr strPtr;
             fixed (byte* bufPtr = span)
             {
-                strPtr = Lib.MagicBuffer(_magicPtr, bufPtr, (UIntPtr)span.Length);
+                strPtr = Lib.MagicBuffer!(_magicPtr, bufPtr, span.Length);
             }
             return Marshal.PtrToStringAnsi(strPtr);
         }
@@ -366,12 +410,18 @@ namespace Joveler.FileMagician
         #region Manage Flags
         public MagicFlags GetFlags()
         {
-            return Lib.MagicGetFlags(_magicPtr);
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            return Lib.MagicGetFlags!(_magicPtr);
         }
 
         public void SetFlags(MagicFlags flags)
         {
-            int ret = Lib.MagicSetFlags(_magicPtr, flags);
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            int ret = Lib.MagicSetFlags!(_magicPtr, flags);
             CheckMagicError(ret);
         }
         #endregion
@@ -382,10 +432,13 @@ namespace Joveler.FileMagician
         /// </summary>
         public unsafe ulong GetParam(MagicParam param)
         {
-            UIntPtr size = new UIntPtr(0); // size_t
-            int ret = Lib.MagicGetParam(_magicPtr, param, &size);
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            nint size = 0; // size_t
+            int ret = Lib.MagicGetParam!(_magicPtr, param, &size);
             CheckMagicError(ret);
-            return size.ToUInt64();
+            return (ulong)size;
         }
 
         /// <summary>
@@ -393,8 +446,11 @@ namespace Joveler.FileMagician
         /// </summary>
         public unsafe void SetParam(MagicParam param, ulong value)
         {
-            UIntPtr size = new UIntPtr(value); // size_t
-            int ret = Lib.MagicSetParam(_magicPtr, param, &size);
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            nint size = (nint)value; // size_t
+            int ret = Lib.MagicSetParam!(_magicPtr, param, &size);
             CheckMagicError(ret);
         }
         #endregion
@@ -444,9 +500,12 @@ namespace Joveler.FileMagician
         /// </returns>
         public void Compile(string magicSrcFile)
         {
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
             // magic_compile() creates magic.mgc file on same directory as source.
             // Filename would be $"{magicSrcFile}.mgc".
-            int ret = Lib.MagicCompile(_magicPtr, magicSrcFile);
+            int ret = Lib.MagicCompile!(_magicPtr, magicSrcFile);
             CheckMagicError(ret);
         }
         #endregion
@@ -458,7 +517,7 @@ namespace Joveler.FileMagician
             {
                 Manager.EnsureLoaded();
 
-                return Lib.MagicVersion();
+                return Lib!.MagicVersion!();
             }
         }
 
@@ -468,7 +527,7 @@ namespace Joveler.FileMagician
             {
                 Manager.EnsureLoaded();
 
-                int verInt = Lib.MagicVersion();
+                int verInt = Lib!.MagicVersion!();
                 return new Version(verInt / 100, verInt % 100);
             }
         }
@@ -495,20 +554,20 @@ namespace Joveler.FileMagician
             return IsNumberCompiledMagic(mgcMagic);
         }
 
-        public static bool IsBufferCompiledMagic(Span<byte> span)
+        public static bool IsBufferCompiledMagic(ReadOnlySpan<byte> span)
         {
             if (span.Length < 4)
                 return false;
 
             uint mgcMagic = 0;
 #if NETFRAMEWORK || NETSTANDARD
-            byte[] buffer = new byte[4]
-            {
+            byte[] buffer =
+            [
                 span[0],
                 span[1],
                 span[2],
                 span[3],
-            };
+            ];
             mgcMagic = BitConverter.ToUInt32(buffer, 0);
 #else
             mgcMagic = BitConverter.ToUInt32(span);
@@ -530,9 +589,12 @@ namespace Joveler.FileMagician
                 throw new InvalidOperationException(GetLastErrorMessage());
         }
 
-        private string GetLastErrorMessage()
+        private string? GetLastErrorMessage()
         {
-            IntPtr strPtr = Lib.MagicError(_magicPtr);
+            if (Lib == null)
+                throw new InvalidOperationException(Manager.ErrorMsgInitFirstInternal);
+
+            IntPtr strPtr = Lib.MagicError!(_magicPtr);
             if (strPtr == IntPtr.Zero)
                 return "Unknown libmagic error.";
             return Marshal.PtrToStringAnsi(strPtr);

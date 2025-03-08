@@ -90,7 +90,7 @@
                       HasTrailingSlash('$(OutDir)') And
                       Exists('$(OutDir)')"
           Inputs="@(InteropLibFiles_x64)"
-          Outputs="@(InteropLibFiles_x64 -> '$(OutDir)x86\%(Filename)%(Extension)')">
+          Outputs="@(InteropLibFiles_x64 -> '$(OutDir)x64\%(Filename)%(Extension)')">
     <Copy SourceFiles="@(InteropLibFiles_x64)"
           DestinationFiles="@(InteropLibFiles_x64 -> '$(OutDir)x64\%(Filename)%(Extension)')" />
   </Target>
@@ -100,7 +100,7 @@
                       HasTrailingSlash('$(OutDir)') And
                       Exists('$(OutDir)')"
           Inputs="@(InteropLibFiles_arm64)"
-          Outputs="@(InteropLibFiles_arm64 -> '$(OutDir)x86\%(Filename)%(Extension)')">
+          Outputs="@(InteropLibFiles_arm64 -> '$(OutDir)arm64\%(Filename)%(Extension)')">
     <Copy SourceFiles="@(InteropLibFiles_arm64)"
           DestinationFiles="@(InteropLibFiles_arm64 -> '$(OutDir)arm64\%(Filename)%(Extension)')" />
   </Target>
@@ -110,7 +110,7 @@
                       HasTrailingSlash('$(OutDir)') And
                       Exists('$(OutDir)')"
           Inputs="@(InteropMgcFiles)"
-          Outputs="@(InteropMgcFiles -> '$(OutDir)x86\%(Filename)%(Extension)')">
+          Outputs="@(InteropMgcFiles -> '$(OutDir)%(Filename)%(Extension)')">
     <Copy SourceFiles="@(InteropMgcFiles)"
           DestinationFiles="@(InteropMgcFiles -> '$(OutDir)%(Filename)%(Extension)')" />
   </Target>
@@ -145,7 +145,7 @@
                      '$(OutDir)' != '' And
                      HasTrailingSlash('$(OutDir)') And
                      Exists('$(OutDir)')">
-    <Delete Files="@(InteropMgcFiles -> '$(OutDir)mgc\%(Filename)%(Extension)')" />
+    <Delete Files="@(InteropMgcFiles -> '$(OutDir)%(Filename)%(Extension)')" />
   </Target>
 
   <!--

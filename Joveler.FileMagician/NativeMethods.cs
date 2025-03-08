@@ -30,24 +30,34 @@ using System.Runtime.InteropServices;
 
 namespace Joveler.FileMagician
 {
+#if NETCOREAPP
+    internal partial class NativeMethods
+#else
     internal class NativeMethods
+#endif
     {
         #region EncodingHelper
         public const uint CP_ACP = 0;
         public const uint WC_NO_BEST_FIT_CHARS = 0x00000400;
 
+#if NETCOREAPP
+        [LibraryImport("kernel32.dll", StringMarshalling = StringMarshalling.Utf16)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        public static partial int GetACP();
+#else
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         public static extern int GetACP();
+#endif
 
         [DllImport("kernel32.dll")]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         public static extern unsafe int WideCharToMultiByte(
             uint codePage,
             uint dwFlags,
-            [MarshalAs(UnmanagedType.LPWStr)] string lpWideCharStr,
+            [MarshalAs(UnmanagedType.LPWStr)] string? lpWideCharStr,
             int cchWideChar,
-            [MarshalAs(UnmanagedType.LPArray)] byte[] lpMultiByteStr,
+            [MarshalAs(UnmanagedType.LPArray)] byte[]? lpMultiByteStr,
             int cbMultiByte,
             byte* lpDefaultChar,
             int* lpUsedDefaultChar);

@@ -35,6 +35,8 @@ namespace Joveler.FileMagician
         protected override string ErrorMsgInitFirst => "Please call Magic.GlobalInit() first!";
         protected override string ErrorMsgAlreadyLoaded => "Joveler.FileMagician is already initialized.";
 
+        internal string ErrorMsgInitFirstInternal => ErrorMsgInitFirst;
+
         protected override MagicLoader CreateLoader() => new MagicLoader();
     }
 }

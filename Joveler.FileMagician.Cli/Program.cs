@@ -26,6 +26,14 @@ namespace Joveler.FileMagician.Samples
         public bool OutputMimeType { get; set; }
         [Option("mime-encoding", Required = false, Default = false, HelpText = "Output MIME encoding.")]
         public bool OutputMimeEncoding { get; set; }
+        [Option('k', "keep-going", Required = false, Default = false, HelpText = "Keep matching after the first match.")]
+        public bool KeepGoing { get; set; }
+        [Option('r', "raw", Required = false, Default = false, HelpText = "Do not escape unprintable characters.")]
+        public bool Raw { get; set; }
+        [Option('c', "checking-printout", Required = false, Default = false, HelpText = "Check parsed magic signatures.")]
+        public bool CheckingPrintout { get; set; }
+        [Option('d', "debug", Required = false, Default = false, HelpText = "Print debug messages.")]
+        public bool Debug { get; set; }
         [Value(0, HelpText = "FILEs to insepct.")]
         public IEnumerable<string> TargetFiles { get; set; } = Array.Empty<string>();
     }
@@ -200,17 +208,26 @@ namespace Joveler.FileMagician.Samples
                 magicFlags |= MagicFlags.MimeType;
             else if (opts.OutputMimeEncoding)
                 magicFlags |= MagicFlags.MimeEncoding;
+            
+            if (opts.KeepGoing)
+                magicFlags |= MagicFlags.Continue;
+            if (opts.Raw)
+                magicFlags |= MagicFlags.Raw;
+            if (opts.CheckingPrintout)
+                magicFlags |= MagicFlags.Check;
+            if (opts.Debug)
+                magicFlags |= MagicFlags.Check | MagicFlags.Debug;
 
             // Process target files
-            List<MagicEntry> targetFiles = new List<MagicEntry>();
-            string[] rawTargetFiles = opts.TargetFiles.ToArray();
+            List<MagicEntry> targetFiles = [];
+            string[] rawTargetFiles = [.. opts.TargetFiles];
             if (rawTargetFiles.Length == 0)
             {
                 Console.WriteLine($"No target file or directory");
                 Environment.Exit(1);
             }
             
-            char[] wildcardAnyOf = new char[] { '*', '?' };
+            char[] wildcardAnyOf = ['*', '?'];
             foreach (string rawTargetFile in rawTargetFiles)
             {
                 if (rawTargetFile.IndexOfAny(wildcardAnyOf) != -1)
@@ -246,12 +263,12 @@ namespace Joveler.FileMagician.Samples
             }
 
             int maxPathSize = Math.Min(targetFiles.Max(x => x.DisplayName.Length), 60);
-            List<MagicEntry> results = new List<MagicEntry>(targetFiles.Count);
+            List<MagicEntry> results = new(targetFiles.Count);
             using (Magic magic = Magic.Open(magicFile, magicFlags))
             {
                 foreach (MagicEntry entry in targetFiles)
                 {
-                    string output;
+                    string? output;
                     try
                     {
                         if (Directory.Exists(entry.Target))
@@ -265,7 +282,7 @@ namespace Joveler.FileMagician.Samples
                     {
                         output = $"Cannot open [{entry.DisplayName}]: {e.Message}";
                     }
-                    entry.Output = output;
+                    entry.Output = output ?? "null";
                 }
             }
 
