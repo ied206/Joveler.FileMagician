@@ -2,6 +2,19 @@
 
 ## v2.x
 
+### v2.4.0
+
+- (BREAKING CHANGE) Now targets .NET 8.0/.NET Framework 4.6.2/.NET Standard 2.0.
+- Upgrades packaged libmagic binaries to 5.46.
+- Adds support for nullable reference type information.
+- Fix broken .NET Framework MSBuild script for copying native DLLs.
+
+### v2.3.1
+
+Releaed on 2023-08-03
+
+- Update included libmagic to 5.45.
+
 ### v2.3.0
 
 Released on 2023-02-15

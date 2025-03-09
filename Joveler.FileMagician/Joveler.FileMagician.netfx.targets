@@ -33,7 +33,7 @@
                         HasTrailingSlash('$(MSBuildThisFileDirectory)')">
     <InteropLibFiles_x86 Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x86\native\*.dll" />
     <InteropLibFiles_x64 Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\*.dll" />
-    <InteropLibFiles_x64 Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-arm64\native\*.dll" />
+    <InteropLibFiles_arm64 Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-arm64\native\*.dll" />
   </ItemGroup>
   <ItemGroup Condition="'$(ExcludeInteropMgc)' != 'true' And 
                         '$(MSBuildThisFileDirectory)' != '' And
